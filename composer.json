@@ -1,0 +1,34 @@
+{
+    "name": "lorisleiva/laravel-search-string",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Loris Leiva",
+            "email": "loris.leiva@gmail.com"
+        }
+    ],
+    "require": {
+        "illuminate/support": "5.5.*|5.6.*"
+    },
+    "require-dev": {
+        "orchestra/testbench": "~3.0"
+    },
+    "autoload": {
+       "psr-4": {
+            "Lorisleiva\\LaravelSearchString\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Lorisleiva\\LaravelSearchString\\Test\\": "tests"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Lorisleiva\\LaravelSearchString\\ServiceProvider"
+            ]
+        }
+    }
+}
