@@ -5,7 +5,7 @@ namespace Lorisleiva\LaravelSearchString\Tests;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Lexer\Lexer;
 use Lorisleiva\LaravelSearchString\Parser\Parser;
-use Lorisleiva\LaravelSearchString\Test\TestCase;
+use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
 
 class ParserTest extends TestCase

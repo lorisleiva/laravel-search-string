@@ -4,7 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Lorisleiva\LaravelSearchString\Lexer\Lexer;
 use Lorisleiva\LaravelSearchString\Parser\Parser;
-use Lorisleiva\LaravelSearchString\Test\TestCase;
+use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\DumpVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\FlattenAndOrVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;

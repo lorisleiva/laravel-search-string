@@ -1,6 +1,6 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Test;
+namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Lorisleiva\LaravelSearchString\Lexer\Lexer;
 use Lorisleiva\LaravelSearchString\Parser\Parser;

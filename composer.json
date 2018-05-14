@@ -21,7 +21,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Lorisleiva\\LaravelSearchString\\Test\\": "tests"
+            "Lorisleiva\\LaravelSearchString\\Tests\\": "tests"
         }
     },
     "extra": {
