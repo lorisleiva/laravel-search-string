@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests;
 
+use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Lexer\Lexer;
 use Lorisleiva\LaravelSearchString\Parser\Parser;
 use Lorisleiva\LaravelSearchString\Test\TestCase;
@@ -101,13 +102,29 @@ class ParserTest extends TestCase
     }
 
     /** @test */
+    function it_ignores_trailing_and_or_operators()
+    {
+        $this->assertAstFor('foo and', 'QUERY(foo = true)');
+        $this->assertAstFor('foo or', 'QUERY(foo = true)');
+    }
+
+    /** @test */
     function it_can_parse_query_values_as_list_of_terms_and_strings()
     {
         $this->assertAstFor('foo:1,2,3', 'QUERY(foo = [1, 2, 3])');
         $this->assertAstFor('foo: 1,2,3', 'QUERY(foo = [1, 2, 3])');
         $this->assertAstFor('foo :1,2,3', 'QUERY(foo = [1, 2, 3])');
         $this->assertAstFor('foo : 1,2,3', 'QUERY(foo = [1, 2, 3])');
+        $this->assertAstFor('foo : 1 , 2 , 3', 'QUERY(foo = [1, 2, 3])');
         $this->assertAstFor('foo = "A B C",baz,"bar"', 'QUERY(foo = [A B C, baz, bar])');
+    }
+
+    /** @test */
+    function it_parses_in_array_operator()
+    {
+        $this->assertAstFor('foo in(1,2,3)', 'QUERY(foo in [1, 2, 3])');
+        $this->assertAstFor('foo in (1,2,3)', 'QUERY(foo in [1, 2, 3])');
+        $this->assertAstFor(' foo in ( 1 , 2 , 3 ) ', 'QUERY(foo in [1, 2, 3])');
     }
 
     /** @test */
@@ -121,12 +138,83 @@ class ParserTest extends TestCase
             'sort:-name,date events > 10 and not started_at <= tomorrow', 
             'AND(QUERY(sort = [-name, date]), QUERY(events > 10), NOT(QUERY(started_at <= tomorrow)))'
         );
+        $this->assertAstFor(
+            'A (B) not C', 
+            'AND(QUERY(A = true), QUERY(B = true), NOT(QUERY(C = true)))'
+        );
+    }
+
+    /** @test */
+    function it_returns_false_if_no_ast_root_could_be_parsed()
+    {
+        $this->assertFalse($this->parse(''));
+    }
+
+    /** @test */
+    function it_fail_to_parse_unfinished_queries()
+    {
+        $this->assertParserFails('not ', 'T_EOL');
+        $this->assertParserFails('foo = ', 'T_EOL');
+        $this->assertParserFails('foo <= ', 'T_EOL');
+        $this->assertParserFails('foo in ', 'T_EOL');
+        $this->assertParserFails('(', 'T_EOL');
+    }
+
+    /** @test */
+    function it_fails_to_parse_lonely_operators()
+    {
+        $this->assertParserFails('and', 'T_AND');
+        $this->assertParserFails('or', 'T_OR');
+        $this->assertParserFails('in', 'T_IN');
+        $this->assertParserFails('=', 'T_ASSIGN');
+        $this->assertParserFails(':', 'T_ASSIGN');
+        $this->assertParserFails('<', 'T_COMPARATOR');
+        $this->assertParserFails('<=', 'T_COMPARATOR');
+        $this->assertParserFails('>', 'T_COMPARATOR');
+        $this->assertParserFails('>=', 'T_COMPARATOR');
+    }
+
+    /** @test */
+    function it_fails_to_parse_lonely_strings()
+    {
+        $this->assertParserFails('"lonely"', 'T_STRING');
+        $this->assertParserFails('foo and bar and "so lonely"', 'T_STRING');
+        $this->assertParserFails('not "still lonely"', 'T_STRING');
+    }
+
+    /** @test */
+    function it_fail_to_parse_weird_operator_combinations()
+    {
+        $this->assertParserFails('foo<>3', 'T_COMPARATOR');
+        $this->assertParserFails('foo=>3', 'T_COMPARATOR');
+        $this->assertParserFails('foo=<3', 'T_COMPARATOR');
+        $this->assertParserFails('foo < in 3', 'T_IN');
+        $this->assertParserFails('foo in = 1,2,3', 'T_ASSIGN');
+        $this->assertParserFails('foo == 1,2,3', 'T_ASSIGN');
+        $this->assertParserFails('foo := 1,2,3', 'T_ASSIGN');
+        $this->assertParserFails('foo:1:2:3:4', 'T_ASSIGN');
     }
 
     public function assertAstFor($input, $expectedAst)
     {
-        $tokens = (new Lexer(config('search-string.token_map')))->lex($input);
-        $ast = (new Parser($tokens))->parse();
-        $this->assertEquals($expectedAst, $ast->accept(new InlineDumpVisitor()));
+        $this->assertEquals(
+            $expectedAst, 
+            $this->parse($input)->accept(new InlineDumpVisitor())
+        );
+    }
+
+    public function assertParserFails($input, $problematicType = null)
+    {
+        try {
+            $ast = $this->parse($input);
+            $output = $ast->accept(new InlineDumpVisitor());
+            $this->fail("Expected \"$input\" to fail. Instead got: \"$output\"");
+        } catch (InvalidSearchStringException $e) {
+            if ($problematicType) {
+                $this->assertEquals($problematicType, $e->getToken()->type);
+            } else {
+                $this->assertTrue(true);
+            }
+        }
     }
 }

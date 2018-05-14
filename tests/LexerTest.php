@@ -78,23 +78,25 @@ class LexerTest extends TestCase
     /** @test */
     function it_lexes_greedily_on_terms()
     {
-        $this->assetTokensFor('and ', 'T_AND T_SPACE');
-        $this->assetTokensFor('andora ', 'T_TERM T_SPACE');
-        $this->assetTokensFor('or ', 'T_OR T_SPACE');
-        $this->assetTokensFor('oracle ', 'T_TERM T_SPACE');
-        $this->assetTokensFor('not ', 'T_NOT T_SPACE');
-        $this->assetTokensFor('notice ', 'T_TERM T_SPACE');
+        $this->assetTokensFor('and', 'T_AND');
+        $this->assetTokensFor('andora', 'T_TERM');
+        $this->assetTokensFor('or', 'T_OR');
+        $this->assetTokensFor('oracle', 'T_TERM');
+        $this->assetTokensFor('not', 'T_NOT');
+        $this->assetTokensFor('notice', 'T_TERM');
     }
 
     /** @test */
-    function terminating_boolean_operators_are_terms()
+    function terminating_keywords_operators_stay_keywords()
     {
-        $this->assetTokensFor('and', 'T_TERM');
-        $this->assetTokensFor('or', 'T_TERM');
-        $this->assetTokensFor('not', 'T_TERM');
-        $this->assetTokensFor('and)', 'T_TERM T_RPARENT');
-        $this->assetTokensFor('or)', 'T_TERM T_RPARENT');
-        $this->assetTokensFor('not)', 'T_TERM T_RPARENT');
+        $this->assetTokensFor('and', 'T_AND');
+        $this->assetTokensFor('or', 'T_OR');
+        $this->assetTokensFor('not', 'T_NOT');
+        $this->assetTokensFor('in', 'T_IN');
+        $this->assetTokensFor('and)', 'T_AND T_RPARENT');
+        $this->assetTokensFor('or)', 'T_OR T_RPARENT');
+        $this->assetTokensFor('not)', 'T_NOT T_RPARENT');
+        $this->assetTokensFor('in)', 'T_IN T_RPARENT');
     }
 
     public function assetTokensFor($input, $expectedTokens)

@@ -2,48 +2,44 @@
 
 namespace Lorisleiva\LaravelSearchString\Parser;
 
+use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Lexer\Token;
 
 class Parser
 {
-    protected $tokens;
+    protected $tokens = [];
     protected $pointer = 0;
 
-    function __construct($tokens)
+    public function parse($tokens)
     {
         $this->tokens = $tokens;
-    }
-
-    public function parse()
-    {
+        $this->pointer = 0;
         return $this->parseOr();
     }
 
-    public function parseOr()
+    protected function parseOr()
     {
         $expressions = collect();
 
         while ($expression = $this->parseAnd()) {
             $expressions->push($expression);
-            $this->trim('T_SPACE', 'T_OR');
+            $this->skip('T_SPACE', 'T_OR');
         }
 
-        if (! in_array($this->current()->type, ['T_RPARENT', 'T_EOL'])) {
-            throw $this->expected('closing parenthesis or end of line');
-        }
+        $this->expect('T_RPARENT', 'T_EOL');
 
         if ($expressions->isEmpty()) return false;
         if ($expressions->count() === 1) return $expressions->first();
         return new OrSymbol($expressions);
     }
 
-    public function parseAnd()
+    protected function parseAnd()
     {
         $expressions = collect();
 
         while ($expression = $this->parseNot()) {
             $expressions->push($expression);
-            $this->trim('T_SPACE', 'T_AND');
+            $this->skip('T_SPACE', 'T_AND');
         }
 
         if ($expressions->isEmpty()) return false;
@@ -51,49 +47,41 @@ class Parser
         return new AndSymbol($expressions);
     }
 
-    public function parseNot()
+    protected function parseNot()
     {
         switch ($this->current()->type) {
             case 'T_NOT':
-                $this->next();
-                $expression = $this->parseExpression();
+                $this->nextWithout('T_SPACE');
 
-                if (! $expression) {
-                    throw $this->expected('a valid expression');
+                if (! $expression = $this->parseExpression()) {
+                    throw $this->expectedAnythingBut('T_RPARENT', 'T_EOL');
                 }
 
                 return new NotSymbol($expression);
             
             default:
+                $this->skip('T_SPACE');
                 return $this->parseExpression();
         }
     }
 
-    public function parseExpression()
+    protected function parseExpression()
     {
         $key = $this->current();
         switch ($key->type) {
             case 'T_TERM':
-                $this->next();
+                $this->nextWithout('T_SPACE');
                 return $this->parseOperator($key);
 
             case 'T_LPARENT': 
                 $this->next();
                 $expression = $this->parseOr();
-
-                if ($this->current()->type !== 'T_RPARENT') {
-                    throw $this->expected('a closing parenthesis');
-                }
-
+                $this->expect('T_RPARENT');
                 $this->next();
                 return $expression;
 
             case 'T_NOT':
                 return $this->parseNot();
-
-            case 'T_SPACE':
-                $this->next();
-                return $this->parseExpression();
             
             case 'T_RPARENT': 
             case 'T_EOL':
@@ -102,100 +90,129 @@ class Parser
         }
     }
 
-    public function parseOperator($key)
+    protected function parseOperator($key)
     {
         $operator = $this->current();
         switch ($operator->type) {
             case 'T_ASSIGN':
-                $this->next();
+                $this->nextWithout('T_SPACE');
                 return $this->parseQuery($key->content, '=');
 
             case 'T_COMPARATOR':
-                $this->next();
+                $this->nextWithout('T_SPACE');
                 return $this->parseQuery($key->content, $operator->content);
 
-            case 'T_SPACE':
-                $this->next();
-                return $this->parseOperator($key);
-
-            case 'T_AND':
-            case 'T_OR':
-            case 'T_RPARENT':
-            case 'T_EOL':
-                return new QuerySymbol($key->content, '=', true);
+            case 'T_IN':
+                $this->nextWithout('T_SPACE');
+                $this->expect('T_LPARENT');
+                $this->nextWithout('T_SPACE');
+                $expression = $this->parseArrayQuery($key->content, 'in', []);
+                $this->expect('T_RPARENT');
+                return $expression;
             
+            case 'T_LIST_SEPARATOR':
+            case 'T_STRING':
+                throw $this->expectedAnythingBut('T_LIST_SEPARATOR', 'T_STRING');
+
             default:
-                throw $this->expected('an operator');
+                // End of expression without an operator means the key is a boolean.
+                return new QuerySymbol($key->content, '=', true);
         }
     }
 
-    public function parseQuery($key, $operator)
+    protected function parseQuery($key, $operator)
     {
         switch ($this->current()->type) {
             case 'T_TERM':
             case 'T_STRING':
                 $value = $this->parseEndValue();
-                return $this->next()->type === 'T_LIST_SEPARATOR'
+                $this->nextWithout('T_SPACE');
+
+                return $this->current()->hasType('T_LIST_SEPARATOR')
                     ? $this->parseArrayQuery($key, $operator, [$value])
                     : new QuerySymbol($key, $operator, $value);
-
-            case 'T_SPACE':
-                $this->next();
-                return $this->parseQuery($key, $operator);
             
             default:
-                throw $this->expected('a query value');
+                throw $this->expected('T_TERM', 'T_STRING');
         }
     }
 
-    public function parseArrayQuery($key, $operator, $accumulator)
+    protected function parseArrayQuery($key, $operator, $accumulator)
     {
         switch ($this->current()->type) {
-            case 'T_LIST_SEPARATOR':
-                $this->next();
-                return $this->parseArrayQuery($key, $operator, $accumulator);
-
             case 'T_TERM':
             case 'T_STRING':
-                $value = $this->parseEndValue();
-                $this->next();
-                return $this->parseArrayQuery($key, $operator, array_merge($accumulator, [$value]));
-            
+                $accumulator = array_merge($accumulator, [$this->parseEndValue()]);
+                $this->nextWithout('T_SPACE');
+
+                return $this->current()->hasType('T_LIST_SEPARATOR')
+                    ? $this->parseArrayQuery($key, $operator, $accumulator)
+                    : new QuerySymbol($key, $operator, $accumulator);
+
+            case 'T_LIST_SEPARATOR':
+                $this->nextWithout('T_SPACE');
+                return $this->parseArrayQuery($key, $operator, $accumulator);
+                
             default:
                 return new QuerySymbol($key, $operator, $accumulator);
         }
     }
 
-    public function current()
+    protected function parseEndValue($token = null)
+    {
+        $token = $token ?? $this->current();
+        return $token->hasType('T_STRING')
+            ? substr($token->content, 1, -1) 
+            : $token->content;
+    }
+
+    protected function current()
     {
         return $this->tokens[$this->pointer] ?? new Token('T_EOL', null);
     }
 
-    public function next()
+    protected function next()
     {
         $this->pointer++;
         return $this->current();
     }
 
-    public function trim(...$tokenTypes)
+    protected function nextWithout(...$tokenTypes)
     {
-        while (in_array($this->current()->type, $tokenTypes)) {
+        $this->next();
+        return $this->skip(...$tokenTypes);
+    }
+
+    protected function skip(...$skippingTypes)
+    {
+        while ($this->current()->hasType(...$skippingTypes)) {
             $this->next();
+        }
+        return $this->current();
+    }
+
+    protected function expect(...$expected)
+    {
+        if (! $this->current()->hasType(...$expected)) {
+            throw $this->expected(...$expected);
         }
     }
 
-    public function parseEndValue($token = null)
+    protected function expectAnythingBut(...$unexpected)
     {
-        $token = $token ?? $this->current();
-        return $token->type === 'T_STRING' 
-            ? substr($token->content, 1, -1) 
-            : $token->content;
+        if ($this->current()->hasType(...$unexpected)) {
+            throw $this->expectedAnythingBut(...$unexpected);
+        }
     }
 
-    public function expected($expected, $found = null)
+    protected function expected(...$expected)
     {
-        $found = $found ?? $this->current();
-        $message = "Expected $expected, found $found";
-        return new \Exception($message);
+        return new InvalidSearchStringException($this->current(), $expected);
+    }
+
+    protected function expectedAnythingBut(...$unexpected)
+    {
+        $expected = collect(Token::ALL)->diff($unexpected);
+        return $this->expected(...$expected);
     }
 }
