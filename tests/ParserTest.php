@@ -3,8 +3,7 @@
 namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
-use Lorisleiva\LaravelSearchString\Lexer\Lexer;
-use Lorisleiva\LaravelSearchString\Parser\Parser;
+use Lorisleiva\LaravelSearchString\Facade\SearchString;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
 
@@ -197,18 +196,15 @@ class ParserTest extends TestCase
 
     public function assertAstFor($input, $expectedAst)
     {
-        $this->assertEquals(
-            $expectedAst, 
-            $this->parse($input)->accept(new InlineDumpVisitor())
-        );
+        $ast = SearchString::parse($input)->accept(new InlineDumpVisitor());
+        $this->assertEquals($expectedAst, $ast);
     }
 
     public function assertParserFails($input, $problematicType = null)
     {
         try {
-            $ast = $this->parse($input);
-            $output = $ast->accept(new InlineDumpVisitor());
-            $this->fail("Expected \"$input\" to fail. Instead got: \"$output\"");
+            $ast = SearchString::parse($input)->accept(new InlineDumpVisitor());
+            $this->fail("Expected \"$input\" to fail. Instead got: \"$ast\"");
         } catch (InvalidSearchStringException $e) {
             if ($problematicType) {
                 $this->assertEquals($problematicType, $e->getToken()->type);

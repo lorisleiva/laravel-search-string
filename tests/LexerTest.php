@@ -2,13 +2,8 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests;
 
-use Lorisleiva\LaravelSearchString\Lexer\Lexer;
-use Lorisleiva\LaravelSearchString\Parser\Parser;
+use Lorisleiva\LaravelSearchString\Facade\SearchString;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
-use Lorisleiva\LaravelSearchString\Visitor\DumpVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\FlattenAndOrVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 
 class LexerTest extends TestCase
 {
@@ -101,8 +96,7 @@ class LexerTest extends TestCase
 
     public function assetTokensFor($input, $expectedTokens)
     {
-        $lexer = new Lexer(config('search-string.token_map'));
-        $tokens = collect($lexer->lex($input))->map->type->implode(' ');
+        $tokens = SearchString::lex($input)->map->type->implode(' ');
         $this->assertEquals($expectedTokens, $tokens);
     }
 }

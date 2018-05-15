@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests;
 
+use Lorisleiva\LaravelSearchString\Facade\SearchString;
 use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 
@@ -46,7 +47,7 @@ class RemoveNotSymbolVisitorTest extends TestCase
 
     public function assertAstFor($input, $expectedAst)
     {
-        $ast = $this->parse($input)
+        $ast = SearchString::parse($input)
             ->accept(new RemoveNotSymbolVisitor())
             ->accept(new InlineDumpVisitor());
 
