@@ -59,6 +59,8 @@ class RemoveNotSymbolVisitor implements Visitor
             case '>=': return '<';
             case '<': return '>=';
             case '<=': return '>';
+            case 'in': return 'not in';
+            case 'not in': return 'in';
             default: return $operator;
         }
     }
