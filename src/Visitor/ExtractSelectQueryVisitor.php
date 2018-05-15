@@ -4,7 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Visitor;
 
 use Illuminate\Database\Eloquent\Builder;
 
-class ExtractFieldsQueryVisitor extends ExtractSpecialQueryVisitor
+class ExtractSelectQueryVisitor extends ExtractSpecialQueryVisitor
 {
     protected $builder;
 

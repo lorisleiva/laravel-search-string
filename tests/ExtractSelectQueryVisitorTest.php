@@ -3,10 +3,10 @@
 namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Lorisleiva\LaravelSearchString\Facade\SearchString;
-use Lorisleiva\LaravelSearchString\Visitor\ExtractFieldsQueryVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\ExtractSelectQueryVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 
-class ExtractFieldsQueryVisitorTest extends TestCase
+class ExtractSelectQueryVisitorTest extends TestCase
 {
     /** @test */
     function it_sets_the_columns_of_the_builder()
@@ -50,7 +50,7 @@ class ExtractFieldsQueryVisitorTest extends TestCase
         $builder = $this->getDummyBuilder($columns);
         SearchString::parse($input)
             ->accept(new RemoveNotSymbolVisitor)
-            ->accept(new ExtractFieldsQueryVisitor($builder, '/^fields$/'));
+            ->accept(new ExtractSelectQueryVisitor($builder, '/^fields$/'));
         return $builder;
     }
 }
