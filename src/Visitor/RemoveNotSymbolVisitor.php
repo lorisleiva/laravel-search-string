@@ -4,6 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Visitor;
 
 use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
+use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 
@@ -48,6 +49,11 @@ class RemoveNotSymbolVisitor implements Visitor
 
         $reverseOperator = $this->reverseOperator($query->operator);
         return new QuerySymbol($query->key, $reverseOperator, $query->value);
+    }
+
+    public function visitNull(NullSymbol $null)
+    {
+        return $null;
     }
 
     private function reverseOperator($operator)

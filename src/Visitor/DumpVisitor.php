@@ -4,6 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Visitor;
 
 use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
+use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 
@@ -52,5 +53,10 @@ class DumpVisitor implements Visitor
     public function visitQuery(QuerySymbol $query)
     {
         return $this->dump("$query->key $query->operator $query->value");
+    }
+
+    public function visitNull(NullSymbol $null)
+    {
+        return $this->dump('NULL');
     }
 }

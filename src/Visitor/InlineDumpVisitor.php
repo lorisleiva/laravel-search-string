@@ -4,6 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Visitor;
 
 use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
+use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 
@@ -43,5 +44,10 @@ class InlineDumpVisitor implements Visitor
         $value = is_bool($value) ? ($value ? 'true' : 'false') : $value;
         $value = is_array($value) ? '[' . implode(', ', $value) . ']' : $value;
         return "QUERY($query->key $query->operator $value)";
+    }
+
+    public function visitNull(NullSymbol $null)
+    {
+        return 'NULL';
     }
 }

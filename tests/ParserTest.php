@@ -144,9 +144,9 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_returns_false_if_no_ast_root_could_be_parsed()
+    function it_returns_a_null_symbol_if_no_ast_root_could_be_parsed()
     {
-        $this->assertFalse($this->parse(''));
+        $this->assertAstFor('', 'NULL');
     }
 
     /** @test */

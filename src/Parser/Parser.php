@@ -4,6 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Parser;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Lexer\Token;
+use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 
 class Parser
 {
@@ -14,7 +15,8 @@ class Parser
     {
         $this->tokens = $tokens;
         $this->pointer = 0;
-        return $this->parseOr();
+        $ast = $this->parseOr();
+        return $ast === false ? new NullSymbol : $ast;
     }
 
     protected function parseOr()
