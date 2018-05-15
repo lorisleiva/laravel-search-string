@@ -8,9 +8,9 @@ class OrSymbol extends Symbol
 {
     public $expressions;
 
-    function __construct($expressions)
+    function __construct($expressions = [])
     {
-        $this->expressions = $expressions;
+        $this->expressions = collect($expressions);
     }
 
     public function accept(Visitor $visitor)

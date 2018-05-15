@@ -12,12 +12,12 @@ class Lexer
 
     public function __construct(array $tokenMap, $delimiter = '~') {
         $gluedRegexes = implode('|', array_keys($tokenMap));
-        $this->regex = "$delimiter$gluedRegexes${delimiter}A";
+        $this->regex =  $delimiter . $gluedRegexes . $delimiter . 'A';
         $this->tokenTypes = array_values($tokenMap);
     }
 
     public function lex($string) {
-        $tokens = [];
+        $tokens = collect();
         $offset = 0;
 
         while (isset($string[$offset])) {
@@ -28,7 +28,7 @@ class Lexer
             // find the first non-empty element (but skipping $matches[0]) using a quick for loop
             for ($i = 1; '' === $matches[$i]; ++$i);
 
-            $tokens[] = new Token($this->tokenTypes[$i - 1], $matches[$i]);
+            $tokens->push(new Token($this->tokenTypes[$i - 1], $matches[$i]));
             $offset += strlen($matches[$i]);
         }
 
