@@ -7,6 +7,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
 
 class InlineDumpVisitor implements Visitor
 {
@@ -44,6 +45,13 @@ class InlineDumpVisitor implements Visitor
         $value = is_bool($value) ? ($value ? 'true' : 'false') : $value;
         $value = is_array($value) ? '[' . implode(', ', $value) . ']' : $value;
         return "QUERY($query->key $query->operator $value)";
+    }
+
+    public function visitSearch(SearchSymbol $search)
+    {
+        return $search->exclude
+            ? "SEARCH_NOT($search->content)"
+            : "SEARCH($search->content)";
     }
 
     public function visitNull(NullSymbol $null)

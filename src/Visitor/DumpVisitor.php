@@ -7,6 +7,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
 
 class DumpVisitor implements Visitor
 {
@@ -53,6 +54,13 @@ class DumpVisitor implements Visitor
     public function visitQuery(QuerySymbol $query)
     {
         return $this->dump("$query->key $query->operator $query->value");
+    }
+
+    public function visitSearch(SearchSymbol $search)
+    {
+        return $search->exclude
+            ? $this->dump("SEARCH_NOT $search->content")
+            : $this->dump("SEARCH $search->content");
     }
 
     public function visitNull(NullSymbol $null)

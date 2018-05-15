@@ -73,7 +73,11 @@ class Parser
         switch ($key->type) {
             case 'T_TERM':
                 $this->nextWithout('T_SPACE');
-                return $this->parseOperator($key);
+                return $this->parseOperator($key->content);
+
+            case 'T_STRING':
+                $this->nextWithout('T_SPACE');
+                return new SearchSymbol($this->parseEndValue());
 
             case 'T_LPARENT': 
                 $this->next();
@@ -98,27 +102,27 @@ class Parser
         switch ($operator->type) {
             case 'T_ASSIGN':
                 $this->nextWithout('T_SPACE');
-                return $this->parseQuery($key->content, '=');
+                return $this->parseQuery($key, '=');
 
             case 'T_COMPARATOR':
                 $this->nextWithout('T_SPACE');
-                return $this->parseQuery($key->content, $operator->content);
+                return $this->parseQuery($key, $operator->content);
 
             case 'T_IN':
                 $this->nextWithout('T_SPACE');
                 $this->expect('T_LPARENT');
                 $this->nextWithout('T_SPACE');
-                $expression = $this->parseArrayQuery($key->content, 'in', []);
+                $expression = $this->parseArrayQuery($key, 'in', []);
                 $this->expect('T_RPARENT');
                 return $expression;
             
             case 'T_LIST_SEPARATOR':
-            case 'T_STRING':
-                throw $this->expectedAnythingBut('T_LIST_SEPARATOR', 'T_STRING');
+                throw $this->expectedAnythingBut('T_LIST_SEPARATOR');
 
             default:
-                // End of expression without an operator means the key is a boolean.
-                return new QuerySymbol($key->content, '=', true);
+                return false // TODO: isBooleanField($key)
+                    ? new QuerySymbol($key, '=', true)
+                    : new SearchSymbol($key);
         }
     }
 

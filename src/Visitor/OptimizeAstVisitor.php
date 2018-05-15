@@ -7,6 +7,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
 
 class OptimizeAstVisitor implements Visitor
 {
@@ -47,6 +48,11 @@ class OptimizeAstVisitor implements Visitor
     public function visitQuery(QuerySymbol $query)
     {
         return $query;
+    }
+
+    public function visitSearch(SearchSymbol $search)
+    {
+        return $search;
     }
 
     public function visitNull(NullSymbol $null)

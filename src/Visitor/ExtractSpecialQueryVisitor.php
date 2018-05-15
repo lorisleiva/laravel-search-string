@@ -7,6 +7,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
 
 abstract class ExtractSpecialQueryVisitor implements Visitor
 {
@@ -47,6 +48,11 @@ abstract class ExtractSpecialQueryVisitor implements Visitor
         $this->lastSpecialQuery = $query;
 
         return new NullSymbol;
+    }
+
+    public function visitSearch(SearchSymbol $search)
+    {
+        return $search;
     }
 
     public function visitNull(NullSymbol $null)

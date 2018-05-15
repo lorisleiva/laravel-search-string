@@ -7,6 +7,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
 
 class RemoveNotSymbolVisitor implements Visitor
 {
@@ -49,6 +50,13 @@ class RemoveNotSymbolVisitor implements Visitor
 
         $reverseOperator = $this->reverseOperator($query->operator);
         return new QuerySymbol($query->key, $reverseOperator, $query->value);
+    }
+
+    public function visitSearch(SearchSymbol $search)
+    {
+        return $this->negate
+            ? new SearchSymbol($search->content, ! $search->exclude)
+            : $search;
     }
 
     public function visitNull(NullSymbol $null)
