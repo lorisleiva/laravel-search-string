@@ -50,14 +50,11 @@ class SearchStringManager
 
     public function updateBuilder(Builder $builder, $input)
     {
-        $this->parse($input)
-             ->accept(new RemoveNotSymbolVisitor)
-             ->accept(new ExtractKeywordVisitor($builder, $this, 'order_by'))
-             ->accept(new ExtractKeywordVisitor($builder, $this, 'select'))
-             ->accept(new ExtractKeywordVisitor($builder, $this, 'limit'))
-             ->accept(new ExtractKeywordVisitor($builder, $this, 'offset'))
-             ->accept(new OptimizeAstVisitor)
-             ->accept(new BuildWhereClausesVisitor($builder, $this));
+        $ast = $this->parse($input);
+
+        foreach ($this->getVisitors($builder) as $visitor) {
+            $ast = $ast->accept($visitor);
+        }
     }
 
     public function createBuilder($input)
@@ -107,6 +104,19 @@ class SearchStringManager
     /**
      * Overiddables
      */
+    
+    public function getVisitors($builder)
+    {
+        return [
+            new RemoveNotSymbolVisitor,
+            new ExtractKeywordVisitor($builder, $this, 'order_by'),
+            new ExtractKeywordVisitor($builder, $this, 'select'),
+            new ExtractKeywordVisitor($builder, $this, 'limit'),
+            new ExtractKeywordVisitor($builder, $this, 'offset'),
+            new OptimizeAstVisitor,
+            new BuildWhereClausesVisitor($builder, $this),
+        ];
+    }
     
     public function matchKeyword($query, $rule)
     {
