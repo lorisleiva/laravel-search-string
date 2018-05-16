@@ -1,8 +1,9 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests;
+namespace Lorisleiva\LaravelSearchString\Tests\Feature;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
+use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractOffsetQueryVisitor;
 
 class ExtractOffsetKeywordTest extends TestCase

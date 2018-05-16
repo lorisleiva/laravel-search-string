@@ -1,6 +1,6 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests;
+namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 

@@ -1,7 +1,8 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests;
+namespace Lorisleiva\LaravelSearchString\Tests\Feature;
 
+use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractSelectQueryVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 

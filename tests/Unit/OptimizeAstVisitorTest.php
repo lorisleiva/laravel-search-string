@@ -1,13 +1,14 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests;
+namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
 use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
-use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
+use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
 
 class OptimizeAstVisitorTest extends TestCase
 {

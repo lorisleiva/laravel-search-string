@@ -1,7 +1,8 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests;
+namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
+use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
 
