@@ -222,7 +222,7 @@ class Parser
 
     protected function expected(...$expected)
     {
-        return new InvalidSearchStringException($this->current(), $expected);
+        return InvalidSearchStringException::fromParser($this->current(), $expected);
     }
 
     protected function expectedAnythingBut(...$unexpected)

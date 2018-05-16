@@ -4,34 +4,65 @@ namespace Lorisleiva\LaravelSearchString\Exceptions;
 
 class InvalidSearchStringException extends \Exception
 {
-    protected $token;
-    protected $expected;
+    protected $message;
+    protected $step;
+    protected $options;
 
-    public function __construct($token = null, $expected = [])
+    public function __construct($message = null, $step = 'Visitor', $options = [])
     {
-        // TODO: Make this exception more generic.
-        // Explaining at which stage the erreur occured.
-        
-        $this->token = $token;
-        $this->expected = $expected;
+        $this->message = $message;
+        $this->step = $step;
+        $this->options = $options;
         parent::__construct($this->__toString());
+    }
+
+    public static function fromLexer($invalidCharacter, $message = null)
+    {
+        return new static($message, 'Lexer', [
+            'token' => new Token('T_ILLEGAL', $invalidCharacter),
+        ]);
+    }
+
+    public static function fromParser($token, $expected, $message = null)
+    {
+        return new static($message, 'Parser', [
+            'token' => $token,
+            'expectedTokens' => $expected,
+        ]);
+    }
+
+    public function getStep()
+    {
+        return $this->step;
     }
 
     public function getToken()
     {
-        return $this->token;
+        return array_get($this->options, 'token');
+    }
+
+    public function getExpectedTokens()
+    {
+        return array_get($this->options, 'expectedTokens');
     }
 
     public function __toString()
     {
-        $expectedAsString = implode('|', $this->expected);
-
-        if (! $this->token) {
-            return 'Something went wrong';
+        if ($this->message) {
+            return $this->message;
         }
 
-        return $this->token->hasType('T_ILLEGAL')
-            ? "Unexpected character \"{$this->token->content}\""
-            : "Expected $expectedAsString, found $this->token";
+        $token = $this->getToken();
+
+        if ($this->step === 'Lexer') {
+            return "Unexpected character \"$token->content\"";
+        }
+
+        if ($this->step === 'Parser') {
+            $expectedAsString = implode('|', $this->getExpectedTokens());
+            return "Expected $expectedAsString, found $token";
+        }
+
+        return 'Invalid search string';
     }
 }

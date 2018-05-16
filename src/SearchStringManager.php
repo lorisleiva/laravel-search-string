@@ -55,7 +55,8 @@ class SearchStringManager
              ->accept(new ExtractKeywordVisitor($builder, $this, 'select'))
              ->accept(new ExtractKeywordVisitor($builder, $this, 'limit'))
              ->accept(new ExtractKeywordVisitor($builder, $this, 'offset'))
-             ->accept(new OptimizeAstVisitor);
+             ->accept(new OptimizeAstVisitor)
+             ->accept(new BuildWhereClausesVisitor($builder, $this));
     }
 
     public function createBuilder($input)
@@ -143,7 +144,7 @@ class SearchStringManager
     public function resolveLimitKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
     {
         if (! ctype_digit($query->value)) {
-            throw new InvalidSearchStringException;
+            throw new InvalidSearchStringException('The limit must be an integer');
         }
 
         $builder->limit($query->value);
@@ -152,7 +153,7 @@ class SearchStringManager
     public function resolveOffsetKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
     {
         if (! ctype_digit($query->value)) {
-            throw new InvalidSearchStringException;
+            throw new InvalidSearchStringException('The offset must be an integer');
         }
 
         $builder->offset($query->value);

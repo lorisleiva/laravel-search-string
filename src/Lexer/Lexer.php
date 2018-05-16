@@ -41,7 +41,7 @@ class Lexer
 
         while (isset($string[$offset])) {
             if (! preg_match($this->regex, $string, $matches, null, $offset)) {
-                throw new InvalidSearchStringException(new Token('T_ILLEGAL', $string[$offset]));
+                throw InvalidSearchStringException::fromLexer($string[$offset]);
             }
 
             // find the first non-empty element (but skipping $matches[0]) using a quick for loop
