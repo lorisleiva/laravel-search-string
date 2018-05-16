@@ -17,8 +17,6 @@ class SearchStringManager
 {
     protected $model;
 
-    protected $tokenMap = null;
-
     protected $fallbackOptions = [
         'columns' => [
             'visible' => null,
@@ -39,15 +37,9 @@ class SearchStringManager
         $this->model = $model;
     }
 
-    public function withTokenMap($tokenMap)
+    public function lex($input, $tokenMap = null, $delimiter = null)
     {
-        $this->tokenMap = $tokenMap;
-    }
-
-    public function lex($input)
-    {
-        $tokenMap = $this->tokenMap ?? config('search-string.token_map');
-        return (new Lexer($tokenMap))->lex($input);
+        return (new Lexer($tokenMap, $delimiter))->lex($input);
     }
 
     public function parse($input)
@@ -75,7 +67,7 @@ class SearchStringManager
 
     public function getOptions()
     {
-        return array_merge(
+        return array_replace_recursive(
             $this->fallbackOptions,
             array_get(config('search-string'), 'default', []),
             array_get(config('search-string'), get_class($this->model), []),

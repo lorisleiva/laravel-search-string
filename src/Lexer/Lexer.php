@@ -7,10 +7,29 @@ use Lorisleiva\LaravelSearchString\Lexer\Token;
 
 class Lexer
 {
+    protected $tokenMap = [
+        '(>=?|<=?)'                 => 'T_COMPARATOR',
+        '(=|:)'                     => 'T_ASSIGN',
+        '(and|AND)(?:[\(\)\s]|$)'   => 'T_AND',
+        '(or|OR)(?:[\(\)\s]|$)'     => 'T_OR',
+        '(not|NOT)(?:[\(\)\s]|$)'   => 'T_NOT',
+        '(in|IN)(?:[\(\)\s]|$)'     => 'T_IN',
+        '(,)'                       => 'T_LIST_SEPARATOR',
+        '(\()'                      => 'T_LPARENT',
+        '(\))'                      => 'T_RPARENT',
+        '(\s+)'                     => 'T_SPACE',
+        '("[^"]*"|\'[^\']*\')'      => 'T_STRING',
+        '([^\s:><="\'\(\),]+)'      => 'T_TERM',
+    ];
+
+    protected $delimiter = '~';
     protected $regex;
     protected $tokenTypes;
 
-    public function __construct(array $tokenMap, $delimiter = '~') {
+    public function __construct($tokenMap = null, $delimiter = null) {
+        $tokenMap = $tokenMap ?? $this->tokenMap;
+        $delimiter = $delimiter ?? $this->delimiter;
+
         $gluedRegexes = implode('|', array_keys($tokenMap));
         $this->regex =  $delimiter . $gluedRegexes . $delimiter . 'A';
         $this->tokenTypes = array_values($tokenMap);
