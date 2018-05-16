@@ -1,6 +1,6 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests\Feature;
+namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractOrderByQueryVisitor;
