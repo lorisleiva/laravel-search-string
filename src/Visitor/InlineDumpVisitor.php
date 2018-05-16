@@ -49,6 +49,10 @@ class InlineDumpVisitor implements Visitor
 
     public function visitSearch(SearchSymbol $search)
     {
+        if ($this->shortenQuery) {
+            return $search->content;
+        }
+
         return $search->exclude
             ? "SEARCH_NOT($search->content)"
             : "SEARCH($search->content)";

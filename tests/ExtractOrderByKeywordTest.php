@@ -2,10 +2,9 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests;
 
-use Lorisleiva\LaravelSearchString\Facade\SearchString;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractOrderByQueryVisitor;
 
-class ExtractOrderByQueryVisitorTest extends TestCase
+class ExtractOrderByKeywordTest extends TestCase
 {
     /** @test */
     function it_sets_the_order_by_of_the_builder()
@@ -51,9 +50,6 @@ class ExtractOrderByQueryVisitorTest extends TestCase
 
     public function getBuilderFor($input)
     {
-        $builder = $this->getDummyBuilder();
-        $visitor = new ExtractOrderByQueryVisitor($builder, '/^sort$/');
-        SearchString::parse($input)->accept($visitor);
-        return $builder;
+        return $this->getBuilderAfterExtracting('order_by', $input);
     }
 }

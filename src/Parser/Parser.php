@@ -8,12 +8,20 @@ use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 
 class Parser
 {
+    protected $manager;
     protected $tokens = [];
+    protected $booleans = [];
     protected $pointer = 0;
+
+    public function __construct($manager)
+    {
+        $this->manager = $manager;
+    }
 
     public function parse($tokens)
     {
         $this->tokens = $tokens;
+        $this->booleans = $this->manager->getOption('columns.boolean', []);
         $this->pointer = 0;
         $ast = $this->parseOr();
         return $ast === false ? new NullSymbol : $ast;
@@ -76,8 +84,9 @@ class Parser
                 return $this->parseOperator($key->content);
 
             case 'T_STRING':
-                $this->nextWithout('T_SPACE');
-                return new SearchSymbol($this->parseEndValue());
+                $content = $this->parseEndValue();
+                $this->next();
+                return new SearchSymbol($content);
 
             case 'T_LPARENT': 
                 $this->next();
@@ -120,7 +129,7 @@ class Parser
                 throw $this->expectedAnythingBut('T_LIST_SEPARATOR');
 
             default:
-                return false // TODO: isBooleanField($key)
+                return in_array($key, $this->booleans)
                     ? new QuerySymbol($key, '=', true)
                     : new SearchSymbol($key);
         }

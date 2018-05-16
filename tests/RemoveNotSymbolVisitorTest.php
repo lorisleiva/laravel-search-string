@@ -2,7 +2,6 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests;
 
-use Lorisleiva\LaravelSearchString\Facade\SearchString;
 use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 
@@ -22,12 +21,23 @@ class RemoveNotSymbolVisitorTest extends TestCase
     }
 
     /** @test */
+    function it_negates_search_symbols_and_boolean_queries()
+    {
+        $this->assertAstFor('foobar', 'SEARCH(foobar)');
+        $this->assertAstFor('not foobar', 'SEARCH_NOT(foobar)');
+
+        // Paid is defined in the `columns.boolean` option.
+        $this->assertAstFor('paid', 'QUERY(paid = true)');
+        $this->assertAstFor('not paid', 'QUERY(paid = false)');
+    }
+
+    /** @test */
     function it_negates_and_or_operator()
     {
-        $this->assertAstFor('not (A and B)', 'OR(QUERY(A = false), QUERY(B = false))');
-        $this->assertAstFor('not (A or B)', 'AND(QUERY(A = false), QUERY(B = false))');
-        $this->assertAstFor('not (A or (B and C))', 'AND(QUERY(A = false), OR(QUERY(B = false), QUERY(C = false)))');
-        $this->assertAstFor('not (A and (B or C))', 'OR(QUERY(A = false), AND(QUERY(B = false), QUERY(C = false)))');
+        $this->assertAstFor('not (A and B)', 'OR(SEARCH_NOT(A), SEARCH_NOT(B))');
+        $this->assertAstFor('not (A or B)', 'AND(SEARCH_NOT(A), SEARCH_NOT(B))');
+        $this->assertAstFor('not (A or (B and C))', 'AND(SEARCH_NOT(A), OR(SEARCH_NOT(B), SEARCH_NOT(C)))');
+        $this->assertAstFor('not (A and (B or C))', 'OR(SEARCH_NOT(A), AND(SEARCH_NOT(B), SEARCH_NOT(C)))');
     }
 
     /** @test */
@@ -41,13 +51,15 @@ class RemoveNotSymbolVisitorTest extends TestCase
         $this->assertAstFor('not not foo<=1', 'QUERY(foo <= 1)');
         $this->assertAstFor('not not foo>=1', 'QUERY(foo >= 1)');
         $this->assertAstFor('not not foo in(1, 2, 3)', 'QUERY(foo in [1, 2, 3])');
-        $this->assertAstFor('not not (A and B)', 'AND(QUERY(A = true), QUERY(B = true))');
-        $this->assertAstFor('not not (A or B)', 'OR(QUERY(A = true), QUERY(B = true))');
+        $this->assertAstFor('not not (A and B)', 'AND(SEARCH(A), SEARCH(B))');
+        $this->assertAstFor('not not (A or B)', 'OR(SEARCH(A), SEARCH(B))');
+        $this->assertAstFor('not not foobar', 'SEARCH(foobar)');
+        $this->assertAstFor('not not paid', 'QUERY(paid = true)');
     }
 
     public function assertAstFor($input, $expectedAst)
     {
-        $ast = SearchString::parse($input)
+        $ast = $this->parse($input)
             ->accept(new RemoveNotSymbolVisitor())
             ->accept(new InlineDumpVisitor());
 

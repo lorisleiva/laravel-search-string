@@ -3,7 +3,6 @@
 namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
-use Lorisleiva\LaravelSearchString\Facade\SearchString;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
 
@@ -35,76 +34,63 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_parses_unique_terms_as_boolean()
+    function it_parses_lonely_terms_and_strings_as_search_queries()
     {
-        $this->assertAstFor('has_event', 'QUERY(has_event = true)');
-        $this->assertAstFor(' has_event ', 'QUERY(has_event = true)');
-        $this->assertAstFor('(has_event)', 'QUERY(has_event = true)');
-        $this->assertAstFor('(has_event )', 'QUERY(has_event = true)');
-        $this->assertAstFor('( has_event)', 'QUERY(has_event = true)');
-        $this->assertAstFor('( has_event )', 'QUERY(has_event = true)');
+        $this->assertAstFor('lonely', 'SEARCH(lonely)');
+        $this->assertAstFor(' lonely ', 'SEARCH(lonely)');
+        $this->assertAstFor('"lonely"', 'SEARCH(lonely)');
+        $this->assertAstFor(' "lonely" ', 'SEARCH(lonely)');
+        $this->assertAstFor('"so lonely"', 'SEARCH(so lonely)');
+    }
+
+    /** @test */
+    function it_parses_lonely_terms_as_boolean_if_defined_as_boolean_column()
+    {
+        // Paid is defined in the `columns.boolean` option.
+        $this->assertAstFor('paid', 'QUERY(paid = true)');
+        $this->assertAstFor(' paid ', 'QUERY(paid = true)');
+        $this->assertAstFor('(paid)', 'QUERY(paid = true)');
+        $this->assertAstFor('(paid )', 'QUERY(paid = true)');
+        $this->assertAstFor('( paid)', 'QUERY(paid = true)');
+        $this->assertAstFor('( paid )', 'QUERY(paid = true)');
     }
 
     /** @test */
     function it_parses_not_operators()
     {
-        $this->assertAstFor('not A', 'NOT(QUERY(A = true))');
-        $this->assertAstFor('not (not A)', 'NOT(NOT(QUERY(A = true)))');
-        $this->assertAstFor('not not A', 'NOT(NOT(QUERY(A = true)))');
+        $this->assertAstFor('not A', 'NOT(SEARCH(A))');
+        $this->assertAstFor('not (not A)', 'NOT(NOT(SEARCH(A)))');
+        $this->assertAstFor('not not A', 'NOT(NOT(SEARCH(A)))');
     }
 
     /** @test */
     function it_parses_and_operators()
     {
-        $this->assertAstFor(
-            'A and B and C', 
-            'AND(QUERY(A = true), QUERY(B = true), QUERY(C = true))'
-        );
-        $this->assertAstFor(
-            '(A AND B) and C', 
-            'AND(AND(QUERY(A = true), QUERY(B = true)), QUERY(C = true))'
-        );
-        $this->assertAstFor(
-            'A AND (B AND C)', 
-            'AND(QUERY(A = true), AND(QUERY(B = true), QUERY(C = true)))'
-        );
+        $this->assertAstFor('A and B and C', 'AND(SEARCH(A), SEARCH(B), SEARCH(C))');
+        $this->assertAstFor('(A AND B) and C', 'AND(AND(SEARCH(A), SEARCH(B)), SEARCH(C))');
+        $this->assertAstFor('A AND (B AND C)', 'AND(SEARCH(A), AND(SEARCH(B), SEARCH(C)))');
     }
 
     /** @test */
     function it_parses_or_operators()
     {
-        $this->assertAstFor(
-            'A or B or C', 
-            'OR(QUERY(A = true), QUERY(B = true), QUERY(C = true))'
-        );
-        $this->assertAstFor(
-            '(A OR B) or C', 
-            'OR(OR(QUERY(A = true), QUERY(B = true)), QUERY(C = true))'
-        );
-        $this->assertAstFor(
-            'A OR (B OR C)', 
-            'OR(QUERY(A = true), OR(QUERY(B = true), QUERY(C = true)))'
-        );
+        $this->assertAstFor('A or B or C', 'OR(SEARCH(A), SEARCH(B), SEARCH(C))');
+        $this->assertAstFor('(A OR B) or C', 'OR(OR(SEARCH(A), SEARCH(B)), SEARCH(C))');
+        $this->assertAstFor('A OR (B OR C)', 'OR(SEARCH(A), OR(SEARCH(B), SEARCH(C)))');
     }
 
     /** @test */
     function it_prioritizes_or_over_and()
     {
-        $this->assertAstFor(
-            'A or B and C or D', 
-            'OR(QUERY(A = true), AND(QUERY(B = true), QUERY(C = true)), QUERY(D = true))'
-        );
-        $this->assertAstFor(
-            '(A or B) and C', 
-            'AND(OR(QUERY(A = true), QUERY(B = true)), QUERY(C = true))'
-        );
+        $this->assertAstFor('A or B and C or D', 'OR(SEARCH(A), AND(SEARCH(B), SEARCH(C)), SEARCH(D))');
+        $this->assertAstFor('(A or B) and C', 'AND(OR(SEARCH(A), SEARCH(B)), SEARCH(C))');
     }
 
     /** @test */
     function it_ignores_trailing_and_or_operators()
     {
-        $this->assertAstFor('foo and', 'QUERY(foo = true)');
-        $this->assertAstFor('foo or', 'QUERY(foo = true)');
+        $this->assertAstFor('foo and', 'SEARCH(foo)');
+        $this->assertAstFor('foo or', 'SEARCH(foo)');
     }
 
     /** @test */
@@ -131,7 +117,7 @@ class ParserTest extends TestCase
     {
         $this->assertAstFor(
             'A: 1 or B > 2 and not C or D <= "foo bar"', 
-            'OR(QUERY(A = 1), AND(QUERY(B > 2), NOT(QUERY(C = true))), QUERY(D <= foo bar))'
+            'OR(QUERY(A = 1), AND(QUERY(B > 2), NOT(SEARCH(C))), QUERY(D <= foo bar))'
         );
         $this->assertAstFor(
             'sort:-name,date events > 10 and not started_at <= tomorrow', 
@@ -139,7 +125,7 @@ class ParserTest extends TestCase
         );
         $this->assertAstFor(
             'A (B) not C', 
-            'AND(QUERY(A = true), QUERY(B = true), NOT(QUERY(C = true)))'
+            'AND(SEARCH(A), SEARCH(B), NOT(SEARCH(C)))'
         );
     }
 
@@ -160,6 +146,14 @@ class ParserTest extends TestCase
     }
 
     /** @test */
+    function it_fail_to_parse_strings_as_query_keys()
+    {
+        $this->assertParserFails('"string as key":foo', 'T_ASSIGN');
+        $this->assertParserFails('foo and bar and "string as key" > 3', 'T_COMPARATOR');
+        $this->assertParserFails('not "string as key" in (1,2,3)', 'T_IN');
+    }
+
+    /** @test */
     function it_fails_to_parse_lonely_operators()
     {
         $this->assertParserFails('and', 'T_AND');
@@ -171,14 +165,6 @@ class ParserTest extends TestCase
         $this->assertParserFails('<=', 'T_COMPARATOR');
         $this->assertParserFails('>', 'T_COMPARATOR');
         $this->assertParserFails('>=', 'T_COMPARATOR');
-    }
-
-    /** @test */
-    function it_fails_to_parse_lonely_strings()
-    {
-        $this->assertParserFails('"lonely"', 'T_STRING');
-        $this->assertParserFails('foo and bar and "so lonely"', 'T_STRING');
-        $this->assertParserFails('not "still lonely"', 'T_STRING');
     }
 
     /** @test */
@@ -196,14 +182,14 @@ class ParserTest extends TestCase
 
     public function assertAstFor($input, $expectedAst)
     {
-        $ast = SearchString::parse($input)->accept(new InlineDumpVisitor());
+        $ast = $this->parse($input)->accept(new InlineDumpVisitor());
         $this->assertEquals($expectedAst, $ast);
     }
 
     public function assertParserFails($input, $problematicType = null)
     {
         try {
-            $ast = SearchString::parse($input)->accept(new InlineDumpVisitor());
+            $ast = $this->parse($input)->accept(new InlineDumpVisitor());
             $this->fail("Expected \"$input\" to fail. Instead got: \"$ast\"");
         } catch (InvalidSearchStringException $e) {
             if ($problematicType) {

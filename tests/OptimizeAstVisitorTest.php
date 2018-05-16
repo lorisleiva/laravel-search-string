@@ -2,7 +2,6 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests;
 
-use Lorisleiva\LaravelSearchString\Facade\SearchString;
 use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
@@ -58,7 +57,7 @@ class OptimizeAstVisitorTest extends TestCase
 
     public function assertAstFor($input, $expectedAst)
     {
-        $ast = SearchString::parse($input)
+        $ast = $this->parse($input)
             ->accept(new OptimizeAstVisitor())
             ->accept(new InlineDumpVisitor(true));
 

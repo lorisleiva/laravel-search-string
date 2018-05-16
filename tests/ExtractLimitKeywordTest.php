@@ -3,10 +3,9 @@
 namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
-use Lorisleiva\LaravelSearchString\Facade\SearchString;
-use Lorisleiva\LaravelSearchString\Visitor\ExtractLimitQueryVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
 
-class ExtractLimitQueryVisitorTest extends TestCase
+class ExtractLimitKeywordTest extends TestCase
 {
     /** @test */
     function it_sets_the_limit_of_the_builder()
@@ -38,9 +37,6 @@ class ExtractLimitQueryVisitorTest extends TestCase
 
     public function getBuilderFor($input)
     {
-        $builder = $this->getDummyBuilder();
-        $visitor = new ExtractLimitQueryVisitor($builder, '/^limit$/');
-        SearchString::parse($input)->accept($visitor);
-        return $builder;
+        return $this->getBuilderAfterExtracting('limit', $input);
     }
 }

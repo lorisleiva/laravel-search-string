@@ -2,7 +2,6 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests;
 
-use Lorisleiva\LaravelSearchString\Facade\SearchString;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 
 class LexerTest extends TestCase
@@ -96,7 +95,7 @@ class LexerTest extends TestCase
 
     public function assetTokensFor($input, $expectedTokens)
     {
-        $tokens = SearchString::lex($input)->map->type->implode(' ');
+        $tokens = $this->lex($input)->map->type->implode(' ');
         $this->assertEquals($expectedTokens, $tokens);
     }
 }

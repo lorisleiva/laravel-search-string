@@ -9,18 +9,18 @@ use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
 
-abstract class ExtractSpecialQueryVisitor implements Visitor
+class ExtractKeywordVisitor implements Visitor
 {
-    protected $key;
-    protected $operator;
-    protected $value;
-    protected $lastSpecialQuery = null;
+    protected $builder;
+    protected $manager;
+    protected $keyword;
+    protected $lastMatchedQuery = null;
 
-    public function __construct($key, $operator = null, $value = null)
+    public function __construct($builder, $manager, $keyword)
     {
-        $this->key = $key;
-        $this->operator = $operator ?? '/.*/';
-        $this->value = $value ?? '/.*/';
+        $this->builder = $builder;
+        $this->manager = $manager;
+        $this->keyword = $keyword;
     }
 
     public function visitOr(OrSymbol $or)
@@ -40,12 +40,12 @@ abstract class ExtractSpecialQueryVisitor implements Visitor
 
     public function visitQuery(QuerySymbol $query)
     {
-        if (! $this->isSpecial($query)) {
+        if (! $this->matchKeyword($query, $this->getKeywordRule())) {
             return $query;
         }
 
-        $this->useSpecialQuery($query, $this->lastSpecialQuery);
-        $this->lastSpecialQuery = $query;
+        $this->resolveKeyword($query, $this->lastMatchedQuery);
+        $this->lastMatchedQuery = $query;
 
         return new NullSymbol;
     }
@@ -60,16 +60,20 @@ abstract class ExtractSpecialQueryVisitor implements Visitor
         return $null;
     }
 
-    protected function isSpecial($query)
+    public function getKeywordRule()
     {
-        $keyMatch = preg_match($this->key, $query->key);
-        $operatorMatch = preg_match($this->operator, $query->operator);
-        $valueMatch = collect($query->value)->every(function ($value) {
-            return preg_match($this->value, $value);
-        });
-
-        return $keyMatch && $operatorMatch && $valueMatch;
+        return $this->manager->getKeywordRule($this->keyword);
     }
 
-    abstract protected function useSpecialQuery($query, $lastQuery);
+    public function matchKeyword($query, $rule)
+    {
+        return $this->manager->matchKeyword($query, $rule);
+    }
+
+    public function resolveKeyword($query, $lastQuery)
+    {
+        $methodName = 'resolve' . title_case(camel_case($this->keyword)) . 'Keyword';
+
+        return $this->manager->$methodName($this->builder, $query, $lastQuery);
+    }
 }

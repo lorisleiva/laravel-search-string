@@ -3,10 +3,9 @@
 namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
-use Lorisleiva\LaravelSearchString\Facade\SearchString;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractOffsetQueryVisitor;
 
-class ExtractOffsetQueryVisitorTest extends TestCase
+class ExtractOffsetKeywordTest extends TestCase
 {
     /** @test */
     function it_sets_the_offset_of_the_builder()
@@ -38,9 +37,6 @@ class ExtractOffsetQueryVisitorTest extends TestCase
 
     public function getBuilderFor($input)
     {
-        $builder = $this->getDummyBuilder();
-        $visitor = new ExtractOffsetQueryVisitor($builder, '/^from$/');
-        SearchString::parse($input)->accept($visitor);
-        return $builder;
+        return $this->getBuilderAfterExtracting('offset', $input);
     }
 }
