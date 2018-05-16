@@ -124,6 +124,7 @@ class Parser
                 $this->nextWithout('T_SPACE');
                 $expression = $this->parseArrayQuery($key, 'in', []);
                 $this->expect('T_RPARENT');
+                $this->next();
                 return $expression;
             
             case 'T_LIST_SEPARATOR':

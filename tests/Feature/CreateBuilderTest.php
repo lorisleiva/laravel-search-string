@@ -87,17 +87,18 @@ class CreateBuilderTest extends TestCase
         $this->assertWhereSqlFor('not paid', "paid = false");
 
         // Comparaisons
-        $this->assertWhereSqlFor('price>0', "price > '0'"); // TODO: Parse as integer?
-        $this->assertWhereSqlFor('price>=0', "price >= '0'"); // TODO: Parse as integer?
-        $this->assertWhereSqlFor('price<0', "price < '0'"); // TODO: Parse as integer?
-        $this->assertWhereSqlFor('price<=0', "price <= '0'"); // TODO: Parse as integer?
+        $this->assertWhereSqlFor('price>0', "price > '0'");
+        $this->assertWhereSqlFor('price>=0', "price >= '0'");
+        $this->assertWhereSqlFor('price<0', "price < '0'");
+        $this->assertWhereSqlFor('price<=0', "price <= '0'");
+        $this->assertWhereSqlFor('price>0.55', "price > '0.55'");
 
         // Null treated as text
-        $this->assertWhereSqlFor('name:null', "name = 'null'"); // TODO: Where null?
-        $this->assertWhereSqlFor('not name:null', "name != 'null'"); // TODO: Where not null?
+        $this->assertWhereSqlFor('name:null', "name = 'null'");
+        $this->assertWhereSqlFor('not name:null', "name != 'null'");
 
         // Array assignment treated as if they only had one value
-        $this->assertWhereSqlFor('name:John,Jane', "name = 'John'"); // TODO: Where in array?
+        $this->assertWhereSqlFor('name:John,Jane', "name = 'John'");
     }
 
     /** @test */
@@ -133,21 +134,23 @@ class CreateBuilderTest extends TestCase
     /** @test */
     function it_creates_nested_where_clauses_using_or_and_operators()
     {
-        $this->assertWhereSqlFor('name:John and price>0', "(name = 'John' and price > '0')"); // TODO
+        $this->assertWhereSqlFor('name:John and price>0', "(name = 'John' and price > '0')");
         $this->assertWhereSqlFor('name:John or name:Jane', "(name = 'John' or name = 'Jane')");
-
-        // ...
+        $this->assertWhereSqlFor('name:1 and name:2 or name:3', "((name = '1' and name = '2') or name = '3')");
+        $this->assertWhereSqlFor('name:1 and (name:2 or name:3)', "(name = '1' and (name = '2' or name = '3'))");
     }
 
     /** @test */
     function it_creates_complex_queries()
     {
         $this->assertSqlFor(
-            'name in (John,Jane) or description=Employee and created_at < 3 limit:3 or Banana offset:1', 
-            ""
+            'name in (John,Jane) or description=Employee and created_at < 3 limit:3 or Banana from:1', 
+            "select * from dummy_models "
+            . "where (name in ('John', 'Jane') "
+            . "or (description = 'Employee' and created_at < '3') "
+            . "or (name like '%Banana%' or description like '%Banana%')) "
+            . "limit 3 offset 1"
         );
-
-        // ...
     }
 
     public function assertWhereSqlFor($input, $expectedSql)
