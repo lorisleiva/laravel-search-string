@@ -2,7 +2,6 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
-use Illuminate\Database\Eloquent\Model;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\DumpsWhereClauses;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModelWithoutOptions;
@@ -86,7 +85,7 @@ class ResolveQueryWhereClauseTest extends TestCase
     /** @test */
     function it_does_not_nest_where_clauses_if_only_one_searchable_columns_is_given()
     {
-        $model = new class extends Model {
+        $model = new class extends DummyModelWithoutOptions {
             public $searchStringOptions = [
                 'columns' => [ 'searchable' => ['name'] ]
             ];

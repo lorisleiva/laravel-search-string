@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
+use Lorisleiva\LaravelSearchString\Concerns\SearchString;
 use Lorisleiva\LaravelSearchString\SearchStringManager;
 use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModel;
 use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModelWithoutOptions;
@@ -57,7 +58,9 @@ class SearchStringManagerOptionsTest extends TestCase
     function is_uses_default_configs_and_fallback_options_to_fill_the_gaps()
     {
         // Given a model without search string options on the model nor on the configs.
-        $model = new class extends \Illuminate\Database\Eloquent\Model {};
+        $model = new class extends \Illuminate\Database\Eloquent\Model {
+            use SearchString;
+        };
 
         // When using a search string manager on that model.
         $manager = new SearchStringManager($model);

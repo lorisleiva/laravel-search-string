@@ -16,9 +16,7 @@ use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 
 class SearchStringManager
 {
-    protected $model;
-
-    protected $fallbackOptions = [
+    const FALLBACK_OPTIONS = [
         'columns' => [
             'visible' => null,
             'searchable' => null,
@@ -33,9 +31,13 @@ class SearchStringManager
         ],
     ];
 
+    protected $model;
+    protected $options;
+
     public function __construct(Model $model)
     {
         $this->model = $model;
+        $this->options = $model->getSearchStringOptions();
     }
 
     public function lex($input, $tokenMap = null, $delimiter = null)
@@ -66,12 +68,7 @@ class SearchStringManager
 
     public function getOptions()
     {
-        return array_replace_recursive(
-            $this->fallbackOptions,
-            array_get(config('search-string'), 'default', []),
-            array_get(config('search-string'), get_class($this->model), []),
-            $this->model->searchStringOptions ?? []
-        );
+        return $this->options;
     }
 
     public function getOption($key, $default = null)
