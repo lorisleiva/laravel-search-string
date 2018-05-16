@@ -95,7 +95,7 @@ class SearchStringManager
 
         return (object) collect(compact('key', 'operator', 'value'))->map(function ($pattern) {
             if (@preg_match($pattern, null) === false) {
-                $pattern = '/^' . preg_quote($pattern) . '$/';
+                $pattern = '/^' . preg_quote($pattern, '/') . '$/';
             }
 
             return $pattern;
