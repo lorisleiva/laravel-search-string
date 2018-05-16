@@ -1,6 +1,6 @@
 # Laravel Search String
 
-🔍 Generates database queries based one unique string using a simple and customizable syntax.
+🔍 Generates database queries based on one unique string using a simple and customizable syntax.
 
 ## Examples
 ```php
