@@ -3,11 +3,21 @@
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
+use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
 
 class ResolveLimitKeywordTest extends TestCase
 {
+    use GeneratesEloquentBuilder;
+
+    public function visitors($builder, $manager)
+    {
+        return [
+            new ExtractKeywordVisitor($builder, $manager, 'limit'),
+        ];
+    }
+
     /** @test */
     function it_sets_the_limit_of_the_builder()
     {
@@ -34,10 +44,5 @@ class ResolveLimitKeywordTest extends TestCase
     {
         $builder = $this->getBuilderFor('limit:10 limit:20 limit:30');
         $this->assertEquals(30, $builder->getQuery()->limit);
-    }
-
-    public function getBuilderFor($input)
-    {
-        return $this->getBuilderAfterExtracting('limit', $input);
     }
 }

@@ -5,7 +5,7 @@ namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 use Lorisleiva\LaravelSearchString\SearchStringManager;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 
-class ParseKeywordRuleTest extends TestCase
+class SearchStringManagerParseKeywordRuleTest extends TestCase
 {
     /** @test */
     function it_keep_rules_that_are_defined_has_regex_patterns()

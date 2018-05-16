@@ -3,11 +3,21 @@
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
+use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
-use Lorisleiva\LaravelSearchString\Visitor\ExtractOffsetQueryVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
 
 class ResolveOffsetKeywordTest extends TestCase
 {
+    use GeneratesEloquentBuilder;
+
+    public function visitors($builder, $manager)
+    {
+        return [
+            new ExtractKeywordVisitor($builder, $manager, 'offset'),
+        ];
+    }
+
     /** @test */
     function it_sets_the_offset_of_the_builder()
     {
@@ -34,10 +44,5 @@ class ResolveOffsetKeywordTest extends TestCase
     {
         $builder = $this->getBuilderFor('from:10 from:20 from:30');
         $this->assertEquals(30, $builder->getQuery()->offset);
-    }
-
-    public function getBuilderFor($input)
-    {
-        return $this->getBuilderAfterExtracting('offset', $input);
     }
 }

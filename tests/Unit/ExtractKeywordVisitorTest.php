@@ -2,12 +2,15 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
+use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
 
 class ExtractKeywordVisitorTest extends TestCase
 {
+    use GeneratesEloquentBuilder;
+
     /** @test */
     function it_transforms_extracted_queries_to_null_symbols()
     {

@@ -2,11 +2,21 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
+use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
-use Lorisleiva\LaravelSearchString\Visitor\ExtractOrderByQueryVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
 
 class ResolveOrderByKeywordTest extends TestCase
 {
+    use GeneratesEloquentBuilder;
+
+    public function visitors($builder, $manager)
+    {
+        return [
+            new ExtractKeywordVisitor($builder, $manager, 'order_by'),
+        ];
+    }
+
     /** @test */
     function it_sets_the_order_by_of_the_builder()
     {
@@ -47,10 +57,5 @@ class ResolveOrderByKeywordTest extends TestCase
         $this->assertEquals([
             [ 'column' => 'created_at', 'direction' => 'asc' ],
         ], $builder->getQuery()->orders);
-    }
-
-    public function getBuilderFor($input)
-    {
-        return $this->getBuilderAfterExtracting('order_by', $input);
     }
 }

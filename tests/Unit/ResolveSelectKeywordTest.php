@@ -2,12 +2,23 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
+use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
-use Lorisleiva\LaravelSearchString\Visitor\ExtractSelectQueryVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 
 class ResolveSelectKeywordTest extends TestCase
 {
+    use GeneratesEloquentBuilder;
+
+    public function visitors($builder, $manager)
+    {
+        return [
+            new RemoveNotSymbolVisitor,
+            new ExtractKeywordVisitor($builder, $manager, 'select'),
+        ];
+    }
+
     /** @test */
     function it_sets_the_columns_of_the_builder()
     {
@@ -41,10 +52,5 @@ class ResolveSelectKeywordTest extends TestCase
     {
         $builder = $this->getBuilderFor('fields:name fields:price fields:description');
         $this->assertEquals(['description'], $builder->getQuery()->columns);
-    }
-
-    public function getBuilderFor($input)
-    {
-        return $this->getBuilderAfterExtracting('select', $input);
     }
 }
