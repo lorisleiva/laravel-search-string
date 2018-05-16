@@ -13,12 +13,13 @@ class BuildWhereClausesVisitor implements Visitor
 {
     protected $builder;
     protected $manager;
-    protected $boolean = 'and';
+    protected $boolean;
 
-    public function __construct($builder, $manager)
+    public function __construct($builder, $manager, $boolean = 'and')
     {
         $this->builder = $builder;
         $this->manager = $manager;
+        $this->boolean = $boolean;
     }
 
     public function visitOr(OrSymbol $or)
