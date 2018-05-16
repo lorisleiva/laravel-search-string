@@ -9,6 +9,7 @@ use Lorisleiva\LaravelSearchString\Lexer\Lexer;
 use Lorisleiva\LaravelSearchString\Parser\Parser;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
+use Lorisleiva\LaravelSearchString\Visitor\BuildWhereClausesVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
@@ -61,7 +62,7 @@ class SearchStringManager
 
     public function createBuilder($input)
     {
-        $builder = $model->newQuery();
+        $builder = $this->model->newQuery();
         $this->updateBuilder($builder, $input);
         return $builder;
     }

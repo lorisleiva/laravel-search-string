@@ -25,17 +25,6 @@ trait GeneratesEloquentBuilder
         return $builder;
     }
 
-    public function getSqlFor($input, $model = null)
-    {
-        return $this->dumpSql($this->getBuilderFor($input, $model));
-    }
-
-    public function dumpSql($builder)
-    {
-        $query = str_replace(array('?'), array('\'%s\''), $builder->toSql());
-        return vsprintf($query, $builder->getBindings());
-    }
-
     public function visitors($builder, $manager)
     {
         return [];

@@ -36,6 +36,7 @@ class Parser
             $this->skip('T_SPACE', 'T_OR');
         }
 
+        $this->skip('T_SPACE');
         $this->expect('T_RPARENT', 'T_EOL');
 
         if ($expressions->isEmpty()) return false;

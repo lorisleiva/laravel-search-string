@@ -31,4 +31,17 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     {
         return $this->getSearchStringManager($model)->parse($input);
     }
+
+    public function dumpSql($builder)
+    {
+        $query = str_replace(array('?'), array('%s'), $builder->toSql());
+
+        $bindings = collect($builder->getBindings())->map(function ($binding) {
+            if (is_string($binding)) return "'$binding'";
+            if (is_bool($binding)) return $binding ? 'true' : 'false';
+            return $binding;
+        })->toArray();
+
+        return vsprintf($query, $bindings);
+    }
 }
