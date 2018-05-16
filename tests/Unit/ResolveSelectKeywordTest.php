@@ -6,7 +6,7 @@ use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractSelectQueryVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 
-class ExtractSelectKeywordTest extends TestCase
+class ResolveSelectKeywordTest extends TestCase
 {
     /** @test */
     function it_sets_the_columns_of_the_builder()

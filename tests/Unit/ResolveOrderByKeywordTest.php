@@ -5,7 +5,7 @@ namespace Lorisleiva\LaravelSearchString\Tests\Feature;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractOrderByQueryVisitor;
 
-class ExtractOrderByKeywordTest extends TestCase
+class ResolveOrderByKeywordTest extends TestCase
 {
     /** @test */
     function it_sets_the_order_by_of_the_builder()

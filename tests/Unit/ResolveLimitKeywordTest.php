@@ -6,7 +6,7 @@ use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
 
-class ExtractLimitKeywordTest extends TestCase
+class ResolveLimitKeywordTest extends TestCase
 {
     /** @test */
     function it_sets_the_limit_of_the_builder()

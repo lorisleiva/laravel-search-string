@@ -6,7 +6,7 @@ use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractOffsetQueryVisitor;
 
-class ExtractOffsetKeywordTest extends TestCase
+class ResolveOffsetKeywordTest extends TestCase
 {
     /** @test */
     function it_sets_the_offset_of_the_builder()
