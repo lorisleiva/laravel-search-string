@@ -158,13 +158,41 @@ class SearchStringManager
         $builder->offset($query->value);
     }
 
-    public function resolveWhereClause(Builder $builder, QuerySymbol $query)
+    public function resolveQueryWhereClause(Builder $builder, QuerySymbol $query, $boolean)
     {
-        //
+        switch ($query->operator) {
+            case 'in':
+                return $builder->whereIn($query->key, $query->value, $boolean);
+
+            case 'not in':
+                return $builder->whereNotIn($query->key, $query->value, $boolean);
+            
+            default:
+                return $builder->where($query->key, $query->operator, $query->value, $boolean);
+        }
     }
 
-    public function resolveSearch(Builder $builder, SearchSymbol $search)
+    public function resolveSearchWhereClause(Builder $builder, SearchSymbol $search, $boolean)
     {
-        //
+        $searchables = collect($this->getOption('columns.searchable'));
+
+        $wheres = $searchables->map(function ($column) use ($search) {
+            $boolean = $search->exclude ? 'and' : 'or';
+            $operator = $search->exclude ? 'not like' : 'like';
+            return [$column, $operator, "%$search->content%", $boolean];
+        });
+
+        if ($wheres->isEmpty()) {
+            return;
+        }
+
+        if ($wheres->count() === 1) {
+            $where = $wheres->first();
+            return $builder->where($where[0], $where[1], $where[2], $boolean);
+        }
+
+        return $boolean === 'or'
+            ? $builder->orWhere($wheres->toArray())
+            : $builder->where($wheres->toArray());
     }
 }

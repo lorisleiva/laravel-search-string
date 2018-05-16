@@ -7,15 +7,15 @@ use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModel;
 
 trait GeneratesEloquentBuilder
 {
-    protected function getDummyBuilder()
+    protected function getDummyBuilder($model = null)
     {
-        return (new DummyModel)->newQuery();
+        return ($model ?? new DummyModel)->newQuery();
     }
 
-    public function getBuilderFor($input)
+    public function getBuilderFor($input, $model = null)
     {
-        $builder = $this->getDummyBuilder();
-        $manager = $this->getSearchStringManager();
+        $builder = $this->getDummyBuilder($model);
+        $manager = $this->getSearchStringManager($model);
         $ast = $this->parse($input);
 
         foreach ($this->visitors($builder, $manager) as $visitor) {
@@ -23,6 +23,17 @@ trait GeneratesEloquentBuilder
         }
 
         return $builder;
+    }
+
+    public function getSqlFor($input, $model = null)
+    {
+        return $this->dumpSql($this->getBuilderFor($input, $model));
+    }
+
+    public function dumpSql($builder)
+    {
+        $query = str_replace(array('?'), array('\'%s\''), $builder->toSql());
+        return vsprintf($query, $builder->getBindings());
     }
 
     public function visitors($builder, $manager)
