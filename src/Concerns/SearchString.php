@@ -14,12 +14,10 @@ trait SearchString
 
     public function getSearchStringOptions()
     {
-        return array_replace_recursive(
-            SearchStringManager::FALLBACK_OPTIONS,
-            array_get(config('search-string'), 'default', []),
-            array_get(config('search-string'), get_class($this), []),
-            $this->searchStringOptions ?? []
-        );
+        return [
+            'columns' => $this->searchStringColumns ?? [],
+            'keywords' => $this->searchStringKeywords ?? [],
+        ];
     }
 
     public function scopeUsingSearchString($query, $string)

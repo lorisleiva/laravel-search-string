@@ -144,7 +144,7 @@ You can also provide a regex pattern for a more flexible alias definition.
 
 ```php
 protected $searchStringColumns = [
-    'published_at' => '/^published|lived$/',
+    'published_at' => '/^published|live$/',
     // ...
 ];
 ```

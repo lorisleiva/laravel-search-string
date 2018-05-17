@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
+use Lorisleiva\LaravelSearchString\Options\KeywordRule;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
@@ -97,11 +98,11 @@ class ExtractKeywordVisitorTest extends TestCase
     {
         $builder = $this->getDummyBuilder();
         $manager = $this->getSearchStringManager();
-        $rule = (object) [
-            'key' => $key ?? '/.*/',
+        $rule = new KeywordRule('keyword', [
+            'key' => $key,
             'operator' => $operator ?? '/.*/',
             'value' => $value ?? '/.*/',
-        ];
+        ]);
 
         return $this->parse($input)->accept(
             new class($builder, $manager, $rule, $callback) extends ExtractKeywordVisitor {

@@ -2,10 +2,10 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
-use Lorisleiva\LaravelSearchString\SearchStringManager;
+use Lorisleiva\LaravelSearchString\Options\Rule;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 
-class SearchStringManagerParseKeywordRuleTest extends TestCase
+class RuleTest extends TestCase
 {
     /** @test */
     function it_keep_rules_that_are_defined_has_regex_patterns()
@@ -16,13 +16,13 @@ class SearchStringManagerParseKeywordRuleTest extends TestCase
             'value' => '~\d+~',
         ];
 
-        $this->assertEquals($rule, (array) $this->parseRule($rule));
+        $this->assertEquals($rule, $this->parseRule($rule));
     }
 
     /** @test */
     function it_wraps_non_regex_patterns_into_regex_delimiters()
     {
-        $rule = (array) $this->parseRule([
+        $rule = $this->parseRule([
             'key' => 'key',
             'operator' => 'operator',
             'value' => 'value',
@@ -38,7 +38,7 @@ class SearchStringManagerParseKeywordRuleTest extends TestCase
     /** @test */
     function it_preg_quote_non_regex_patterns()
     {
-        $rule = (array) $this->parseRule([
+        $rule = $this->parseRule([
             'key' => '/ke(y',
             'operator' => '^\d$',
             'value' => '.*\w(value',
@@ -55,16 +55,16 @@ class SearchStringManagerParseKeywordRuleTest extends TestCase
     function it_provides_fallback_values_when_patterns_are_missing()
     {
         $this->assertEquals([
-            'key' => '/^fallback_to_keyword_name$/',
+            'key' => '/^fallback_to_column_name$/',
             'operator' => '/.*/',
             'value' => '/.*/',
-        ], (array) $this->parseRule(null));
+        ], $this->parseRule(null, 'fallback_to_column_name'));
 
         $this->assertEquals([
-            'key' => '/^fallback_to_keyword_name$/',
+            'key' => '/^fallback_to_column_name$/',
             'operator' => '/.*/',
             'value' => '/.*/',
-        ], (array) $this->parseRule([]));
+        ], $this->parseRule([], 'fallback_to_column_name'));
     }
 
     /** @test */
@@ -75,19 +75,36 @@ class SearchStringManagerParseKeywordRuleTest extends TestCase
             'key' => '/^foobar$/',
             'operator' => '/.*/',
             'value' => '/.*/',
-        ], (array) $this->parseRule($rule));
+        ], $this->parseRule($rule));
 
         $rule = '/^\w{1,10}\?/';
         $this->assertEquals([
             'key' => '/^\w{1,10}\?/',
             'operator' => '/.*/',
             'value' => '/.*/',
-        ], (array) $this->parseRule($rule));
+        ], $this->parseRule($rule));
     }
 
-    public function parseRule($rule)
+    /** @test */
+    function it_treats_null_values_as_if_the_key_pair_wasnt_provided()
     {
-        return $this->getSearchStringManager()
-            ->ParseKeywordRule($rule, 'fallback_to_keyword_name');
+        $rule = [
+            'key' => null,
+            'operator' => null,
+            'value' => null,
+        ];
+
+        $this->assertEquals([
+            'key' => '/^fallback_column$/',
+            'operator' => '/.*/',
+            'value' => '/.*/',
+        ], $this->parseRule($rule, 'fallback_column'));
+    }
+
+    public function parseRule($rule, $column = 'column')
+    {
+        $rule = (array) new class($column, $rule) extends Rule {};
+        unset($rule['column']);
+        return $rule;
     }
 }

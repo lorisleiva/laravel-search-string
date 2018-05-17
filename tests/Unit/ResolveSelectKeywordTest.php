@@ -32,7 +32,7 @@ class ResolveSelectKeywordTest extends TestCase
         $builder = $this->getBuilderFor('not fields:name');
 
         $this->assertEquals(
-            ['price', 'description', 'paid', 'created_at'], 
+            ['price', 'description', 'paid', 'boolean_variable', 'created_at'], 
             $builder->getQuery()->columns
         );
     }
@@ -44,7 +44,7 @@ class ResolveSelectKeywordTest extends TestCase
         $this->assertEquals(['name', 'price', 'description'], $builder->getQuery()->columns);
 
         $builder = $this->getBuilderFor('not fields:name,price,description');
-        $this->assertEquals(['paid', 'created_at'], $builder->getQuery()->columns);
+        $this->assertEquals(['paid', 'boolean_variable', 'created_at'], $builder->getQuery()->columns);
     }
 
     /** @test */

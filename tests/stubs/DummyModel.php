@@ -8,19 +8,24 @@ use Lorisleiva\LaravelSearchString\Concerns\SearchString;
 class DummyModel extends Model
 {
     use SearchString;
-    
-    public $searchStringOptions = [
-        'columns' => [
-            'visible' => ['name', 'price', 'description', 'paid', 'created_at'],
-            'searchable' => ['name', 'description'],
-            'boolean' => ['boolean_variable', 'paid'],
-            'date' => ['created_at'],
-        ],
-        'keywords' => [
-            'order_by' => 'sort',
-            'select' => 'fields',
-            'limit' => 'limit',
-            'offset' => 'from',
-        ],
+
+    protected $casts = [
+        'paid' => 'boolean',
+    ];
+
+    protected $searchStringColumns = [
+        'name' => [ 'searchable' => true ],
+        'price',
+        'description' => [ 'searchable' => true ],
+        'paid',         // Automatically marked as boolean
+        'boolean_variable' => [ 'boolean' => true ],
+        'created_at',   // Automatically marked as date and boolean
+    ];
+
+    protected $searchStringKeywords = [
+        'order_by' => 'sort',
+        'select' => 'fields',
+        'limit' => 'limit',
+        'offset' => 'from',
     ];
 }

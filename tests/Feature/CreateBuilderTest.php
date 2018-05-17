@@ -21,9 +21,15 @@ class CreateBuilderTest extends TestCase
     {
         $this->assertSqlFor('fields:name', 'select name from dummy_models');
         $this->assertSqlFor('fields:name,price', 'select name, price from dummy_models');
-        $this->assertSqlFor('fields:price,name', 'select price, name from dummy_models');
-        $this->assertSqlFor('not fields:name', 'select price, description, paid, created_at from dummy_models');
-        $this->assertSqlFor('not fields:name, price', 'select description, paid, created_at from dummy_models');
+        $this->assertSqlFor('fields:price,name', 'select name, price from dummy_models');
+
+        $this->assertSqlFor('not fields:name', 
+            'select price, description, paid, boolean_variable, created_at from dummy_models'
+        );
+
+        $this->assertSqlFor('not fields:name, price', 
+            'select description, paid, boolean_variable, created_at from dummy_models'
+        );
     }
 
     /** @test */

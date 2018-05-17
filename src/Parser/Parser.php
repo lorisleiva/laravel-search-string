@@ -131,9 +131,13 @@ class Parser
                 throw $this->expectedAnythingBut('T_LIST_SEPARATOR');
 
             default:
-                return in_array($key, $this->booleans)
-                    ? new QuerySymbol($key, '=', true)
-                    : new SearchSymbol($key);
+                if (! $this->manager->isBooleanColumn($key)) {
+                    return new SearchSymbol($key);
+                }
+
+                return $this->manager->isDateColumn($key)
+                    ? new QuerySymbol($key, '!=', null)
+                    : new QuerySymbol($key, '=', true);
         }
     }
 

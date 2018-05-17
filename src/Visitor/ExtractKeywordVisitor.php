@@ -40,7 +40,7 @@ class ExtractKeywordVisitor implements Visitor
 
     public function visitQuery(QuerySymbol $query)
     {
-        if (! $this->matchKeyword($query, $this->getKeywordRule())) {
+        if (! $this->getKeywordRule()->matchQuery($query)) {
             return $query;
         }
 
@@ -63,11 +63,6 @@ class ExtractKeywordVisitor implements Visitor
     public function getKeywordRule()
     {
         return $this->manager->getKeywordRule($this->keyword);
-    }
-
-    public function matchKeyword($query, $rule)
-    {
-        return $this->manager->matchKeyword($query, $rule);
     }
 
     public function resolveKeyword($query, $lastQuery)

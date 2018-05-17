@@ -86,8 +86,8 @@ class ResolveQueryWhereClauseTest extends TestCase
     function it_does_not_nest_where_clauses_if_only_one_searchable_columns_is_given()
     {
         $model = new class extends DummyModelWithoutOptions {
-            public $searchStringOptions = [
-                'columns' => [ 'searchable' => ['name'] ]
+            public $searchStringColumns = [
+                'name' => [ 'searchable' => true ]
             ];
         };
 
