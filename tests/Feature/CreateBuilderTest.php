@@ -108,6 +108,37 @@ class CreateBuilderTest extends TestCase
     }
 
     /** @test */
+    function it_parses_date_filters_using_carbon()
+    {
+        $this->assertWhereSqlFor('created_at = "2018-05-17 10:30:00"', "created_at = 2018-05-17 10:30:00");
+
+        $this->assertWhereSqlFor('created_at = 2018-05-17', 
+            "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"
+        );
+
+        $this->assertWhereSqlFor('not created_at = 2018-05-17', 
+            "(created_at < 2018-05-17 00:00:00 and created_at > 2018-05-17 23:59:59)"
+        );
+
+        $this->assertWhereSqlFor('created_at = "May 17 2018"', 
+            "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"
+        );
+
+        $tomorrowStart = now()->addDay(1)->startOfDay();
+        $tomorrowEnd = now()->addDay(1)->endOfDay();
+        $this->assertWhereSqlFor('created_at = tomorrow', 
+            "(created_at >= $tomorrowStart and created_at <= $tomorrowEnd)"
+        );
+    }
+
+    /** @test */
+    function it_can_use_dates_as_boolean_by_filtering_on_null_values()
+    {
+        $this->assertWhereSqlFor('created_at', "created_at is not null");
+        $this->assertWhereSqlFor('not created_at', "created_at is null");
+    }
+
+    /** @test */
     function it_filters_in_array_queries()
     {
         $this->assertSqlFor(
@@ -150,10 +181,10 @@ class CreateBuilderTest extends TestCase
     function it_creates_complex_queries()
     {
         $this->assertSqlFor(
-            'name in (John,Jane) or description=Employee and created_at < 3 limit:3 or Banana from:1', 
+            'name in (John,Jane) or description=Employee and created_at < 2018-05-18 limit:3 or Banana from:1', 
             "select * from dummy_models "
             . "where (name in ('John', 'Jane') "
-            . "or (description = 'Employee' and created_at < '3') "
+            . "or (description = 'Employee' and created_at < 2018-05-18 00:00:00) "
             . "or (name like '%Banana%' or description like '%Banana%')) "
             . "limit 3 offset 1"
         );

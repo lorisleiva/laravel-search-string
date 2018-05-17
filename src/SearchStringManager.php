@@ -11,6 +11,7 @@ use Lorisleiva\LaravelSearchString\Options\SearchStringOptions;
 use Lorisleiva\LaravelSearchString\Parser\Parser;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
+use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
 use Lorisleiva\LaravelSearchString\Visitor\BuildWhereClausesVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
@@ -113,6 +114,12 @@ class SearchStringManager
 
     public function resolveQueryWhereClause(Builder $builder, QuerySymbol $query, $boolean)
     {
+        $rule = $this->getColumnRuleForQuery($query);
+
+        if ($rule && $rule->date && ! is_null($query->value)) {
+            return $this->resolveDateQueryWhereClause($builder, $query, $boolean);
+        }
+
         switch ($query->operator) {
             case 'in':
                 return $builder->whereIn($query->key, $query->value, $boolean);
@@ -151,5 +158,29 @@ class SearchStringManager
         return $boolean === 'or'
             ? $builder->orWhere($wheres->toArray())
             : $builder->where($wheres->toArray());
+    }
+
+    public function resolveDateQueryWhereClause(Builder $builder, QuerySymbol $query, $boolean)
+    {
+        $dateWithPrecision = new DateWithPrecision($query->value);
+
+        if (! $dateWithPrecision->carbon) {
+            return $builder->where($query->key, $query->operator, $query->value, $boolean);
+        }
+
+        $exactPrecision = in_array($dateWithPrecision->precision, ['micro', 'second']);
+        $comparaison = in_array($query->operator, ['>', '<', '>=', '<=']);
+
+        if ($exactPrecision || $comparaison) {
+            return $builder->where($query->key, $query->operator, $dateWithPrecision->carbon, $boolean);
+        }
+
+        list($start, $end) = $dateWithPrecision->getRange();
+        $excludeRange = in_array($query->operator, ['!=', 'not in']);
+
+        return $builder->where(function ($builder) use ($query, $start, $end, $excludeRange, $boolean) {
+            $builder->where($query->key, ($excludeRange ? '<' : '>='), $start, $boolean)
+                    ->where($query->key, ($excludeRange ? '>' : '<='), $end, $boolean);
+        }, null, null, $boolean);
     }
 }
