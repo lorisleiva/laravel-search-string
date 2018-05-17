@@ -114,6 +114,8 @@ Note that the spaces between operators don't matter.
 'A B or C D'                    // Equivalent to '(A and B) or (C and D)'
 'A or B and C or D'             // Equivalent to 'A or (B and C) or D'
 '(A or B) and (C or D)'         // Explicit nested priority
+'not (A and B)'                 // Equivalent to 'not A or not B'
+'not (A or B)'                  // Equivalent to 'not A and not B'
 
 // Special keywords
 'fields:title,body,created_at'  // Select only title, body, created_at
