@@ -8,6 +8,7 @@ use Lorisleiva\LaravelSearchString\Visitor\BuildKeywordsVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveKeywordsVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\RuleValidatorVisitor;
 
 trait SearchString
 {
@@ -32,6 +33,7 @@ trait SearchString
             new BuildKeywordsVisitor($manager, $builder),
             new RemoveKeywordsVisitor($manager),
             new OptimizeAstVisitor,
+            new RuleValidatorVisitor($manager),
             new BuildColumnsVisitor($manager, $builder),
         ];
     }
