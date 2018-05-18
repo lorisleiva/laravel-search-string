@@ -91,7 +91,7 @@ class BuildWhereClausesVisitor implements Visitor
 
     protected function resolveQuery(Builder $builder, QuerySymbol $query, $boolean)
     {
-        $rule = $this->manager->getColumnRuleForQuery($query);
+        $rule = $this->manager->getRuleForQuery($query);
 
         if ($rule && $rule->date) {
             return $this->resolveDate($builder, $query, $boolean);
@@ -106,7 +106,7 @@ class BuildWhereClausesVisitor implements Visitor
 
     protected function resolveSolo(Builder $builder, SoloSymbol $solo, $boolean)
     {
-        $rule = $this->manager->getColumnRule($solo->content);
+        $rule = $this->manager->getRule($solo->content);
 
         if ($rule && $rule->boolean && $rule->date) {
             return $this->resolveDateAsBoolean($builder, $solo, $boolean);

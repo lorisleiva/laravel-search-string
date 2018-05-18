@@ -13,9 +13,9 @@ use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
 use Lorisleiva\LaravelSearchString\Visitor\BuildWhereClausesVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\ResolveKeywordsVisitor;
 
 class SearchStringManager
 {
@@ -59,56 +59,9 @@ class SearchStringManager
     {
         return [
             new RemoveNotSymbolVisitor,
-            new ExtractKeywordVisitor($builder, $this, 'order_by'),
-            new ExtractKeywordVisitor($builder, $this, 'select'),
-            new ExtractKeywordVisitor($builder, $this, 'limit'),
-            new ExtractKeywordVisitor($builder, $this, 'offset'),
+            new ResolveKeywordsVisitor($builder, $this),
             new OptimizeAstVisitor,
             new BuildWhereClausesVisitor($builder, $this),
         ];
-    }
-
-    /**
-     * Query Resolvers
-     */
-
-    public function resolveOrderByKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
-    {
-        $builder->getQuery()->orders = null;
-
-        collect($query->value)->each(function ($value) use ($builder) {
-            $desc = starts_with($value, '-') ? 'desc' : 'asc';
-            $column = starts_with($value, '-') ? str_after($value, '-') : $value;
-            $builder->orderBy($column, $desc);
-        });
-    }
-
-    public function resolveSelectKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
-    {
-        $columns = array_wrap($query->value);
-
-        $columns = in_array($query->operator, ['!=', 'not in'])
-            ? $this->getColumns()->diff($columns)
-            : $this->getColumns()->intersect($columns);
-
-        $builder->select($columns->values()->toArray());
-    }
-
-    public function resolveLimitKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
-    {
-        if (! ctype_digit($query->value)) {
-            throw new InvalidSearchStringException('The limit must be an integer');
-        }
-
-        $builder->limit($query->value);
-    }
-
-    public function resolveOffsetKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
-    {
-        if (! ctype_digit($query->value)) {
-            throw new InvalidSearchStringException('The offset must be an integer');
-        }
-
-        $builder->offset($query->value);
     }
 }

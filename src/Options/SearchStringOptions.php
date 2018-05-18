@@ -92,21 +92,16 @@ trait SearchStringOptions
         return array_get($this->getOptions(), $key, $default);
     }
 
-    public function getColumnRule($key, $operator = null, $value = null)
+    public function getRule($key, $operator = null, $value = null, $type = 'columns')
     {
-        return $this->getOption('columns')->first(function ($rule) use ($key, $operator, $value) {
+        return $this->getOption($type)->first(function ($rule) use ($key, $operator, $value) {
             return $rule->match($key, $operator, $value);
         });
     }
 
-    public function getColumnRuleForQuery(QuerySymbol $query)
+    public function getRuleForQuery(QuerySymbol $query, $type = 'columns')
     {
-        return $this->getColumnRule($query->key, $query->operator, $query->value);
-    }
-
-    public function getKeywordRule($keyword)
-    {
-        return $this->getOption("keywords.$keyword");
+        return $this->getRule($query->key, $query->operator, $query->value, $type);
     }
 
     public function getColumns()
