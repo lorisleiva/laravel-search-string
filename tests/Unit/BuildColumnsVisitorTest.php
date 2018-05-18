@@ -29,10 +29,8 @@ class BuildColumnsVisitorTest extends TestCase
         $this->assertWhereClauses('name=1', ['Basic[and][0]' => 'name = 1']);
         $this->assertWhereClauses('name=Hello', ['Basic[and][0]' => 'name = Hello']);
         $this->assertWhereClauses('name="Hello World"', ['Basic[and][0]' => 'name = Hello World']);
-        $this->assertWhereClauses('name:1,2,3', ['Basic[and][0]' => 'name = [1, 2, 3]']);
         $this->assertWhereClauses('not name:1', ['Basic[and][0]' => 'name != 1']);
         $this->assertWhereClauses('not name=Hello', ['Basic[and][0]' => 'name != Hello']);
-        $this->assertWhereClauses('not name:1,2,3', ['Basic[and][0]' => 'name != [1, 2, 3]']);
 
         $this->assertWhereClauses('name<0', ['Basic[and][0]' => 'name < 0']);
         $this->assertWhereClauses('name<=0', ['Basic[and][0]' => 'name <= 0']);
@@ -53,6 +51,8 @@ class BuildColumnsVisitorTest extends TestCase
     {
         $this->assertWhereClauses('name in (1,2,3)', ['In[and][0]' => 'name [1, 2, 3]']);
         $this->assertWhereClauses('not name in (1,2,3)', ['NotIn[and][0]' => 'name [1, 2, 3]']);
+        $this->assertWhereClauses('name:1,2,3', ['In[and][0]' => 'name [1, 2, 3]']);
+        $this->assertWhereClauses('not name:1,2,3', ['NotIn[and][0]' => 'name [1, 2, 3]']);
     }
 
     /** @test */
@@ -178,10 +178,4 @@ class BuildColumnsVisitorTest extends TestCase
             ]
         ]);
     }
-
-    // TODO: More tests/features:
-    // - If value is "null", use $builder->whereNull();
-    // - If value is not "null", use $builder->whereNotNull();
-    // - If value is numeric, parse from string (important for sql?)
-    // - Throw error if column does't exists
 }

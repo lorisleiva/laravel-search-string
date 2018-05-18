@@ -95,6 +95,10 @@ class BuildColumnsVisitor extends Visitor
             return $this->buildInQuery($builder, $query, $boolean);
         }
 
+        if (in_array($query->operator, ['=', '!=']) && is_array($query->value)) {
+            return $this->buildInQuery($builder, $query, $boolean);
+        }
+
         return $this->buildBasicQuery($builder, $query, $boolean);
     }
 
@@ -179,12 +183,31 @@ class BuildColumnsVisitor extends Visitor
 
     protected function buildInQuery(Builder $builder, QuerySymbol $query, $boolean)
     {
-        $notIn = $query->operator === 'not in';
-        return $builder->whereIn($query->key, $query->value, $boolean, $notIn);
+        $notIn = in_array($query->operator, ['not in', '!=']);
+        $value = array_wrap($query->value);
+        return $builder->whereIn($query->key, $value, $boolean, $notIn);
     }
 
     protected function buildBasicQuery(Builder $builder, QuerySymbol $query, $boolean)
     {
-        return $builder->where($query->key, $query->operator, $query->value, $boolean);
+        $value = $this->parseValue($query->value);
+        return $builder->where($query->key, $query->operator, $value, $boolean);
+    }
+
+    protected function parseValue($value)
+    {
+        if (is_array($value)) {
+            return $this->parseValue(array_get($value, 0, ''));
+        }
+
+        if (is_numeric($value)) {
+            return $value + 0;
+        }
+
+        if ($value === 'NULL') {
+            return null;
+        }
+
+        return $value;
     }
 }

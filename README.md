@@ -80,8 +80,9 @@ Note that the spaces between operators don't matter.
 // In array
 'title in (Hello, Hi, "My super article")'
 'status in(Finished,Archived)'
+'status:Finished,Archived'
 
-// Clever date checks
+// Date checks
 // - Term must be defined as a date
 'created_at = today'        // today between 00:00 and 23:59
 'not created_at = today'    // any time before today 00:00 and after today 23:59
@@ -103,6 +104,10 @@ Note that the spaces between operators don't matter.
 'not status in (Finished,Archived)'
 'not published'     // published = false
 'not created_at'    // created_at is null
+
+// Null values (case sensitive)
+'body:NULL'         // body is null
+'not body:NULL'     // body is not null
 
 // Search queries
 // - Term must not be defined as a boolean

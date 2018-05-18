@@ -93,18 +93,15 @@ class CreateBuilderTest extends TestCase
         $this->assertWhereSqlFor('not paid', "paid = false");
 
         // Comparaisons
-        $this->assertWhereSqlFor('price>0', "price > '0'");
-        $this->assertWhereSqlFor('price>=0', "price >= '0'");
-        $this->assertWhereSqlFor('price<0', "price < '0'");
-        $this->assertWhereSqlFor('price<=0', "price <= '0'");
-        $this->assertWhereSqlFor('price>0.55', "price > '0.55'");
+        $this->assertWhereSqlFor('price>0', "price > 0");
+        $this->assertWhereSqlFor('price>=0', "price >= 0");
+        $this->assertWhereSqlFor('price<0', "price < 0");
+        $this->assertWhereSqlFor('price<=0', "price <= 0");
+        $this->assertWhereSqlFor('price>0.55', "price > 0.55");
 
-        // Null treated as text
-        $this->assertWhereSqlFor('name:null', "name = 'null'");
-        $this->assertWhereSqlFor('not name:null', "name != 'null'");
-
-        // Array assignment treated as if they only had one value
-        $this->assertWhereSqlFor('name:John,Jane', "name = 'John'");
+        // Null in capital treated as null value
+        $this->assertWhereSqlFor('name:NULL', "name is null");
+        $this->assertWhereSqlFor('not name:NULL', "name is not null");
     }
 
     /** @test */
@@ -147,15 +144,17 @@ class CreateBuilderTest extends TestCase
     /** @test */
     function it_filters_in_array_queries()
     {
-        $this->assertSqlFor(
-            'name in (John, Jane)',
-            "select * from dummy_models where name in ('John', 'Jane')"
-        );
+        $this->assertWhereSqlFor('name in (John, Jane)', "name in ('John', 'Jane')");
+        $this->assertWhereSqlFor('not name in (John, Jane)', "name not in ('John', 'Jane')");
+        $this->assertWhereSqlFor('name in (John)', "name in ('John')");
+        $this->assertWhereSqlFor('not name in (John)', "name not in ('John')");
 
-        $this->assertSqlFor(
-            'not name in (John, Jane)',
-            "select * from dummy_models where name not in ('John', 'Jane')"
-        );
+        // Array assignment treated as whereIn
+        $this->assertWhereSqlFor('name:John,Jane', "name in ('John', 'Jane')");
+        $this->assertWhereSqlFor('not name:John,Jane', "name not in ('John', 'Jane')");
+        
+        // Array comparisons treated as their first item
+        $this->assertWhereSqlFor('name>John,Jane', "name > 'John'");
     }
 
     /** @test */
@@ -177,10 +176,10 @@ class CreateBuilderTest extends TestCase
     /** @test */
     function it_creates_nested_where_clauses_using_or_and_operators()
     {
-        $this->assertWhereSqlFor('name:John and price>0', "(name = 'John' and price > '0')");
+        $this->assertWhereSqlFor('name:John and price>0', "(name = 'John' and price > 0)");
         $this->assertWhereSqlFor('name:John or name:Jane', "(name = 'John' or name = 'Jane')");
-        $this->assertWhereSqlFor('name:1 and name:2 or name:3', "((name = '1' and name = '2') or name = '3')");
-        $this->assertWhereSqlFor('name:1 and (name:2 or name:3)', "(name = '1' and (name = '2' or name = '3'))");
+        $this->assertWhereSqlFor('name:1 and name:2 or name:3', "((name = 1 and name = 2) or name = 3)");
+        $this->assertWhereSqlFor('name:1 and (name:2 or name:3)', "(name = 1 and (name = 2 or name = 3))");
     }
 
     /** @test */
