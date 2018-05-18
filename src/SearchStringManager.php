@@ -7,11 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Lorisleiva\LaravelSearchString\Lexer\Lexer;
 use Lorisleiva\LaravelSearchString\Options\SearchStringOptions;
 use Lorisleiva\LaravelSearchString\Parser\Parser;
-use Lorisleiva\LaravelSearchString\Visitor\BuildColumnsVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\BuildKeywordsVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\RemoveKeywordsVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 
 class SearchStringManager
 {
@@ -38,8 +33,9 @@ class SearchStringManager
     public function updateBuilder(Builder $builder, $input)
     {
         $ast = $this->parse($input);
+        $visitors = $this->model->getSearchStringVisitors($this, $builder);
 
-        foreach ($this->getVisitors($builder) as $visitor) {
+        foreach ($visitors as $visitor) {
             $ast = $ast->accept($visitor);
         }
     }
@@ -49,16 +45,5 @@ class SearchStringManager
         $builder = $this->model->newQuery();
         $this->updateBuilder($builder, $input);
         return $builder;
-    }
-    
-    public function getVisitors($builder)
-    {
-        return [
-            new RemoveNotSymbolVisitor,
-            new BuildKeywordsVisitor($this, $builder),
-            new RemoveKeywordsVisitor($this),
-            new OptimizeAstVisitor,
-            new BuildColumnsVisitor($this, $builder),
-        ];
     }
 }

@@ -3,6 +3,11 @@
 namespace Lorisleiva\LaravelSearchString\Concerns;
 
 use Lorisleiva\LaravelSearchString\SearchStringManager;
+use Lorisleiva\LaravelSearchString\Visitor\BuildColumnsVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\BuildKeywordsVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\RemoveKeywordsVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 
 trait SearchString
 {
@@ -17,6 +22,17 @@ trait SearchString
         return [
             'columns' => $this->searchStringColumns ?? [],
             'keywords' => $this->searchStringKeywords ?? [],
+        ];
+    }
+    
+    public function getSearchStringVisitors($manager, $builder)
+    {
+        return [
+            new RemoveNotSymbolVisitor,
+            new BuildKeywordsVisitor($manager, $builder),
+            new RemoveKeywordsVisitor($manager),
+            new OptimizeAstVisitor,
+            new BuildColumnsVisitor($manager, $builder),
         ];
     }
 
