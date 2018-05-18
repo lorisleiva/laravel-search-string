@@ -157,15 +157,19 @@ class BuildColumnsVisitor implements Visitor
             return $this->resolveBasicQuery($builder, $query, $boolean);
         }
 
-        $exactPrecision = in_array($dateWithPrecision->precision, ['micro', 'second']);
-        $comparaison = in_array($query->operator, ['>', '<', '>=', '<=']);
-
-        if ($exactPrecision || $comparaison) {
+        if (in_array($dateWithPrecision->precision, ['micro', 'second'])) {
             $query = new QuerySymbol($query->key, $query->operator, $dateWithPrecision->carbon);
             return $this->resolveBasicQuery($builder, $query, $boolean);
         }
 
         list($start, $end) = $dateWithPrecision->getRange();
+
+        if (in_array($query->operator, ['>', '<', '>=', '<='])) {
+            $extremity = in_array($query->operator, ['<', '>=']) ? $start : $end;
+            $query = new QuerySymbol($query->key, $query->operator, $extremity);
+            return $this->resolveBasicQuery($builder, $query, $boolean);
+        }
+
         return $this->resolveDateRange($builder, $query, $start, $end, $boolean);
     }
 

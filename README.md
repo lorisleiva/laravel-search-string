@@ -84,7 +84,11 @@ Note that the spaces between operators don't matter.
 // Clever date checks
 // - Term must be defined as a date
 'created_at = today'        // today between 00:00 and 23:59
-'created_at > tomorrow'     // tomorrow from 00:00
+'not created_at = today'    // any time before today 00:00 and after today 23:59
+'created_at >= tomorrow'    // from tomorrow at 00:00
+'created_at <= tomorrow'    // until tomorrow at 23:59
+'created_at > tomorrow'     // from the day after tomorrow at 00:00
+'created_at < tomorrow'     // until today at 23:59
 
 // Boolean checks
 // - Term must be defined as a boolean
