@@ -2,6 +2,8 @@
 
 namespace Lorisleiva\LaravelSearchString\Exceptions;
 
+use Lorisleiva\LaravelSearchString\Lexer\Token;
+
 class InvalidSearchStringException extends \Exception
 {
     protected $message;

@@ -4,6 +4,7 @@ namespace Lorisleiva\LaravelSearchString;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Lexer\Lexer;
 use Lorisleiva\LaravelSearchString\Options\SearchStringOptions;
 use Lorisleiva\LaravelSearchString\Parser\Parser;
@@ -30,13 +31,31 @@ class SearchStringManager
         return (new Parser)->parse($this->lex($input));
     }
 
-    public function updateBuilder(Builder $builder, $input)
+    public function build(Builder $builder, $input)
     {
         $ast = $this->parse($input);
         $visitors = $this->model->getSearchStringVisitors($this, $builder);
 
         foreach ($visitors as $visitor) {
             $ast = $ast->accept($visitor);
+        }
+    }
+
+    public function updateBuilder(Builder $builder, $input)
+    {
+        try {
+            $this->build($builder, $input);
+        } catch (InvalidSearchStringException $e) {
+            switch (config('search-string.fail')) {
+                case 'exceptions':
+                    throw $e;
+
+                case 'no-results':
+                    return $builder->limit(0);
+                
+                default:
+                    return $builder;
+            }
         }
     }
 

@@ -60,6 +60,7 @@ class CreateBuilderTest extends TestCase
     /** @test */
     function it_throws_an_exception_if_limit_is_not_a_positive_integer()
     {
+        config()->set('search-string.fail', 'exceptions');
         $this->expectException(InvalidSearchStringException::class);
         $this->getSearchStringManager()->createBuilder('limit:-1');
     }
@@ -67,6 +68,7 @@ class CreateBuilderTest extends TestCase
     /** @test */
     function it_throws_an_exception_if_offset_is_not_a_positive_integer()
     {
+        config()->set('search-string.fail', 'exceptions');
         $this->expectException(InvalidSearchStringException::class);
         $this->getSearchStringManager()->createBuilder('from:"foo bar"');
     }
@@ -193,22 +195,5 @@ class CreateBuilderTest extends TestCase
             . "or (name like '%Banana%' or description like '%Banana%')) "
             . "limit 3 offset 1"
         );
-    }
-
-    public function assertWhereSqlFor($input, $expectedSql)
-    {
-        $builder = $this->getSearchStringManager()->createBuilder($input);
-        $actualSql = $this->dumpSql($builder);
-        $actualSql = str_replace('`', '', $actualSql);
-        $actualSql = str_after($actualSql, 'select * from dummy_models where ');
-        $this->assertEquals($expectedSql, $actualSql);
-    }
-
-    public function assertSqlFor($input, $expectedSql)
-    {
-        $builder = $this->getSearchStringManager()->createBuilder($input);
-        $actualSql = $this->dumpSql($builder);
-        $actualSql = str_replace('`', '', $actualSql);
-        $this->assertEquals($expectedSql, $actualSql);
     }
 }

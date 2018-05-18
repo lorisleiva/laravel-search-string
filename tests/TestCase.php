@@ -61,6 +61,24 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return $this->getSearchStringManager($model)->parse($input);
     }
 
+    public function build($input, $model = null)
+    {
+        return $this->getSearchStringManager($model)->createBuilder($input);
+    }
+
+    public function assertWhereSqlFor($input, $expectedSql)
+    {
+        $actualSql = $this->dumpSql($this->build($input));
+        $actualSql = str_after($actualSql, 'select * from dummy_models where ');
+        $this->assertEquals($expectedSql, $actualSql);
+    }
+
+    public function assertSqlFor($input, $expectedSql)
+    {
+        $actualSql = $this->dumpSql($this->build($input));
+        $this->assertEquals($expectedSql, $actualSql);
+    }
+
     public function dumpSql($builder)
     {
         $query = str_replace(array('?'), array('%s'), $builder->toSql());
@@ -71,6 +89,6 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             return $binding;
         })->toArray();
 
-        return vsprintf($query, $bindings);
+        return str_replace('`', '', vsprintf($query, $bindings));
     }
 }
