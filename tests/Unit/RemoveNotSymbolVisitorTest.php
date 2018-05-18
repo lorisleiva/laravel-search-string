@@ -22,23 +22,21 @@ class RemoveNotSymbolVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_negates_search_symbols_and_boolean_queries()
+    function it_negates_solo_symbols()
     {
-        $this->assertAstFor('foobar', 'SEARCH(foobar)');
-        $this->assertAstFor('not foobar', 'SEARCH_NOT(foobar)');
-
-        // Paid is defined in the `columns.boolean` option.
-        $this->assertAstFor('paid', 'QUERY(paid = true)');
-        $this->assertAstFor('not paid', 'QUERY(paid = false)');
+        $this->assertAstFor('foobar', 'SOLO(foobar)');
+        $this->assertAstFor('not foobar', 'SOLO_NOT(foobar)');
+        $this->assertAstFor('"John Doe"', 'SOLO(John Doe)');
+        $this->assertAstFor('not "John Doe"', 'SOLO_NOT(John Doe)');
     }
 
     /** @test */
     function it_negates_and_or_operator()
     {
-        $this->assertAstFor('not (A and B)', 'OR(SEARCH_NOT(A), SEARCH_NOT(B))');
-        $this->assertAstFor('not (A or B)', 'AND(SEARCH_NOT(A), SEARCH_NOT(B))');
-        $this->assertAstFor('not (A or (B and C))', 'AND(SEARCH_NOT(A), OR(SEARCH_NOT(B), SEARCH_NOT(C)))');
-        $this->assertAstFor('not (A and (B or C))', 'OR(SEARCH_NOT(A), AND(SEARCH_NOT(B), SEARCH_NOT(C)))');
+        $this->assertAstFor('not (A and B)', 'OR(SOLO_NOT(A), SOLO_NOT(B))');
+        $this->assertAstFor('not (A or B)', 'AND(SOLO_NOT(A), SOLO_NOT(B))');
+        $this->assertAstFor('not (A or (B and C))', 'AND(SOLO_NOT(A), OR(SOLO_NOT(B), SOLO_NOT(C)))');
+        $this->assertAstFor('not (A and (B or C))', 'OR(SOLO_NOT(A), AND(SOLO_NOT(B), SOLO_NOT(C)))');
     }
 
     /** @test */
@@ -52,10 +50,10 @@ class RemoveNotSymbolVisitorTest extends TestCase
         $this->assertAstFor('not not foo<=1', 'QUERY(foo <= 1)');
         $this->assertAstFor('not not foo>=1', 'QUERY(foo >= 1)');
         $this->assertAstFor('not not foo in(1, 2, 3)', 'QUERY(foo in [1, 2, 3])');
-        $this->assertAstFor('not not (A and B)', 'AND(SEARCH(A), SEARCH(B))');
-        $this->assertAstFor('not not (A or B)', 'OR(SEARCH(A), SEARCH(B))');
-        $this->assertAstFor('not not foobar', 'SEARCH(foobar)');
-        $this->assertAstFor('not not paid', 'QUERY(paid = true)');
+        $this->assertAstFor('not not (A and B)', 'AND(SOLO(A), SOLO(B))');
+        $this->assertAstFor('not not (A or B)', 'OR(SOLO(A), SOLO(B))');
+        $this->assertAstFor('not not foobar', 'SOLO(foobar)');
+        $this->assertAstFor('not not "John Doe"', 'SOLO(John Doe)');
     }
 
     public function assertAstFor($input, $expectedAst)

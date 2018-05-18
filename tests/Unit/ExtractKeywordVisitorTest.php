@@ -18,9 +18,6 @@ class ExtractKeywordVisitorTest extends TestCase
         $ast = $this->extractKeywordWithRule('foo:bar', '/^foo$/');
         $this->assertAstEquals('NULL', $ast);
 
-        $ast = $this->extractKeywordWithRule('boolean_variable', '/^bool/');
-        $this->assertAstEquals('NULL', $ast);
-
         $ast = $this->extractKeywordWithRule('foo:1', '/f/', '/=/', '/1/');
         $this->assertAstEquals('NULL', $ast);
 
@@ -33,9 +30,6 @@ class ExtractKeywordVisitorTest extends TestCase
     {
         $ast = $this->extractKeywordWithRule('foo:bar', '/^baz$/');
         $this->assertAstEquals('QUERY(foo = bar)', $ast);
-
-        $ast = $this->extractKeywordWithRule('boolean_variable', '/^variable/');
-        $this->assertAstEquals('QUERY(boolean_variable = true)', $ast);
 
         $ast = $this->extractKeywordWithRule('foo:"Hello world"', '/f/', '/=/', '/1/');
         $this->assertAstEquals('QUERY(foo = Hello world)', $ast);

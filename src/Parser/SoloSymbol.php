@@ -4,19 +4,19 @@ namespace Lorisleiva\LaravelSearchString\Parser;
 
 use Lorisleiva\LaravelSearchString\Visitor\Visitor;
 
-class SearchSymbol extends Symbol
+class SoloSymbol extends Symbol
 {
     public $content;
-    public $exclude;
+    public $negated;
 
-    function __construct($content, $exclude = false)
+    function __construct($content, $negated = false)
     {
         $this->content = $content;
-        $this->exclude = $exclude;
+        $this->negated = $negated;
     }
 
     public function accept(Visitor $visitor)
     {
-        return $visitor->visitSearch($this);
+        return $visitor->visitSolo($this);
     }
 }

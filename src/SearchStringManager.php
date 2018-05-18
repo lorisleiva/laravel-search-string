@@ -10,7 +10,7 @@ use Lorisleiva\LaravelSearchString\Lexer\Lexer;
 use Lorisleiva\LaravelSearchString\Options\SearchStringOptions;
 use Lorisleiva\LaravelSearchString\Parser\Parser;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
-use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
+use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
 use Lorisleiva\LaravelSearchString\Visitor\BuildWhereClausesVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\ExtractKeywordVisitor;
@@ -36,7 +36,7 @@ class SearchStringManager
 
     public function parse($input)
     {
-        return (new Parser($this))->parse($this->lex($input), $this);
+        return (new Parser)->parse($this->lex($input));
     }
 
     public function updateBuilder(Builder $builder, $input)
@@ -136,14 +136,24 @@ class SearchStringManager
         }
     }
 
-    public function resolveSearchWhereClause(Builder $builder, SearchSymbol $search, $boolean)
+    public function resolveSoloWhereClause(Builder $builder, SoloSymbol $solo, $boolean)
     {
+        $rule = $this->getColumnRule($solo->content);
+
+        if ($rule && $rule->boolean && $rule->date) {
+            return $builder->whereNull($solo->content, $boolean, ! $solo->negated);
+        }
+
+        if ($rule && $rule->boolean && ! $rule->date) {
+            return $builder->where($solo->content, '=', ! $solo->negated, $boolean);
+        }
+
         $searchables = $this->getSearchables();
 
-        $wheres = $searchables->map(function ($column) use ($search) {
-            $boolean = $search->exclude ? 'and' : 'or';
-            $operator = $search->exclude ? 'not like' : 'like';
-            return [$column, $operator, "%$search->content%", $boolean];
+        $wheres = $searchables->map(function ($column) use ($solo) {
+            $boolean = $solo->negated ? 'and' : 'or';
+            $operator = $solo->negated ? 'not like' : 'like';
+            return [$column, $operator, "%$solo->content%", $boolean];
         });
 
         if ($wheres->isEmpty()) {

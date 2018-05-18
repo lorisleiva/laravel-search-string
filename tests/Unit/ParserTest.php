@@ -34,63 +34,51 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_parses_lonely_terms_and_strings_as_search_queries()
+    function it_parses_lonely_terms_and_strings_as_solo_symbols()
     {
-        $this->assertAstFor('lonely', 'SEARCH(lonely)');
-        $this->assertAstFor(' lonely ', 'SEARCH(lonely)');
-        $this->assertAstFor('"lonely"', 'SEARCH(lonely)');
-        $this->assertAstFor(' "lonely" ', 'SEARCH(lonely)');
-        $this->assertAstFor('"so lonely"', 'SEARCH(so lonely)');
-    }
-
-    /** @test */
-    function it_parses_lonely_terms_as_boolean_if_defined_as_boolean_column()
-    {
-        // Paid is defined in the `columns.boolean` option.
-        $this->assertAstFor('paid', 'QUERY(paid = true)');
-        $this->assertAstFor(' paid ', 'QUERY(paid = true)');
-        $this->assertAstFor('(paid)', 'QUERY(paid = true)');
-        $this->assertAstFor('(paid )', 'QUERY(paid = true)');
-        $this->assertAstFor('( paid)', 'QUERY(paid = true)');
-        $this->assertAstFor('( paid )', 'QUERY(paid = true)');
+        $this->assertAstFor('lonely', 'SOLO(lonely)');
+        $this->assertAstFor(' lonely ', 'SOLO(lonely)');
+        $this->assertAstFor('"lonely"', 'SOLO(lonely)');
+        $this->assertAstFor(' "lonely" ', 'SOLO(lonely)');
+        $this->assertAstFor('"so lonely"', 'SOLO(so lonely)');
     }
 
     /** @test */
     function it_parses_not_operators()
     {
-        $this->assertAstFor('not A', 'NOT(SEARCH(A))');
-        $this->assertAstFor('not (not A)', 'NOT(NOT(SEARCH(A)))');
-        $this->assertAstFor('not not A', 'NOT(NOT(SEARCH(A)))');
+        $this->assertAstFor('not A', 'NOT(SOLO(A))');
+        $this->assertAstFor('not (not A)', 'NOT(NOT(SOLO(A)))');
+        $this->assertAstFor('not not A', 'NOT(NOT(SOLO(A)))');
     }
 
     /** @test */
     function it_parses_and_operators()
     {
-        $this->assertAstFor('A and B and C', 'AND(SEARCH(A), SEARCH(B), SEARCH(C))');
-        $this->assertAstFor('(A AND B) and C', 'AND(AND(SEARCH(A), SEARCH(B)), SEARCH(C))');
-        $this->assertAstFor('A AND (B AND C)', 'AND(SEARCH(A), AND(SEARCH(B), SEARCH(C)))');
+        $this->assertAstFor('A and B and C', 'AND(SOLO(A), SOLO(B), SOLO(C))');
+        $this->assertAstFor('(A AND B) and C', 'AND(AND(SOLO(A), SOLO(B)), SOLO(C))');
+        $this->assertAstFor('A AND (B AND C)', 'AND(SOLO(A), AND(SOLO(B), SOLO(C)))');
     }
 
     /** @test */
     function it_parses_or_operators()
     {
-        $this->assertAstFor('A or B or C', 'OR(SEARCH(A), SEARCH(B), SEARCH(C))');
-        $this->assertAstFor('(A OR B) or C', 'OR(OR(SEARCH(A), SEARCH(B)), SEARCH(C))');
-        $this->assertAstFor('A OR (B OR C)', 'OR(SEARCH(A), OR(SEARCH(B), SEARCH(C)))');
+        $this->assertAstFor('A or B or C', 'OR(SOLO(A), SOLO(B), SOLO(C))');
+        $this->assertAstFor('(A OR B) or C', 'OR(OR(SOLO(A), SOLO(B)), SOLO(C))');
+        $this->assertAstFor('A OR (B OR C)', 'OR(SOLO(A), OR(SOLO(B), SOLO(C)))');
     }
 
     /** @test */
     function it_prioritizes_or_over_and()
     {
-        $this->assertAstFor('A or B and C or D', 'OR(SEARCH(A), AND(SEARCH(B), SEARCH(C)), SEARCH(D))');
-        $this->assertAstFor('(A or B) and C', 'AND(OR(SEARCH(A), SEARCH(B)), SEARCH(C))');
+        $this->assertAstFor('A or B and C or D', 'OR(SOLO(A), AND(SOLO(B), SOLO(C)), SOLO(D))');
+        $this->assertAstFor('(A or B) and C', 'AND(OR(SOLO(A), SOLO(B)), SOLO(C))');
     }
 
     /** @test */
     function it_ignores_trailing_and_or_operators()
     {
-        $this->assertAstFor('foo and', 'SEARCH(foo)');
-        $this->assertAstFor('foo or', 'SEARCH(foo)');
+        $this->assertAstFor('foo and', 'SOLO(foo)');
+        $this->assertAstFor('foo or', 'SOLO(foo)');
     }
 
     /** @test */
@@ -117,7 +105,7 @@ class ParserTest extends TestCase
     {
         $this->assertAstFor(
             'A: 1 or B > 2 and not C or D <= "foo bar"', 
-            'OR(QUERY(A = 1), AND(QUERY(B > 2), NOT(SEARCH(C))), QUERY(D <= foo bar))'
+            'OR(QUERY(A = 1), AND(QUERY(B > 2), NOT(SOLO(C))), QUERY(D <= foo bar))'
         );
         $this->assertAstFor(
             'sort:-name,date events > 10 and not started_at <= tomorrow', 
@@ -125,7 +113,7 @@ class ParserTest extends TestCase
         );
         $this->assertAstFor(
             'A (B) not C', 
-            'AND(SEARCH(A), SEARCH(B), NOT(SEARCH(C)))'
+            'AND(SOLO(A), SOLO(B), NOT(SOLO(C)))'
         );
     }
 

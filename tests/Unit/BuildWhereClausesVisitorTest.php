@@ -184,6 +184,5 @@ class ResolveQueryWhereClauseTest extends TestCase
     // - If value is not "null", use $builder->whereNotNull();
     // - If value is numeric, parse from string (important for sql?)
     // - If column is date column, use Carbon to parse the value.
-    // - Throw error if column does't exists (which columns from config?)
-    // - Use mapping to allow different names than database columns (but default to database columns).
+    // - Throw error if column does't exists
 }

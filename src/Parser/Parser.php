@@ -4,24 +4,15 @@ namespace Lorisleiva\LaravelSearchString\Parser;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Lexer\Token;
-use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 
 class Parser
 {
-    protected $manager;
     protected $tokens = [];
-    protected $booleans = [];
     protected $pointer = 0;
-
-    public function __construct($manager)
-    {
-        $this->manager = $manager;
-    }
 
     public function parse($tokens)
     {
         $this->tokens = $tokens;
-        $this->booleans = $this->manager->getOption('columns.boolean', []);
         $this->pointer = 0;
         $ast = $this->parseOr();
         return $ast === false ? new NullSymbol : $ast;
@@ -87,7 +78,7 @@ class Parser
             case 'T_STRING':
                 $content = $this->parseEndValue();
                 $this->next();
-                return new SearchSymbol($content);
+                return new SoloSymbol($content);
 
             case 'T_LPARENT': 
                 $this->next();
@@ -131,13 +122,7 @@ class Parser
                 throw $this->expectedAnythingBut('T_LIST_SEPARATOR');
 
             default:
-                if (! $this->manager->isBooleanColumn($key)) {
-                    return new SearchSymbol($key);
-                }
-
-                return $this->manager->isDateColumn($key)
-                    ? new QuerySymbol($key, '!=', null)
-                    : new QuerySymbol($key, '=', true);
+                return new SoloSymbol($key);
         }
     }
 

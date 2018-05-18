@@ -7,7 +7,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
-use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
+use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
 class BuildWhereClausesVisitor implements Visitor
 {
@@ -50,11 +50,11 @@ class BuildWhereClausesVisitor implements Visitor
         return $query;
     }
 
-    public function visitSearch(SearchSymbol $search)
+    public function visitSolo(SoloSymbol $solo)
     {
-        $this->manager->resolveSearchWhereClause($this->builder, $search, $this->boolean);
+        $this->manager->resolveSoloWhereClause($this->builder, $solo, $this->boolean);
 
-        return $search;
+        return $solo;
     }
 
     public function visitNull(NullSymbol $null)

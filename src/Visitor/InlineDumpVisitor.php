@@ -7,7 +7,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
-use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
+use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
 class InlineDumpVisitor implements Visitor
 {
@@ -47,15 +47,15 @@ class InlineDumpVisitor implements Visitor
         return "QUERY($query->key $query->operator $value)";
     }
 
-    public function visitSearch(SearchSymbol $search)
+    public function visitSolo(SoloSymbol $solo)
     {
         if ($this->shortenQuery) {
-            return $search->content;
+            return $solo->content;
         }
 
-        return $search->exclude
-            ? "SEARCH_NOT($search->content)"
-            : "SEARCH($search->content)";
+        return $solo->negated
+            ? "SOLO_NOT($solo->content)"
+            : "SOLO($solo->content)";
     }
 
     public function visitNull(NullSymbol $null)

@@ -7,7 +7,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
-use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
+use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
 class RemoveNotSymbolVisitor implements Visitor
 {
@@ -52,11 +52,11 @@ class RemoveNotSymbolVisitor implements Visitor
         return new QuerySymbol($query->key, $reverseOperator, $query->value);
     }
 
-    public function visitSearch(SearchSymbol $search)
+    public function visitSolo(SoloSymbol $solo)
     {
         return $this->negate
-            ? new SearchSymbol($search->content, ! $search->exclude)
-            : $search;
+            ? new SoloSymbol($solo->content, ! $solo->negated)
+            : $solo;
     }
 
     public function visitNull(NullSymbol $null)

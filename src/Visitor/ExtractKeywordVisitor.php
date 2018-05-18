@@ -7,7 +7,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
-use Lorisleiva\LaravelSearchString\Parser\SearchSymbol;
+use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
 class ExtractKeywordVisitor implements Visitor
 {
@@ -50,9 +50,9 @@ class ExtractKeywordVisitor implements Visitor
         return new NullSymbol;
     }
 
-    public function visitSearch(SearchSymbol $search)
+    public function visitSolo(SoloSymbol $solo)
     {
-        return $search;
+        return $solo;
     }
 
     public function visitNull(NullSymbol $null)
