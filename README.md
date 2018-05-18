@@ -4,17 +4,18 @@
 
 ## Introduction
 
-**Package in development**
-*Coming soon*
+Laravel Search String provide a simple solution for scoping your database queries using a human readable and customizable syntax. It will transform a simple string into a powerful query builder. For example, the following search string will fetch the latest blog articles that are either not published or titled "My blog article".
 
 ```php
 Article::usingSearchString('title:"My blog article" or not published sort:-created_at');
 
 // Equivalent to:
 Article::where('title', 'My blog article')
-       ->where('published', false)
+       ->orWhere('published', false)
        ->orderBy('created_at', 'desc');
 ```
+
+This next example will search for the term "John" on the customer and description columns whilst making sure the invoices are either paid or archived.
 
 ```php
 Invoice::usingSearchString('John and status in (Paid,Archived) limit:10 from:10');
@@ -29,11 +30,16 @@ Invoice::where(function ($query) {
        ->offset(10);
 ```
 
+As you can see, not only it provides a very convenient way to communicate with your Laravel API (instead of allowing dozens of query fields), it also can be presented to your users as a tool to explore their data.
+
 ## Installation
 
-*Coming soon*
 ```bash
+# Install via composer
 composer require lorisleiva/laravel-search-string
+
+# (Optional) Publish the search-string.php configuration file
+php artisan vendor:publish --tag=search-string
 ```
 
 ## Basic usage
@@ -311,9 +317,8 @@ The provided search string can be invalid for numerous reasons.
 - It tries to query an inexisting column or column alias
 - It provides the wrong operator to a query
 - It provides the wrong value to a query
-- etc.
 
-Any of those errors will throw an appropriate exception. However you can choose whether you want these exceptions to bubble up to the Laravel exception handler or whether you want them to fail silently. For that, you need to choose a fail strategy on your `config/search-string.php` configuration file:
+Any of those errors will throw an `InvalidSearchStringException`. However you can choose whether you want these exceptions to bubble up to the Laravel exception handler or whether you want them to fail silently. For that, you need to choose a fail strategy on your `config/search-string.php` configuration file:
 
 ```php
 // config/search-string.php
@@ -325,6 +330,3 @@ return [
     // ...
 ];
 ```
-
-## Custom SearchStringManager
-*TODO: Document SearchStringManager and overridable methods.*
