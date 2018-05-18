@@ -54,10 +54,6 @@ class SearchStringManager
         $this->updateBuilder($builder, $input);
         return $builder;
     }
-
-    /**
-     * Overiddables
-     */
     
     public function getVisitors($builder)
     {
@@ -71,6 +67,10 @@ class SearchStringManager
             new BuildWhereClausesVisitor($builder, $this),
         ];
     }
+
+    /**
+     * Query Resolvers
+     */
 
     public function resolveOrderByKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
     {
@@ -112,45 +112,60 @@ class SearchStringManager
         $builder->offset($query->value);
     }
 
-    public function resolveQueryWhereClause(Builder $builder, QuerySymbol $query, $boolean)
+    public function resolveQuery(Builder $builder, QuerySymbol $query, $boolean)
     {
         $rule = $this->getColumnRuleForQuery($query);
 
-        if ($rule && $rule->date && ! is_null($query->value)) {
-            return $this->resolveDateQueryWhereClause($builder, $query, $boolean);
+        if ($rule && $rule->date) {
+            return $this->resolveDate($builder, $query, $boolean);
         }
 
-        switch ($query->operator) {
-            case 'in':
-                return $builder->whereIn($query->key, $query->value, $boolean);
-
-            case 'not in':
-                return $builder->whereNotIn($query->key, $query->value, $boolean);
-            
-            default:
-                if (is_null($query->value)) {
-                    return $builder->whereNull($query->key, $boolean, $query->operator === '!=');
-                }
-
-                return $builder->where($query->key, $query->operator, $query->value, $boolean);
+        if (in_array($query->operator, ['in', 'not in'])) {
+            return $this->resolveInQuery($builder, $query, $boolean);
         }
+
+        return $this->resolveBasicQuery($builder, $query, $boolean);
     }
 
-    public function resolveSoloWhereClause(Builder $builder, SoloSymbol $solo, $boolean)
+    public function resolveSolo(Builder $builder, SoloSymbol $solo, $boolean)
     {
         $rule = $this->getColumnRule($solo->content);
 
         if ($rule && $rule->boolean && $rule->date) {
-            return $builder->whereNull($solo->content, $boolean, ! $solo->negated);
+            return $this->resolveDateAsBoolean($builder, $solo, $boolean);
         }
 
-        if ($rule && $rule->boolean && ! $rule->date) {
-            return $builder->where($solo->content, '=', ! $solo->negated, $boolean);
+        if ($rule && $rule->boolean) {
+            return $this->resolveBoolean($builder, $solo, $boolean);
         }
 
-        $searchables = $this->getSearchables();
+        return $this->resolveSearch($builder, $solo, $boolean);
+    }
 
-        $wheres = $searchables->map(function ($column) use ($solo) {
+    protected function resolveInQuery(Builder $builder, QuerySymbol $query, $boolean)
+    {
+        $notIn = $query->operator === 'not in';
+        return $builder->whereIn($query->key, $query->value, $boolean, $notIn);
+    }
+
+    protected function resolveBasicQuery(Builder $builder, QuerySymbol $query, $boolean)
+    {
+        return $builder->where($query->key, $query->operator, $query->value, $boolean);
+    }
+
+    protected function resolveBoolean(Builder $builder, SoloSymbol $solo, $boolean)
+    {
+        return $builder->where($solo->content, '=', ! $solo->negated, $boolean);
+    }
+
+    protected function resolveDateAsBoolean(Builder $builder, SoloSymbol $solo, $boolean)
+    {
+        return $builder->whereNull($solo->content, $boolean, ! $solo->negated);
+    }
+
+    protected function resolveSearch(Builder $builder, SoloSymbol $solo, $boolean)
+    {
+        $wheres = $this->getSearchables()->map(function ($column) use ($solo) {
             $boolean = $solo->negated ? 'and' : 'or';
             $operator = $solo->negated ? 'not like' : 'like';
             return [$column, $operator, "%$solo->content%", $boolean];
@@ -165,32 +180,36 @@ class SearchStringManager
             return $builder->where($where[0], $where[1], $where[2], $boolean);
         }
 
-        return $boolean === 'or'
-            ? $builder->orWhere($wheres->toArray())
-            : $builder->where($wheres->toArray());
+        return $builder->where($wheres->toArray(), null, null, $boolean);
     }
 
-    public function resolveDateQueryWhereClause(Builder $builder, QuerySymbol $query, $boolean)
+    protected function resolveDate(Builder $builder, QuerySymbol $query, $boolean)
     {
         $dateWithPrecision = new DateWithPrecision($query->value);
 
         if (! $dateWithPrecision->carbon) {
-            return $builder->where($query->key, $query->operator, $query->value, $boolean);
+            return $this->resolveBasicQuery($builder, $query, $boolean);
         }
 
         $exactPrecision = in_array($dateWithPrecision->precision, ['micro', 'second']);
         $comparaison = in_array($query->operator, ['>', '<', '>=', '<=']);
 
         if ($exactPrecision || $comparaison) {
-            return $builder->where($query->key, $query->operator, $dateWithPrecision->carbon, $boolean);
+            $query = new QuerySymbol($query->key, $query->operator, $dateWithPrecision->carbon);
+            return $this->resolveBasicQuery($builder, $query, $boolean);
         }
 
         list($start, $end) = $dateWithPrecision->getRange();
-        $excludeRange = in_array($query->operator, ['!=', 'not in']);
+        return $this->resolveDateRange($builder, $query, $start, $end, $boolean);
+    }
 
-        return $builder->where(function ($builder) use ($query, $start, $end, $excludeRange, $boolean) {
-            $builder->where($query->key, ($excludeRange ? '<' : '>='), $start, $boolean)
-                    ->where($query->key, ($excludeRange ? '>' : '<='), $end, $boolean);
-        }, null, null, $boolean);
+    protected function resolveDateRange(Builder $builder, QuerySymbol $query, $start, $end, $boolean)
+    {
+        $exclude = in_array($query->operator, ['!=', 'not in']);
+
+        return $builder->where([
+            [$query->key, ($exclude ? '<' : '>='), $start, $boolean],
+            [$query->key, ($exclude ? '>' : '<='), $end, $boolean],
+        ], null, null, $boolean);
     }
 }

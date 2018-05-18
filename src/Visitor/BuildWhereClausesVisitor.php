@@ -45,14 +45,14 @@ class BuildWhereClausesVisitor implements Visitor
 
     public function visitQuery(QuerySymbol $query)
     {
-        $this->manager->resolveQueryWhereClause($this->builder, $query, $this->boolean);
+        $this->manager->resolveQuery($this->builder, $query, $this->boolean);
 
         return $query;
     }
 
     public function visitSolo(SoloSymbol $solo)
     {
-        $this->manager->resolveSoloWhereClause($this->builder, $solo, $this->boolean);
+        $this->manager->resolveSolo($this->builder, $solo, $this->boolean);
 
         return $solo;
     }
