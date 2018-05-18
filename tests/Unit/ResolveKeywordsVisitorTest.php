@@ -2,8 +2,6 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
-use Illuminate\Database\Eloquent\Model;
-use Lorisleiva\LaravelSearchString\Concerns\SearchString;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
@@ -214,14 +212,8 @@ class ResolveKeywordsVisitorTest extends TestCase
 
     public function resolveKeywordWithRule($input, $rule, $callback = null)
     {
-        $manager = $this->getSearchStringManager(new class($rule) extends Model {
-            use SearchString;
-
-            public function __construct($rule)
-            {
-                $this->searchStringKeywords = ['banana_keyword' => $rule];
-            }
-        });
+        $model = $this->getModelWithKeywords(['banana_keyword' => $rule]);
+        $manager = $this->getSearchStringManager($model);
 
         return $this->parse($input)->accept(
             new class($manager, $callback) extends ResolveKeywordsVisitor {

@@ -2,17 +2,12 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
-use Illuminate\Database\Eloquent\Model;
-use Lorisleiva\LaravelSearchString\Concerns\SearchString;
-use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveKeywordsVisitor;
 
 class RemoveKeywordsVisitorTest extends TestCase
 {
-    use GeneratesEloquentBuilder;
-
     /** @test */
     function it_transforms_keyword_queries_into_null_symbols()
     {
@@ -58,21 +53,12 @@ class RemoveKeywordsVisitorTest extends TestCase
 
     public function extractKeywordWithRule($input, $key, $operator = null, $value = null)
     {
-        $rule = [
+        $model = $this->getModelWithKeywords(['banana_keyword' => [
             'key' => $key,
             'operator' => $operator ?? '/.*/',
             'value' => $value ?? '/.*/',
-        ];
+        ]]);
 
-        $model = new class($rule) extends Model {
-            use SearchString;
-            public function __construct($rule)
-            {
-                $this->searchStringKeywords = ['banana_keyword' => $rule];
-            }
-        };
-
-        $builder = $this->getDummyBuilder($model);
         $manager = $this->getSearchStringManager($model);
         return $this->parse($input)->accept(new RemoveKeywordsVisitor($manager));
     }

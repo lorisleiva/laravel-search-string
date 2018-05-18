@@ -16,7 +16,10 @@ class RuleTest extends TestCase
             'value' => '~\d+~',
         ];
 
-        $this->assertEquals($rule, $this->parseRule($rule));
+        $this->assertEquals(
+            "[/^foobar$/ ~[=><]{1,3}~ ~\d+~]",
+            $this->parseRule($rule)
+        );
     }
 
     /** @test */
@@ -28,11 +31,7 @@ class RuleTest extends TestCase
             'value' => 'value',
         ]);
 
-        $this->assertEquals([
-            'key' => '/^key$/',
-            'operator' => '/^operator$/',
-            'value' => '/^value$/',
-        ], $rule);
+        $this->assertEquals("[/^key$/ /^operator$/ /^value$/]", $rule);
     }
 
     /** @test */
@@ -44,45 +43,38 @@ class RuleTest extends TestCase
             'value' => '.*\w(value',
         ]);
 
-        $this->assertEquals([
-            'key' => '/^\/ke\(y$/',
-            'operator' => '/^\^\\\d\$$/',
-            'value' => '/^\.\*\\\w\(value$/',
-        ], $rule);
+        $this->assertEquals(
+            '[/^\/ke\(y$/ /^\^\\\\d\$$/ /^\.\*\\\w\(value$/]', 
+            $rule
+        );
     }
 
     /** @test */
     function it_provides_fallback_values_when_patterns_are_missing()
     {
-        $this->assertEquals([
-            'key' => '/^fallback_to_column_name$/',
-            'operator' => '/.*/',
-            'value' => '/.*/',
-        ], $this->parseRule(null, 'fallback_to_column_name'));
+        $this->assertEquals(
+            "[/^fallback_column$/ /.*/ /.*/]", 
+            $this->parseRule(null, 'fallback_column')
+        );
 
-        $this->assertEquals([
-            'key' => '/^fallback_to_column_name$/',
-            'operator' => '/.*/',
-            'value' => '/.*/',
-        ], $this->parseRule([], 'fallback_to_column_name'));
+        $this->assertEquals(
+            "[/^fallback_column$/ /.*/ /.*/]", 
+            $this->parseRule([], 'fallback_column')
+        );
     }
 
     /** @test */
     function it_parses_string_rules_as_the_key_of_the_rule()
     {
-        $rule = 'foobar';
-        $this->assertEquals([
-            'key' => '/^foobar$/',
-            'operator' => '/.*/',
-            'value' => '/.*/',
-        ], $this->parseRule($rule));
+        $this->assertEquals(
+            "[/^foobar$/ /.*/ /.*/]", 
+            $this->parseRule('foobar')
+        );
 
-        $rule = '/^\w{1,10}\?/';
-        $this->assertEquals([
-            'key' => '/^\w{1,10}\?/',
-            'operator' => '/.*/',
-            'value' => '/.*/',
-        ], $this->parseRule($rule));
+        $this->assertEquals(
+            "[/^\w{1,10}\?/ /.*/ /.*/]", 
+            $this->parseRule('/^\w{1,10}\?/')
+        );
     }
 
     /** @test */
@@ -94,17 +86,14 @@ class RuleTest extends TestCase
             'value' => null,
         ];
 
-        $this->assertEquals([
-            'key' => '/^fallback_column$/',
-            'operator' => '/.*/',
-            'value' => '/.*/',
-        ], $this->parseRule($rule, 'fallback_column'));
+        $this->assertEquals(
+            "[/^fallback_column$/ /.*/ /.*/]", 
+            $this->parseRule($rule, 'fallback_column')
+        );
     }
 
     public function parseRule($rule, $column = 'column')
     {
-        $rule = (array) new class($column, $rule) extends Rule {};
-        unset($rule['column']);
-        return $rule;
+        return (string) new class($column, $rule) extends Rule {};
     }
 }

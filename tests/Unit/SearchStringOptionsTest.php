@@ -14,69 +14,69 @@ class SearchStringOptionsTest extends TestCase
     function it_parses_columns_and_keywords_options_into_rules()
     {
         $this->assertColumnsRulesFor(new DummyModel, [
-            'name' =>               '[/^name$/, /.*/ /.*/][searchable]',
-            'price' =>              '[/^price$/, /.*/ /.*/][]',
-            'description' =>        '[/^description$/, /.*/ /.*/][searchable]',
-            'paid' =>               '[/^paid$/, /.*/ /.*/][boolean]',
-            'boolean_variable' =>   '[/^boolean_variable$/, /.*/ /.*/][boolean]',
-            'created_at' =>         '[/^created_at$/, /.*/ /.*/][boolean][date]',
+            'name' =>               '[/^name$/ /.*/ /.*/][searchable]',
+            'price' =>              '[/^price$/ /.*/ /.*/][]',
+            'description' =>        '[/^description$/ /.*/ /.*/][searchable]',
+            'paid' =>               '[/^paid$/ /.*/ /.*/][boolean]',
+            'boolean_variable' =>   '[/^boolean_variable$/ /.*/ /.*/][boolean]',
+            'created_at' =>         '[/^created_at$/ /.*/ /.*/][boolean][date]',
         ]);
 
         $this->assertKeywordRulesFor(new DummyModel, [
-            'order_by' =>   '[/^sort$/, /.*/ /.*/]',
-            'select' =>     '[/^fields$/, /.*/ /.*/]',
-            'limit' =>      '[/^limit$/, /.*/ /.*/]',
-            'offset' =>     '[/^from$/, /.*/ /.*/]',
+            'order_by' =>   '[/^sort$/ /.*/ /.*/]',
+            'select' =>     '[/^fields$/ /.*/ /.*/]',
+            'limit' =>      '[/^limit$/ /.*/ /.*/]',
+            'offset' =>     '[/^from$/ /.*/ /.*/]',
         ]);
     }
 
     /** @test */
     function it_can_create_rules_without_explicit_configurations()
     {
-        $model = $this->createModelWithColumns(['name']);
+        $model = $this->getModelWithColumns(['name']);
 
         $this->assertColumnsRulesFor($model, [
-            'name' => '[/^name$/, /.*/ /.*/][]',
+            'name' => '[/^name$/ /.*/ /.*/][]',
         ]);
     }
 
     /** @test */
     function it_can_create_rules_with_key_alias_only()
     {
-        $model = $this->createModelWithColumns(['name' => 'alias']);
+        $model = $this->getModelWithColumns(['name' => 'alias']);
 
         $this->assertColumnsRulesFor($model, [
-            'name' => '[/^alias$/, /.*/ /.*/][]',
+            'name' => '[/^alias$/ /.*/ /.*/][]',
         ]);
     }
 
     /** @test */
     function it_can_define_columns_as_searchable()
     {
-        $model = $this->createModelWithColumns(['title' => ['searchable' => true]]);
+        $model = $this->getModelWithColumns(['title' => ['searchable' => true]]);
 
         $this->assertColumnsRulesFor($model, [
-            'title' => '[/^title$/, /.*/ /.*/][searchable]',
+            'title' => '[/^title$/ /.*/ /.*/][searchable]',
         ]);
     }
 
     /** @test */
     function it_can_define_columns_as_booleans()
     {
-        $model = $this->createModelWithColumns(['paid' => ['boolean' => true]]);
+        $model = $this->getModelWithColumns(['paid' => ['boolean' => true]]);
 
         $this->assertColumnsRulesFor($model, [
-            'paid' => '[/^paid$/, /.*/ /.*/][boolean]',
+            'paid' => '[/^paid$/ /.*/ /.*/][boolean]',
         ]);
     }
 
     /** @test */
     function it_can_define_columns_as_dates()
     {
-        $model = $this->createModelWithColumns(['published_at' => ['date' => true]]);
+        $model = $this->getModelWithColumns(['published_at' => ['date' => true]]);
 
         $this->assertColumnsRulesFor($model, [
-            'published_at' => '[/^published_at$/, /.*/ /.*/][date]',
+            'published_at' => '[/^published_at$/ /.*/ /.*/][date]',
         ]);
     }
 
@@ -90,7 +90,7 @@ class SearchStringOptionsTest extends TestCase
         };
 
         $this->assertColumnsRulesFor($model, [
-            'paid' => '[/^paid$/, /.*/ /.*/][boolean]',
+            'paid' => '[/^paid$/ /.*/ /.*/][boolean]',
         ]);
     }
 
@@ -104,7 +104,7 @@ class SearchStringOptionsTest extends TestCase
             protected $searchStringColumns = ['published_at'];
         };
         $this->assertColumnsRulesFor($model, [
-            'published_at' => '[/^published_at$/, /.*/ /.*/][boolean][date]',
+            'published_at' => '[/^published_at$/ /.*/ /.*/][boolean][date]',
         ]);
 
         // Cast as date
@@ -114,7 +114,7 @@ class SearchStringOptionsTest extends TestCase
             protected $searchStringColumns = ['published_at'];
         };
         $this->assertColumnsRulesFor($model, [
-            'published_at' => '[/^published_at$/, /.*/ /.*/][boolean][date]',
+            'published_at' => '[/^published_at$/ /.*/ /.*/][boolean][date]',
         ]);
 
         // Added to dates
@@ -124,7 +124,7 @@ class SearchStringOptionsTest extends TestCase
             protected $searchStringColumns = ['published_at'];
         };
         $this->assertColumnsRulesFor($model, [
-            'published_at' => '[/^published_at$/, /.*/ /.*/][boolean][date]',
+            'published_at' => '[/^published_at$/ /.*/ /.*/][boolean][date]',
         ]);
     }
 
@@ -138,7 +138,7 @@ class SearchStringOptionsTest extends TestCase
             protected $searchStringColumns = ['paid' => ['boolean' => false]];
         };
         $this->assertColumnsRulesFor($model, [
-            'paid' => '[/^paid$/, /.*/ /.*/][]',
+            'paid' => '[/^paid$/ /.*/ /.*/][]',
         ]);
 
         // Disable boolean and date option.
@@ -151,33 +151,21 @@ class SearchStringOptionsTest extends TestCase
             ]];
         };
         $this->assertColumnsRulesFor($model, [
-            'published_at' => '[/^published_at$/, /.*/ /.*/][]',
+            'published_at' => '[/^published_at$/ /.*/ /.*/][]',
         ]);
     }
 
     public function assertColumnsRulesFor($model, $expected)
     {
-        $manager = new SearchStringManager($model);
+        $manager = $this->getSearchStringManager($model);
         $options = $manager->getOption('columns')->map->__toString()->toArray();
         $this->assertEquals($expected, $options);
     }
 
     public function assertKeywordRulesFor($model, $expected)
     {
-        $manager = new SearchStringManager($model);
+        $manager = $this->getSearchStringManager($model);
         $options = $manager->getOption('keywords')->map->__toString()->toArray();
         $this->assertEquals($expected, $options);
-    }
-
-    public function createModelWithColumns($columns)
-    {
-        return new class($columns) extends Model {
-            use SearchString;
-            protected $searchStringColumns;
-            public function __construct($columns)
-            {
-                $this->searchStringColumns = $columns;
-            }
-        };
     }
 }

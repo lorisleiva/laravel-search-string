@@ -62,6 +62,6 @@ abstract class Rule
 
     public function __toString()
     {
-        return "[$this->key, $this->operator $this->value]";
+        return "[$this->key $this->operator $this->value]";
     }
 }

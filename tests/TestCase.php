@@ -2,6 +2,8 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests;
 
+use Illuminate\Database\Eloquent\Model;
+use Lorisleiva\LaravelSearchString\Concerns\SearchString;
 use Lorisleiva\LaravelSearchString\SearchStringManager;
 use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModel;
 
@@ -15,6 +17,33 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     protected function getEnvironmentSetUp($app)
     {
         $app['config']->set('search-string', include __DIR__ . '/../src/config.php');
+    }
+
+    public function getModelWithOptions($options)
+    {
+        return new class($options) extends Model {
+            use SearchString;
+
+            public function __construct($options)
+            {
+                $this->options = $options;
+            }
+
+            public function getSearchStringOptions()
+            {
+                return $this->options;
+            }
+        };
+    }
+
+    public function getModelWithColumns($columns)
+    {
+        return $this->getModelWithOptions(['columns' => $columns]);
+    }
+
+    public function getModelWithKeywords($keywords)
+    {
+        return $this->getModelWithOptions(['keywords' => $keywords]);
     }
 
     public function getSearchStringManager($model = null)
