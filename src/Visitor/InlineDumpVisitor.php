@@ -9,7 +9,7 @@ use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
-class InlineDumpVisitor implements Visitor
+class InlineDumpVisitor extends Visitor
 {
     protected $shortenQuery;
 

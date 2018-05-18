@@ -6,10 +6,8 @@ use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
-use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
-use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
-class OptimizeAstVisitor implements Visitor
+class OptimizeAstVisitor extends Visitor
 {
     public function visitOr(OrSymbol $or)
     {
@@ -43,20 +41,5 @@ class OptimizeAstVisitor implements Visitor
     {
         $leaf = $not->expression->accept($this);
         return $leaf instanceof NullSymbol ? new NullSymbol : new NotSymbol($leaf);
-    }
-
-    public function visitQuery(QuerySymbol $query)
-    {
-        return $query;
-    }
-
-    public function visitSolo(SoloSymbol $solo)
-    {
-        return $solo;
-    }
-
-    public function visitNull(NullSymbol $null)
-    {
-        return $null;
     }
 }

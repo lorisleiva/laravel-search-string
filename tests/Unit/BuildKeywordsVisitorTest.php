@@ -177,19 +177,19 @@ class BuildKeywordsVisitorTest extends TestCase
     /** @test */
     function it_does_not_change_the_ast()
     {
-        $ast = $this->resolveKeywordWithRule('foo:1 bar:2 faz:3', '/^f/');
+        $ast = $this->buildKeywordWithRule('foo:1 bar:2 faz:3', '/^f/');
         $this->assertAstEquals('AND(QUERY(foo = 1), QUERY(bar = 2), QUERY(faz = 3))', $ast);
     }
 
     /** @test */
-    function it_call_the_use_resolve_keyword_method_for_every_match()
+    function it_call_the_use_build_keyword_method_for_every_match()
     {
         $matches = collect();
         $callback = function ($query) use ($matches) {
             $matches->push($query->accept(new InlineDumpVisitor));
         };
 
-        $ast = $this->resolveKeywordWithRule('foo:1 bar:2 faz:3', '/^f/', $callback);
+        $ast = $this->buildKeywordWithRule('foo:1 bar:2 faz:3', '/^f/', $callback);
         $this->assertEquals(['QUERY(foo = 1)', 'QUERY(faz = 3)'], $matches->toArray());
     }
 
@@ -202,7 +202,7 @@ class BuildKeywordsVisitorTest extends TestCase
             $matches->push($query);
         };
 
-        $this->resolveKeywordWithRule('foo:1 bar:2 faz:3', '/^f/', $callback);
+        $this->buildKeywordWithRule('foo:1 bar:2 faz:3', '/^f/', $callback);
     }
 
     public function assertAstEquals($expectedAst, $ast)
@@ -210,7 +210,7 @@ class BuildKeywordsVisitorTest extends TestCase
         $this->assertEquals($expectedAst, $ast->accept(new InlineDumpVisitor));
     }
 
-    public function resolveKeywordWithRule($input, $rule, $callback = null)
+    public function buildKeywordWithRule($input, $rule, $callback = null)
     {
         $model = $this->getModelWithKeywords(['banana_keyword' => $rule]);
         $manager = $this->getSearchStringManager($model);
@@ -225,7 +225,7 @@ class BuildKeywordsVisitorTest extends TestCase
                     parent::__construct($manager, null);
                 }
 
-                public function resolveKeyword($keyword, $query, $lastQuery)
+                public function buildKeyword($keyword, $query, $lastQuery)
                 {
                     ($this->callback)($query, $lastQuery);
                 }

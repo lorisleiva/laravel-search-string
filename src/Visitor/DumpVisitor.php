@@ -9,7 +9,7 @@ use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
-class DumpVisitor implements Visitor
+class DumpVisitor extends Visitor
 {
     protected $indent = 0;
 

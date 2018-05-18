@@ -183,6 +183,5 @@ class BuildColumnsVisitorTest extends TestCase
     // - If value is "null", use $builder->whereNull();
     // - If value is not "null", use $builder->whereNotNull();
     // - If value is numeric, parse from string (important for sql?)
-    // - If column is date column, use Carbon to parse the value.
     // - Throw error if column does't exists
 }

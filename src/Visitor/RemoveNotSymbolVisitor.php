@@ -4,12 +4,11 @@ namespace Lorisleiva\LaravelSearchString\Visitor;
 
 use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
-use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
-class RemoveNotSymbolVisitor implements Visitor
+class RemoveNotSymbolVisitor extends Visitor
 {
     protected $negate = false;
 
@@ -57,11 +56,6 @@ class RemoveNotSymbolVisitor implements Visitor
         return $this->negate
             ? new SoloSymbol($solo->content, ! $solo->negated)
             : $solo;
-    }
-
-    public function visitNull(NullSymbol $null)
-    {
-        return $null;
     }
 
     private function reverseOperator($operator)

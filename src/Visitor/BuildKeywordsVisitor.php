@@ -4,14 +4,9 @@ namespace Lorisleiva\LaravelSearchString\Visitor;
 
 use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
-use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
-use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
-use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
-use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
-use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
-class BuildKeywordsVisitor implements Visitor
+class BuildKeywordsVisitor extends Visitor
 {
     protected $manager;
     protected $builder;
@@ -23,49 +18,24 @@ class BuildKeywordsVisitor implements Visitor
         $this->builder = $builder;
     }
 
-    public function visitOr(OrSymbol $or)
-    {
-        return new OrSymbol($or->expressions->map->accept($this));
-    }
-
-    public function visitAnd(AndSymbol $and)
-    {
-        return new AndSymbol($and->expressions->map->accept($this));
-    }
-
-    public function visitNot(NotSymbol $not)
-    {
-        return new NotSymbol($not->expression->accept($this));
-    }
-
     public function visitQuery(QuerySymbol $query)
     {
         if ($rule = $this->manager->getRuleForQuery($query, 'keywords')) {
-            $this->resolveKeyword($rule->column, $query, $this->lastMatchedQuery);
+            $this->buildKeyword($rule->column, $query, $this->lastMatchedQuery);
             $this->lastMatchedQuery = $query;
         }
         
         return $query;
     }
 
-    public function visitSolo(SoloSymbol $solo)
+    public function buildKeyword($keyword, $query, $lastQuery)
     {
-        return $solo;
-    }
-
-    public function visitNull(NullSymbol $null)
-    {
-        return $null;
-    }
-
-    public function resolveKeyword($keyword, $query, $lastQuery)
-    {
-        $methodName = 'resolve' . title_case(camel_case($keyword)) . 'Keyword';
+        $methodName = 'build' . title_case(camel_case($keyword)) . 'Keyword';
 
         return $this->$methodName($this->builder, $query, $lastQuery);
     }
 
-    protected function resolveOrderByKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
+    protected function buildOrderByKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
     {
         $builder->getQuery()->orders = null;
 
@@ -76,7 +46,7 @@ class BuildKeywordsVisitor implements Visitor
         });
     }
 
-    protected function resolveSelectKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
+    protected function buildSelectKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
     {
         $columns = array_wrap($query->value);
 
@@ -87,7 +57,7 @@ class BuildKeywordsVisitor implements Visitor
         $builder->select($columns->values()->toArray());
     }
 
-    protected function resolveLimitKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
+    protected function buildLimitKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
     {
         if (! ctype_digit($query->value)) {
             throw new InvalidSearchStringException('The limit must be an integer');
@@ -96,7 +66,7 @@ class BuildKeywordsVisitor implements Visitor
         $builder->limit($query->value);
     }
 
-    protected function resolveOffsetKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
+    protected function buildOffsetKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
     {
         if (! ctype_digit($query->value)) {
             throw new InvalidSearchStringException('The offset must be an integer');

@@ -5,13 +5,12 @@ namespace Lorisleiva\LaravelSearchString\Visitor;
 use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
-use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
 
-class BuildColumnsVisitor implements Visitor
+class BuildColumnsVisitor extends Visitor
 {
     protected $manager;
     protected $builder;
@@ -47,21 +46,16 @@ class BuildColumnsVisitor implements Visitor
 
     public function visitQuery(QuerySymbol $query)
     {
-        $this->resolveQuery($this->builder, $query, $this->boolean);
+        $this->buildQuery($this->builder, $query, $this->boolean);
 
         return $query;
     }
 
     public function visitSolo(SoloSymbol $solo)
     {
-        $this->resolveSolo($this->builder, $solo, $this->boolean);
+        $this->buildSolo($this->builder, $solo, $this->boolean);
 
         return $solo;
-    }
-
-    public function visitNull(NullSymbol $null)
-    {
-        return $null;
     }
 
     protected function createNestedBuilderWith($expressions, $newBoolean)
@@ -89,47 +83,47 @@ class BuildColumnsVisitor implements Visitor
         $this->boolean = $originalBoolean;
     }
 
-    protected function resolveQuery(Builder $builder, QuerySymbol $query, $boolean)
+    protected function buildQuery(Builder $builder, QuerySymbol $query, $boolean)
     {
         $rule = $this->manager->getRuleForQuery($query);
 
         if ($rule && $rule->date) {
-            return $this->resolveDate($builder, $query, $boolean);
+            return $this->buildDate($builder, $query, $boolean);
         }
 
         if (in_array($query->operator, ['in', 'not in'])) {
-            return $this->resolveInQuery($builder, $query, $boolean);
+            return $this->buildInQuery($builder, $query, $boolean);
         }
 
-        return $this->resolveBasicQuery($builder, $query, $boolean);
+        return $this->buildBasicQuery($builder, $query, $boolean);
     }
 
-    protected function resolveSolo(Builder $builder, SoloSymbol $solo, $boolean)
+    protected function buildSolo(Builder $builder, SoloSymbol $solo, $boolean)
     {
         $rule = $this->manager->getRule($solo->content);
 
         if ($rule && $rule->boolean && $rule->date) {
-            return $this->resolveDateAsBoolean($builder, $solo, $boolean);
+            return $this->buildDateAsBoolean($builder, $solo, $boolean);
         }
 
         if ($rule && $rule->boolean) {
-            return $this->resolveBoolean($builder, $solo, $boolean);
+            return $this->buildBoolean($builder, $solo, $boolean);
         }
 
-        return $this->resolveSearch($builder, $solo, $boolean);
+        return $this->buildSearch($builder, $solo, $boolean);
     }
 
-    protected function resolveBoolean(Builder $builder, SoloSymbol $solo, $boolean)
+    protected function buildBoolean(Builder $builder, SoloSymbol $solo, $boolean)
     {
         return $builder->where($solo->content, '=', ! $solo->negated, $boolean);
     }
 
-    protected function resolveDateAsBoolean(Builder $builder, SoloSymbol $solo, $boolean)
+    protected function buildDateAsBoolean(Builder $builder, SoloSymbol $solo, $boolean)
     {
         return $builder->whereNull($solo->content, $boolean, ! $solo->negated);
     }
 
-    protected function resolveSearch(Builder $builder, SoloSymbol $solo, $boolean)
+    protected function buildSearch(Builder $builder, SoloSymbol $solo, $boolean)
     {
         $wheres = $this->manager->getSearchables()->map(function ($column) use ($solo) {
             $boolean = $solo->negated ? 'and' : 'or';
@@ -149,17 +143,17 @@ class BuildColumnsVisitor implements Visitor
         return $builder->where($wheres->toArray(), null, null, $boolean);
     }
 
-    protected function resolveDate(Builder $builder, QuerySymbol $query, $boolean)
+    protected function buildDate(Builder $builder, QuerySymbol $query, $boolean)
     {
         $dateWithPrecision = new DateWithPrecision($query->value);
 
         if (! $dateWithPrecision->carbon) {
-            return $this->resolveBasicQuery($builder, $query, $boolean);
+            return $this->buildBasicQuery($builder, $query, $boolean);
         }
 
         if (in_array($dateWithPrecision->precision, ['micro', 'second'])) {
             $query = new QuerySymbol($query->key, $query->operator, $dateWithPrecision->carbon);
-            return $this->resolveBasicQuery($builder, $query, $boolean);
+            return $this->buildBasicQuery($builder, $query, $boolean);
         }
 
         list($start, $end) = $dateWithPrecision->getRange();
@@ -167,13 +161,13 @@ class BuildColumnsVisitor implements Visitor
         if (in_array($query->operator, ['>', '<', '>=', '<='])) {
             $extremity = in_array($query->operator, ['<', '>=']) ? $start : $end;
             $query = new QuerySymbol($query->key, $query->operator, $extremity);
-            return $this->resolveBasicQuery($builder, $query, $boolean);
+            return $this->buildBasicQuery($builder, $query, $boolean);
         }
 
-        return $this->resolveDateRange($builder, $query, $start, $end, $boolean);
+        return $this->buildDateRange($builder, $query, $start, $end, $boolean);
     }
 
-    protected function resolveDateRange(Builder $builder, QuerySymbol $query, $start, $end, $boolean)
+    protected function buildDateRange(Builder $builder, QuerySymbol $query, $start, $end, $boolean)
     {
         $exclude = in_array($query->operator, ['!=', 'not in']);
 
@@ -183,13 +177,13 @@ class BuildColumnsVisitor implements Visitor
         ], null, null, $boolean);
     }
 
-    protected function resolveInQuery(Builder $builder, QuerySymbol $query, $boolean)
+    protected function buildInQuery(Builder $builder, QuerySymbol $query, $boolean)
     {
         $notIn = $query->operator === 'not in';
         return $builder->whereIn($query->key, $query->value, $boolean, $notIn);
     }
 
-    protected function resolveBasicQuery(Builder $builder, QuerySymbol $query, $boolean)
+    protected function buildBasicQuery(Builder $builder, QuerySymbol $query, $boolean)
     {
         return $builder->where($query->key, $query->operator, $query->value, $boolean);
     }
