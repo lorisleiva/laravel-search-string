@@ -14,6 +14,7 @@ use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
 use Lorisleiva\LaravelSearchString\Visitor\BuildWhereClausesVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\RemoveKeywordsVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\ResolveKeywordsVisitor;
 
@@ -60,6 +61,7 @@ class SearchStringManager
         return [
             new RemoveNotSymbolVisitor,
             new ResolveKeywordsVisitor($builder, $this),
+            new RemoveKeywordsVisitor($this),
             new OptimizeAstVisitor,
             new BuildWhereClausesVisitor($builder, $this),
         ];

@@ -40,14 +40,12 @@ class ResolveKeywordsVisitor implements Visitor
 
     public function visitQuery(QuerySymbol $query)
     {
-        if (! $rule = $this->manager->getRuleForQuery($query, 'keywords')) {
-            return $query;
+        if ($rule = $this->manager->getRuleForQuery($query, 'keywords')) {
+            $this->resolveKeyword($rule->column, $query, $this->lastMatchedQuery);
+            $this->lastMatchedQuery = $query;
         }
-
-        $this->resolveKeyword($rule->column, $query, $this->lastMatchedQuery);
-        $this->lastMatchedQuery = $query;
-
-        return new NullSymbol;
+        
+        return $query;
     }
 
     public function visitSolo(SoloSymbol $solo)

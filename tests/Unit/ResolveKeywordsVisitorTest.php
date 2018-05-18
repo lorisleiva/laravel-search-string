@@ -175,6 +175,13 @@ class ResolveKeywordsVisitorTest extends TestCase
     /**
      * Generic
      */
+    
+    /** @test */
+    function it_does_not_change_the_ast()
+    {
+        $ast = $this->resolveKeywordWithRule('foo:1 bar:2 faz:3', '/^f/');
+        $this->assertAstEquals('AND(QUERY(foo = 1), QUERY(bar = 2), QUERY(faz = 3))', $ast);
+    }
 
     /** @test */
     function it_call_the_use_resolve_keyword_method_for_every_match()
@@ -185,12 +192,7 @@ class ResolveKeywordsVisitorTest extends TestCase
         };
 
         $ast = $this->resolveKeywordWithRule('foo:1 bar:2 faz:3', '/^f/', $callback);
-
-        $this->assertAstEquals('AND(NULL, QUERY(bar = 2), NULL)', $ast);
-        $this->assertEquals([
-            'QUERY(foo = 1)',
-            'QUERY(faz = 3)',
-        ], $matches->toArray());
+        $this->assertEquals(['QUERY(foo = 1)', 'QUERY(faz = 3)'], $matches->toArray());
     }
 
     /** @test */
@@ -210,7 +212,7 @@ class ResolveKeywordsVisitorTest extends TestCase
         $this->assertEquals($expectedAst, $ast->accept(new InlineDumpVisitor));
     }
 
-    public function resolveKeywordWithRule($input, $rule, $callback)
+    public function resolveKeywordWithRule($input, $rule, $callback = null)
     {
         $manager = $this->getSearchStringManager(new class($rule) extends Model {
             use SearchString;
@@ -227,7 +229,7 @@ class ResolveKeywordsVisitorTest extends TestCase
 
                 public function __construct($manager, $callback)
                 {
-                    $this->callback = $callback;
+                    $this->callback = $callback ?? function () {};
                     parent::__construct(null, $manager);
                 }
 
