@@ -2,12 +2,14 @@
 
 namespace Lorisleiva\LaravelSearchString\Visitor;
 
+use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
+use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
 
 class BuildWhereClausesVisitor implements Visitor
 {
@@ -45,14 +47,14 @@ class BuildWhereClausesVisitor implements Visitor
 
     public function visitQuery(QuerySymbol $query)
     {
-        $this->manager->resolveQuery($this->builder, $query, $this->boolean);
+        $this->resolveQuery($this->builder, $query, $this->boolean);
 
         return $query;
     }
 
     public function visitSolo(SoloSymbol $solo)
     {
-        $this->manager->resolveSolo($this->builder, $solo, $this->boolean);
+        $this->resolveSolo($this->builder, $solo, $this->boolean);
 
         return $solo;
     }
@@ -62,7 +64,7 @@ class BuildWhereClausesVisitor implements Visitor
         return $null;
     }
 
-    public function createNestedBuilderWith($expressions, $newBoolean)
+    protected function createNestedBuilderWith($expressions, $newBoolean)
     {
         // Save and update the new boolean.
         $originalBoolean = $this->boolean;
@@ -85,5 +87,106 @@ class BuildWhereClausesVisitor implements Visitor
 
         // Restore the original boolean.
         $this->boolean = $originalBoolean;
+    }
+
+    protected function resolveQuery(Builder $builder, QuerySymbol $query, $boolean)
+    {
+        $rule = $this->manager->getColumnRuleForQuery($query);
+
+        if ($rule && $rule->date) {
+            return $this->resolveDate($builder, $query, $boolean);
+        }
+
+        if (in_array($query->operator, ['in', 'not in'])) {
+            return $this->resolveInQuery($builder, $query, $boolean);
+        }
+
+        return $this->resolveBasicQuery($builder, $query, $boolean);
+    }
+
+    protected function resolveSolo(Builder $builder, SoloSymbol $solo, $boolean)
+    {
+        $rule = $this->manager->getColumnRule($solo->content);
+
+        if ($rule && $rule->boolean && $rule->date) {
+            return $this->resolveDateAsBoolean($builder, $solo, $boolean);
+        }
+
+        if ($rule && $rule->boolean) {
+            return $this->resolveBoolean($builder, $solo, $boolean);
+        }
+
+        return $this->resolveSearch($builder, $solo, $boolean);
+    }
+
+    protected function resolveBoolean(Builder $builder, SoloSymbol $solo, $boolean)
+    {
+        return $builder->where($solo->content, '=', ! $solo->negated, $boolean);
+    }
+
+    protected function resolveDateAsBoolean(Builder $builder, SoloSymbol $solo, $boolean)
+    {
+        return $builder->whereNull($solo->content, $boolean, ! $solo->negated);
+    }
+
+    protected function resolveSearch(Builder $builder, SoloSymbol $solo, $boolean)
+    {
+        $wheres = $this->manager->getSearchables()->map(function ($column) use ($solo) {
+            $boolean = $solo->negated ? 'and' : 'or';
+            $operator = $solo->negated ? 'not like' : 'like';
+            return [$column, $operator, "%$solo->content%", $boolean];
+        });
+
+        if ($wheres->isEmpty()) {
+            return;
+        }
+
+        if ($wheres->count() === 1) {
+            $where = $wheres->first();
+            return $builder->where($where[0], $where[1], $where[2], $boolean);
+        }
+
+        return $builder->where($wheres->toArray(), null, null, $boolean);
+    }
+
+    protected function resolveDate(Builder $builder, QuerySymbol $query, $boolean)
+    {
+        $dateWithPrecision = new DateWithPrecision($query->value);
+
+        if (! $dateWithPrecision->carbon) {
+            return $this->resolveBasicQuery($builder, $query, $boolean);
+        }
+
+        $exactPrecision = in_array($dateWithPrecision->precision, ['micro', 'second']);
+        $comparaison = in_array($query->operator, ['>', '<', '>=', '<=']);
+
+        if ($exactPrecision || $comparaison) {
+            $query = new QuerySymbol($query->key, $query->operator, $dateWithPrecision->carbon);
+            return $this->resolveBasicQuery($builder, $query, $boolean);
+        }
+
+        list($start, $end) = $dateWithPrecision->getRange();
+        return $this->resolveDateRange($builder, $query, $start, $end, $boolean);
+    }
+
+    protected function resolveDateRange(Builder $builder, QuerySymbol $query, $start, $end, $boolean)
+    {
+        $exclude = in_array($query->operator, ['!=', 'not in']);
+
+        return $builder->where([
+            [$query->key, ($exclude ? '<' : '>='), $start, $boolean],
+            [$query->key, ($exclude ? '>' : '<='), $end, $boolean],
+        ], null, null, $boolean);
+    }
+
+    protected function resolveInQuery(Builder $builder, QuerySymbol $query, $boolean)
+    {
+        $notIn = $query->operator === 'not in';
+        return $builder->whereIn($query->key, $query->value, $boolean, $notIn);
+    }
+
+    protected function resolveBasicQuery(Builder $builder, QuerySymbol $query, $boolean)
+    {
+        return $builder->where($query->key, $query->operator, $query->value, $boolean);
     }
 }

@@ -118,14 +118,4 @@ trait SearchStringOptions
     {
         return $this->getOption('columns')->filter->searchable->keys();
     }
-
-    public function isDateColumn($key)
-    {
-        return $this->getColumnRule($key)->date ?? false;
-    }
-
-    public function isBooleanColumn($key)
-    {
-        return $this->getColumnRule($key)->boolean ?? false;
-    }
 }
