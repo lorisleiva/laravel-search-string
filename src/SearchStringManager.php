@@ -4,19 +4,14 @@ namespace Lorisleiva\LaravelSearchString;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
-use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Lexer\Lexer;
 use Lorisleiva\LaravelSearchString\Options\SearchStringOptions;
 use Lorisleiva\LaravelSearchString\Parser\Parser;
-use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
-use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
-use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
-use Lorisleiva\LaravelSearchString\Visitor\BuildWhereClausesVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\BuildColumnsVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\BuildKeywordsVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveKeywordsVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\ResolveKeywordsVisitor;
 
 class SearchStringManager
 {
@@ -60,10 +55,10 @@ class SearchStringManager
     {
         return [
             new RemoveNotSymbolVisitor,
-            new ResolveKeywordsVisitor($builder, $this),
+            new BuildKeywordsVisitor($this, $builder),
             new RemoveKeywordsVisitor($this),
             new OptimizeAstVisitor,
-            new BuildWhereClausesVisitor($builder, $this),
+            new BuildColumnsVisitor($this, $builder),
         ];
     }
 }

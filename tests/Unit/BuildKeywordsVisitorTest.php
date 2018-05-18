@@ -7,17 +7,17 @@ use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\ResolveKeywordsVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\BuildKeywordsVisitor;
 
-class ResolveKeywordsVisitorTest extends TestCase
+class BuildKeywordsVisitorTest extends TestCase
 {
     use GeneratesEloquentBuilder;
 
-    public function visitors($builder, $manager)
+    public function visitors($manager, $builder)
     {
         return [
             new RemoveNotSymbolVisitor(),
-            new ResolveKeywordsVisitor($builder, $manager),
+            new BuildKeywordsVisitor($manager, $builder),
         ];
     }
 
@@ -216,13 +216,13 @@ class ResolveKeywordsVisitorTest extends TestCase
         $manager = $this->getSearchStringManager($model);
 
         return $this->parse($input)->accept(
-            new class($manager, $callback) extends ResolveKeywordsVisitor {
+            new class($manager, $callback) extends BuildKeywordsVisitor {
                 protected $callback;
 
                 public function __construct($manager, $callback)
                 {
                     $this->callback = $callback ?? function () {};
-                    parent::__construct(null, $manager);
+                    parent::__construct($manager, null);
                 }
 
                 public function resolveKeyword($keyword, $query, $lastQuery)

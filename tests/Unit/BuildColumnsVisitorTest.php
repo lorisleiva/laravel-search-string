@@ -6,19 +6,19 @@ use Lorisleiva\LaravelSearchString\Tests\Concerns\DumpsWhereClauses;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModelWithoutOptions;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
-use Lorisleiva\LaravelSearchString\Visitor\BuildWhereClausesVisitor;
+use Lorisleiva\LaravelSearchString\Visitor\BuildColumnsVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 
-class ResolveQueryWhereClauseTest extends TestCase
+class BuildColumnsVisitorTest extends TestCase
 {
     use DumpsWhereClauses;
     use GeneratesEloquentBuilder;
 
-    public function visitors($builder, $manager)
+    public function visitors($manager, $builder)
     {
         return [
             new RemoveNotSymbolVisitor,
-            new BuildWhereClausesVisitor($builder, $manager),
+            new BuildColumnsVisitor($manager, $builder),
         ];
     }
 

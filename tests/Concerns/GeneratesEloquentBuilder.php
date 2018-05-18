@@ -18,14 +18,14 @@ trait GeneratesEloquentBuilder
         $manager = $this->getSearchStringManager($model);
         $ast = $this->parse($input);
 
-        foreach ($this->visitors($builder, $manager) as $visitor) {
+        foreach ($this->visitors($manager, $builder) as $visitor) {
             $ast = $ast->accept($visitor);
         }
 
         return $builder;
     }
 
-    public function visitors($builder, $manager)
+    public function visitors($manager, $builder)
     {
         return [];
     }

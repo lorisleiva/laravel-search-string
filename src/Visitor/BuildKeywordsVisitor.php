@@ -11,16 +11,16 @@ use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
-class ResolveKeywordsVisitor implements Visitor
+class BuildKeywordsVisitor implements Visitor
 {
-    protected $builder;
     protected $manager;
+    protected $builder;
     protected $lastMatchedQuery = null;
 
-    public function __construct($builder, $manager)
+    public function __construct($manager, $builder)
     {
-        $this->builder = $builder;
         $this->manager = $manager;
+        $this->builder = $builder;
     }
 
     public function visitOr(OrSymbol $or)

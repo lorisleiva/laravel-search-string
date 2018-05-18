@@ -11,16 +11,16 @@ use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
 
-class BuildWhereClausesVisitor implements Visitor
+class BuildColumnsVisitor implements Visitor
 {
-    protected $builder;
     protected $manager;
+    protected $builder;
     protected $boolean;
 
-    public function __construct($builder, $manager, $boolean = 'and')
+    public function __construct($manager, $builder, $boolean = 'and')
     {
-        $this->builder = $builder;
         $this->manager = $manager;
+        $this->builder = $builder;
         $this->boolean = $boolean;
     }
 
