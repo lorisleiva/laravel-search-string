@@ -2,6 +2,9 @@
 
 🔍 Generates database queries based on one unique string using a simple and customizable syntax.
 
+![Example of a search string syntax and its result](https://user-images.githubusercontent.com/3642397/40266921-6f7b4c70-5b54-11e8-8e40-000ae3b4e201.png)
+
+
 ## Introduction
 
 Laravel Search String provide a simple solution for scoping your database queries using a human readable and customizable syntax. It will transform a simple string into a powerful query builder. For example, the following search string will fetch the latest blog articles that are either not published or titled "My blog article".
