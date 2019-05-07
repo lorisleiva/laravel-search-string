@@ -8,7 +8,7 @@ use Lorisleiva\LaravelSearchString\Tests\TestCase;
 class ErrorHandlingStrategiesTest extends TestCase
 {
     /** @test */
-    function exceptions_startegy_throws_on_lexer_error()
+    public function exceptions_startegy_throws_on_lexer_error()
     {
         $this->setStrategy('exceptions');
         $this->expectException(InvalidSearchStringException::class);
@@ -16,7 +16,7 @@ class ErrorHandlingStrategiesTest extends TestCase
     }
 
     /** @test */
-    function exceptions_startegy_throws_on_parser_error()
+    public function exceptions_startegy_throws_on_parser_error()
     {
         $this->setStrategy('exceptions');
         $this->expectException(InvalidSearchStringException::class);
@@ -24,7 +24,7 @@ class ErrorHandlingStrategiesTest extends TestCase
     }
 
     /** @test */
-    function exceptions_startegy_throws_on_unmatched_value()
+    public function exceptions_startegy_throws_on_unmatched_value()
     {
         $this->setStrategy('exceptions');
         $this->expectException(InvalidSearchStringException::class);
@@ -39,7 +39,7 @@ class ErrorHandlingStrategiesTest extends TestCase
     }
 
     /** @test */
-    function exceptions_startegy_throws_on_unmatched_operator()
+    public function exceptions_startegy_throws_on_unmatched_operator()
     {
         $this->setStrategy('exceptions');
         $this->expectException(InvalidSearchStringException::class);
@@ -53,7 +53,7 @@ class ErrorHandlingStrategiesTest extends TestCase
     }
 
     /** @test */
-    function exceptions_startegy_throws_on_unmatched_key()
+    public function exceptions_startegy_throws_on_unmatched_key()
     {
         $this->setStrategy('exceptions');
         $this->expectException(InvalidSearchStringException::class);
@@ -64,14 +64,14 @@ class ErrorHandlingStrategiesTest extends TestCase
     }
 
     /** @test */
-    function all_results_strategy_returns_an_unmodified_query_builder()
+    public function all_results_strategy_returns_an_unmodified_query_builder()
     {
         $this->setStrategy('all-results');
         $this->assertSqlFor('parser error in in', 'select * from dummy_models');
     }
 
     /** @test */
-    function no_results_strategy_returns_a_query_builder_with_a_limit_of_zero()
+    public function no_results_strategy_returns_a_query_builder_with_a_limit_of_zero()
     {
         $this->setStrategy('no-results');
         $this->assertSqlFor('parser error in in', 'select * from dummy_models limit 0');

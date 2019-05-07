@@ -7,13 +7,13 @@ use Lorisleiva\LaravelSearchString\Tests\TestCase;
 class LexerTest extends TestCase
 {
     /** @test */
-    function it_lexes_quoted_strings()
+    public function it_lexes_quoted_strings()
     {
         $this->assetTokensFor('"Hello world"', 'T_STRING');
     }
 
     /** @test */
-    function it_lexes_assignments()
+    public function it_lexes_assignments()
     {
         $this->assetTokensFor('foo:bar', 'T_TERM T_ASSIGN T_TERM');
         $this->assetTokensFor('foo=bar', 'T_TERM T_ASSIGN T_TERM');
@@ -21,14 +21,14 @@ class LexerTest extends TestCase
     }
 
     /** @test */
-    function it_lexes_spaces_and_parenthesis()
+    public function it_lexes_spaces_and_parenthesis()
     {
         $this->assetTokensFor(' foo = bar ', 'T_SPACE T_TERM T_SPACE T_ASSIGN T_SPACE T_TERM T_SPACE');
         $this->assetTokensFor('(foo:bar)', 'T_LPARENT T_TERM T_ASSIGN T_TERM T_RPARENT');
     }
 
     /** @test */
-    function it_lexes_comparaisons()
+    public function it_lexes_comparaisons()
     {
         $this->assetTokensFor('foo<bar', 'T_TERM T_COMPARATOR T_TERM');
         $this->assetTokensFor('foo<=bar', 'T_TERM T_COMPARATOR T_TERM');
@@ -38,7 +38,7 @@ class LexerTest extends TestCase
     }
 
     /** @test */
-    function it_lexes_boolean_operator()
+    public function it_lexes_boolean_operator()
     {
         $this->assetTokensFor('foo and bar', 'T_TERM T_SPACE T_AND T_SPACE T_TERM');
         $this->assetTokensFor('foo or bar', 'T_TERM T_SPACE T_OR T_SPACE T_TERM');
@@ -46,7 +46,7 @@ class LexerTest extends TestCase
     }
 
     /** @test */
-    function it_lexes_in_operator_with_commas()
+    public function it_lexes_in_operator_with_commas()
     {
         $this->assetTokensFor(
             'foo in (a,b,c)', 
@@ -55,7 +55,7 @@ class LexerTest extends TestCase
     }
 
     /** @test */
-    function it_lexes_complex_queries()
+    public function it_lexes_complex_queries()
     {
         $this->assetTokensFor(
             'foo12bar.x.y.z and (foo:1 or bar> 3)', 
@@ -70,7 +70,7 @@ class LexerTest extends TestCase
     }
 
     /** @test */
-    function it_lexes_greedily_on_terms()
+    public function it_lexes_greedily_on_terms()
     {
         $this->assetTokensFor('and', 'T_AND');
         $this->assetTokensFor('andora', 'T_TERM');
@@ -81,7 +81,7 @@ class LexerTest extends TestCase
     }
 
     /** @test */
-    function terminating_keywords_operators_stay_keywords()
+    public function terminating_keywords_operators_stay_keywords()
     {
         $this->assetTokensFor('and', 'T_AND');
         $this->assetTokensFor('or', 'T_OR');

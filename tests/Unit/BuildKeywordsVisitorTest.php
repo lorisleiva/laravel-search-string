@@ -26,14 +26,14 @@ class BuildKeywordsVisitorTest extends TestCase
      */
 
     /** @test */
-    function it_sets_the_columns_of_the_builder()
+    public function it_sets_the_columns_of_the_builder()
     {
         $builder = $this->getBuilderFor('fields:name');
         $this->assertEquals(['name'], $builder->getQuery()->columns);
     }
 
     /** @test */
-    function it_excludes_columns_when_operator_is_negative()
+    public function it_excludes_columns_when_operator_is_negative()
     {
         $builder = $this->getBuilderFor('not fields:name');
 
@@ -44,7 +44,7 @@ class BuildKeywordsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_can_set_and_exclude_multiple_columns()
+    public function it_can_set_and_exclude_multiple_columns()
     {
         $builder = $this->getBuilderFor('fields:name,price,description');
         $this->assertEquals(['name', 'price', 'description'], $builder->getQuery()->columns);
@@ -54,7 +54,7 @@ class BuildKeywordsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_uses_only_the_last_select_that_matches()
+    public function it_uses_only_the_last_select_that_matches()
     {
         $builder = $this->getBuilderFor('fields:name fields:price fields:description');
         $this->assertEquals(['description'], $builder->getQuery()->columns);
@@ -65,7 +65,7 @@ class BuildKeywordsVisitorTest extends TestCase
      */
 
     /** @test */
-    function it_sets_the_order_by_of_the_builder()
+    public function it_sets_the_order_by_of_the_builder()
     {
         $builder = $this->getBuilderFor('sort:name');
 
@@ -75,7 +75,7 @@ class BuildKeywordsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_sets_the_descending_order_when_preceded_by_a_minus()
+    public function it_sets_the_descending_order_when_preceded_by_a_minus()
     {
         $builder = $this->getBuilderFor('sort:-name');
 
@@ -85,7 +85,7 @@ class BuildKeywordsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_can_set_multiple_order_by()
+    public function it_can_set_multiple_order_by()
     {
         $builder = $this->getBuilderFor('sort:name,-price,created_at');
 
@@ -97,7 +97,7 @@ class BuildKeywordsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_uses_only_the_last_order_by_that_matches()
+    public function it_uses_only_the_last_order_by_that_matches()
     {
         $builder = $this->getBuilderFor('sort:name sort:-price sort:created_at');
 
@@ -111,28 +111,28 @@ class BuildKeywordsVisitorTest extends TestCase
      */
 
     /** @test */
-    function it_sets_the_limit_of_the_builder()
+    public function it_sets_the_limit_of_the_builder()
     {
         $builder = $this->getBuilderFor('limit:10');
         $this->assertEquals(10, $builder->getQuery()->limit);
     }
 
     /** @test */
-    function it_throws_an_exception_if_the_limit_is_not_an_integer()
+    public function it_throws_an_exception_if_the_limit_is_not_an_integer()
     {
         $this->expectException(InvalidSearchStringException::class);
         $this->getBuilderFor('limit:foobar');
     }
 
     /** @test */
-    function it_throws_an_exception_if_the_limit_is_an_array()
+    public function it_throws_an_exception_if_the_limit_is_an_array()
     {
         $this->expectException(InvalidSearchStringException::class);
         $this->getBuilderFor('limit:10,foo,23');
     }
 
     /** @test */
-    function it_uses_only_the_last_limit_that_matches()
+    public function it_uses_only_the_last_limit_that_matches()
     {
         $builder = $this->getBuilderFor('limit:10 limit:20 limit:30');
         $this->assertEquals(30, $builder->getQuery()->limit);
@@ -143,28 +143,28 @@ class BuildKeywordsVisitorTest extends TestCase
      */
     
     /** @test */
-    function it_sets_the_offset_of_the_builder()
+    public function it_sets_the_offset_of_the_builder()
     {
         $builder = $this->getBuilderFor('from:10');
         $this->assertEquals(10, $builder->getQuery()->offset);
     }
 
     /** @test */
-    function it_throws_an_exception_if_the_offset_is_not_an_integer()
+    public function it_throws_an_exception_if_the_offset_is_not_an_integer()
     {
         $this->expectException(InvalidSearchStringException::class);
         $this->getBuilderFor('from:foobar');
     }
 
     /** @test */
-    function it_throws_an_exception_if_the_offset_is_an_array()
+    public function it_throws_an_exception_if_the_offset_is_an_array()
     {
         $this->expectException(InvalidSearchStringException::class);
         $this->getBuilderFor('from:10,foo,23');
     }
 
     /** @test */
-    function it_uses_only_the_last_offset_that_matches()
+    public function it_uses_only_the_last_offset_that_matches()
     {
         $builder = $this->getBuilderFor('from:10 from:20 from:30');
         $this->assertEquals(30, $builder->getQuery()->offset);
@@ -175,14 +175,14 @@ class BuildKeywordsVisitorTest extends TestCase
      */
     
     /** @test */
-    function it_does_not_change_the_ast()
+    public function it_does_not_change_the_ast()
     {
         $ast = $this->buildKeywordWithRule('foo:1 bar:2 faz:3', '/^f/');
         $this->assertAstEquals('AND(QUERY(foo = 1), QUERY(bar = 2), QUERY(faz = 3))', $ast);
     }
 
     /** @test */
-    function it_call_the_use_build_keyword_method_for_every_match()
+    public function it_call_the_use_build_keyword_method_for_every_match()
     {
         $matches = collect();
         $callback = function ($query) use ($matches) {
@@ -194,7 +194,7 @@ class BuildKeywordsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_keeps_track_of_the_last_query_that_matched()
+    public function it_keeps_track_of_the_last_query_that_matched()
     {
         $matches = collect();
         $callback = function ($query, $lastQuery) use ($matches) {

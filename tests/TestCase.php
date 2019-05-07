@@ -66,22 +66,22 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return $this->getSearchStringManager($model)->createBuilder($input);
     }
 
-    public function assertWhereSqlFor($input, $expectedSql)
+    public function assertWhereSqlFor($input, $expectedSql, $model = null)
     {
-        $actualSql = $this->dumpSql($this->build($input));
-        $actualSql = str_after($actualSql, 'select * from dummy_models where ');
+        $actualSql = $this->dumpSql($this->build($input, $model));
+        $actualSql = preg_replace('/select \* from [\w\.]+ where (.*)/', '$1', $actualSql);
         $this->assertEquals($expectedSql, $actualSql);
     }
 
-    public function assertSqlFor($input, $expectedSql)
+    public function assertSqlFor($input, $expectedSql, $model = null)
     {
-        $actualSql = $this->dumpSql($this->build($input));
+        $actualSql = $this->dumpSql($this->build($input, $model));
         $this->assertEquals($expectedSql, $actualSql);
     }
 
     public function dumpSql($builder)
     {
-        $query = str_replace(array('?'), array('%s'), $builder->toSql());
+        $query = str_replace('?', '%s', $builder->toSql());
 
         $bindings = collect($builder->getBindings())->map(function ($binding) {
             if (is_string($binding)) return "'$binding'";

@@ -9,7 +9,7 @@ use Lorisleiva\LaravelSearchString\Visitor\RemoveKeywordsVisitor;
 class RemoveKeywordsVisitorTest extends TestCase
 {
     /** @test */
-    function it_transforms_keyword_queries_into_null_symbols()
+    public function it_transforms_keyword_queries_into_null_symbols()
     {
         $ast = $this->extractKeywordWithRule('foo:bar', '/^foo$/');
         $this->assertAstEquals('NULL', $ast);
@@ -28,7 +28,7 @@ class RemoveKeywordsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_leaves_queries_that_do_not_match_intact()
+    public function it_leaves_queries_that_do_not_match_intact()
     {
         $ast = $this->extractKeywordWithRule('foo:bar', '/^baz$/');
         $this->assertAstEquals('QUERY(foo = bar)', $ast);

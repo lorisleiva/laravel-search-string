@@ -8,7 +8,7 @@ use Lorisleiva\LaravelSearchString\Tests\TestCase;
 class RuleTest extends TestCase
 {
     /** @test */
-    function it_keep_rules_that_are_defined_has_regex_patterns()
+    public function it_keep_rules_that_are_defined_has_regex_patterns()
     {
         $rule = [
             'key' => '/^foobar$/',
@@ -23,7 +23,7 @@ class RuleTest extends TestCase
     }
 
     /** @test */
-    function it_wraps_non_regex_patterns_into_regex_delimiters()
+    public function it_wraps_non_regex_patterns_into_regex_delimiters()
     {
         $rule = $this->parseRule([
             'key' => 'key',
@@ -35,7 +35,7 @@ class RuleTest extends TestCase
     }
 
     /** @test */
-    function it_preg_quote_non_regex_patterns()
+    public function it_preg_quote_non_regex_patterns()
     {
         $rule = $this->parseRule([
             'key' => '/ke(y',
@@ -50,7 +50,7 @@ class RuleTest extends TestCase
     }
 
     /** @test */
-    function it_provides_fallback_values_when_patterns_are_missing()
+    public function it_provides_fallback_values_when_patterns_are_missing()
     {
         $this->assertEquals(
             "[/^fallback_column$/ /.*/ /.*/]", 
@@ -64,7 +64,7 @@ class RuleTest extends TestCase
     }
 
     /** @test */
-    function it_parses_string_rules_as_the_key_of_the_rule()
+    public function it_parses_string_rules_as_the_key_of_the_rule()
     {
         $this->assertEquals(
             "[/^foobar$/ /.*/ /.*/]", 
@@ -78,7 +78,7 @@ class RuleTest extends TestCase
     }
 
     /** @test */
-    function it_treats_null_values_as_if_the_key_pair_wasnt_provided()
+    public function it_treats_null_values_as_if_the_key_pair_wasnt_provided()
     {
         $rule = [
             'key' => null,

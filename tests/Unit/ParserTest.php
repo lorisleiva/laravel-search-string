@@ -9,7 +9,7 @@ use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
 class ParserTest extends TestCase
 {
     /** @test */
-    function it_parses_assignments_as_queries()
+    public function it_parses_assignments_as_queries()
     {
         $this->assertAstFor('foo:bar', 'QUERY(foo = bar)');
         $this->assertAstFor('foo: bar', 'QUERY(foo = bar)');
@@ -20,7 +20,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_parses_comparaisons_as_queries()
+    public function it_parses_comparaisons_as_queries()
     {
         $this->assertAstFor('amount>0', 'QUERY(amount > 0)');
         $this->assertAstFor('amount> 0', 'QUERY(amount > 0)');
@@ -34,7 +34,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_parses_lonely_terms_and_strings_as_solo_symbols()
+    public function it_parses_lonely_terms_and_strings_as_solo_symbols()
     {
         $this->assertAstFor('lonely', 'SOLO(lonely)');
         $this->assertAstFor(' lonely ', 'SOLO(lonely)');
@@ -44,7 +44,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_parses_not_operators()
+    public function it_parses_not_operators()
     {
         $this->assertAstFor('not A', 'NOT(SOLO(A))');
         $this->assertAstFor('not (not A)', 'NOT(NOT(SOLO(A)))');
@@ -52,7 +52,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_parses_and_operators()
+    public function it_parses_and_operators()
     {
         $this->assertAstFor('A and B and C', 'AND(SOLO(A), SOLO(B), SOLO(C))');
         $this->assertAstFor('(A AND B) and C', 'AND(AND(SOLO(A), SOLO(B)), SOLO(C))');
@@ -60,7 +60,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_parses_or_operators()
+    public function it_parses_or_operators()
     {
         $this->assertAstFor('A or B or C', 'OR(SOLO(A), SOLO(B), SOLO(C))');
         $this->assertAstFor('(A OR B) or C', 'OR(OR(SOLO(A), SOLO(B)), SOLO(C))');
@@ -68,21 +68,21 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_prioritizes_or_over_and()
+    public function it_prioritizes_or_over_and()
     {
         $this->assertAstFor('A or B and C or D', 'OR(SOLO(A), AND(SOLO(B), SOLO(C)), SOLO(D))');
         $this->assertAstFor('(A or B) and C', 'AND(OR(SOLO(A), SOLO(B)), SOLO(C))');
     }
 
     /** @test */
-    function it_ignores_trailing_and_or_operators()
+    public function it_ignores_trailing_and_or_operators()
     {
         $this->assertAstFor('foo and', 'SOLO(foo)');
         $this->assertAstFor('foo or', 'SOLO(foo)');
     }
 
     /** @test */
-    function it_can_parse_query_values_as_list_of_terms_and_strings()
+    public function it_can_parse_query_values_as_list_of_terms_and_strings()
     {
         $this->assertAstFor('foo:1,2,3', 'QUERY(foo = [1, 2, 3])');
         $this->assertAstFor('foo: 1,2,3', 'QUERY(foo = [1, 2, 3])');
@@ -93,7 +93,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_parses_in_array_operator()
+    public function it_parses_in_array_operator()
     {
         $this->assertAstFor('foo in(1,2,3)', 'QUERY(foo in [1, 2, 3])');
         $this->assertAstFor('foo in (1,2,3)', 'QUERY(foo in [1, 2, 3])');
@@ -101,7 +101,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_parses_complex_queries()
+    public function it_parses_complex_queries()
     {
         $this->assertAstFor(
             'A: 1 or B > 2 and not C or D <= "foo bar"', 
@@ -118,13 +118,13 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_returns_a_null_symbol_if_no_ast_root_could_be_parsed()
+    public function it_returns_a_null_symbol_if_no_ast_root_could_be_parsed()
     {
         $this->assertAstFor('', 'NULL');
     }
 
     /** @test */
-    function it_fail_to_parse_unfinished_queries()
+    public function it_fail_to_parse_unfinished_queries()
     {
         $this->assertParserFails('not ', 'T_EOL');
         $this->assertParserFails('foo = ', 'T_EOL');
@@ -134,7 +134,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_fail_to_parse_strings_as_query_keys()
+    public function it_fail_to_parse_strings_as_query_keys()
     {
         $this->assertParserFails('"string as key":foo', 'T_ASSIGN');
         $this->assertParserFails('foo and bar and "string as key" > 3', 'T_COMPARATOR');
@@ -142,7 +142,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_fails_to_parse_lonely_operators()
+    public function it_fails_to_parse_lonely_operators()
     {
         $this->assertParserFails('and', 'T_AND');
         $this->assertParserFails('or', 'T_OR');
@@ -156,7 +156,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    function it_fail_to_parse_weird_operator_combinations()
+    public function it_fail_to_parse_weird_operator_combinations()
     {
         $this->assertParserFails('foo<>3', 'T_COMPARATOR');
         $this->assertParserFails('foo=>3', 'T_COMPARATOR');

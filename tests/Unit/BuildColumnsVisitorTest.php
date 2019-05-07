@@ -4,7 +4,6 @@ namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
 use Lorisleiva\LaravelSearchString\Tests\Concerns\DumpsWhereClauses;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
-use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModelWithoutOptions;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitor\BuildColumnsVisitor;
 use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
@@ -23,7 +22,7 @@ class BuildColumnsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_generates_basic_where_clauses_that_match_the_query_operator()
+    public function it_generates_basic_where_clauses_that_match_the_query_operator()
     {
         $this->assertWhereClauses('name:1', ['Basic[and][0]' => 'name = 1']);
         $this->assertWhereClauses('name=1', ['Basic[and][0]' => 'name = 1']);
@@ -47,7 +46,7 @@ class BuildColumnsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_can_generate_in_and_not_in_where_clauses()
+    public function it_can_generate_in_and_not_in_where_clauses()
     {
         $this->assertWhereClauses('name in (1,2,3)', ['In[and][0]' => 'name [1, 2, 3]']);
         $this->assertWhereClauses('not name in (1,2,3)', ['NotIn[and][0]' => 'name [1, 2, 3]']);
@@ -56,7 +55,7 @@ class BuildColumnsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_searches_using_like_where_clauses()
+    public function it_searches_using_like_where_clauses()
     {
         $this->assertWhereClauses('foobar', [
             'Nested[and][0]' => [
@@ -74,22 +73,20 @@ class BuildColumnsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_does_not_add_where_clause_if_not_searchable_columns_were_given()
+    public function it_does_not_add_where_clause_if_not_searchable_columns_were_given()
     {
-        $model = new DummyModelWithoutOptions;
+        $model = $this->getModelWithOptions([]);
 
         $this->assertWhereClauses('foobar', [], $model);
         $this->assertWhereClauses('not foobar', [], $model);
     }
 
     /** @test */
-    function it_does_not_nest_where_clauses_if_only_one_searchable_columns_is_given()
+    public function it_does_not_nest_where_clauses_if_only_one_searchable_columns_is_given()
     {
-        $model = new class extends DummyModelWithoutOptions {
-            public $searchStringColumns = [
-                'name' => [ 'searchable' => true ]
-            ];
-        };
+        $model = $this->getModelWithColumns([
+            'name' => [ 'searchable' => true ]
+        ]);
 
         $this->assertWhereClauses('foobar', [
             'Basic[and][0]' => 'name like %foobar%'
@@ -101,7 +98,7 @@ class BuildColumnsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_wraps_basic_queries_in_nested_and_or_where_clauses()
+    public function it_wraps_basic_queries_in_nested_and_or_where_clauses()
     {
         $this->assertWhereClauses('name:1 and date>1', [
             'Nested[and][0]' => [
@@ -119,7 +116,7 @@ class BuildColumnsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_wraps_search_queries_in_nested_and_or_where_clauses()
+    public function it_wraps_search_queries_in_nested_and_or_where_clauses()
     {
         $this->assertWhereClauses('foo and bar', [
             'Nested[and][0]' => [
@@ -162,7 +159,7 @@ class BuildColumnsVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_wraps_complex_and_or_operators_in_nested_where_clauses()
+    public function it_wraps_complex_and_or_operators_in_nested_where_clauses()
     {
         $this->assertWhereClauses('name:4 or (name:1 or name:2) and date>1 or name:3', [
             'Nested[and][0]' => [

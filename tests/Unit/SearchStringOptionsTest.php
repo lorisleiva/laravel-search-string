@@ -11,7 +11,7 @@ use Lorisleiva\LaravelSearchString\Tests\TestCase;
 class SearchStringOptionsTest extends TestCase
 {
     /** @test */
-    function it_parses_columns_and_keywords_options_into_rules()
+    public function it_parses_columns_and_keywords_options_into_rules()
     {
         $this->assertColumnsRulesFor(new DummyModel, [
             'name' =>               '[/^name$/ /.*/ /.*/][searchable]',
@@ -31,7 +31,7 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
-    function it_can_create_rules_without_explicit_configurations()
+    public function it_can_create_rules_without_explicit_configurations()
     {
         $model = $this->getModelWithColumns(['name']);
 
@@ -41,7 +41,7 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
-    function it_can_create_rules_with_key_alias_only()
+    public function it_can_create_rules_with_key_alias_only()
     {
         $model = $this->getModelWithColumns(['name' => 'alias']);
 
@@ -51,7 +51,7 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
-    function it_can_define_columns_as_searchable()
+    public function it_can_define_columns_as_searchable()
     {
         $model = $this->getModelWithColumns(['title' => ['searchable' => true]]);
 
@@ -61,7 +61,7 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
-    function it_can_define_columns_as_booleans()
+    public function it_can_define_columns_as_booleans()
     {
         $model = $this->getModelWithColumns(['paid' => ['boolean' => true]]);
 
@@ -71,7 +71,7 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
-    function it_can_define_columns_as_dates()
+    public function it_can_define_columns_as_dates()
     {
         $model = $this->getModelWithColumns(['published_at' => ['date' => true]]);
 
@@ -81,7 +81,7 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
-    function it_default_boolean_to_true_if_column_is_cast_as_boolean()
+    public function it_default_boolean_to_true_if_column_is_cast_as_boolean()
     {
         $model = new class extends Model {
             use SearchString;
@@ -95,7 +95,7 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
-    function it_default_date_and_boolean_to_true_if_column_is_cast_as_date()
+    public function it_default_date_and_boolean_to_true_if_column_is_cast_as_date()
     {
         // Cast as datetime
         $model = new class extends Model {
@@ -129,7 +129,7 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
-    function it_can_force_boolean_and_date_to_false_when_casted_as_boolean_or_date()
+    public function it_can_force_boolean_and_date_to_false_when_casted_as_boolean_or_date()
     {
         // Disable boolean option.
         $model = new class extends Model {

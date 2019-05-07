@@ -13,7 +13,7 @@ use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
 class OptimizeAstVisitorTest extends TestCase
 {
     /** @test */
-    function it_flattens_and_or_operators()
+    public function it_flattens_and_or_operators()
     {
         $this->assertAstFor('A and (B and (C and D))', 'AND(A, B, C, D)');
         $this->assertAstFor('A or (B or (C or D))', 'OR(A, B, C, D)');
@@ -22,7 +22,7 @@ class OptimizeAstVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_does_not_conflicts_and_or_flattenings()
+    public function it_does_not_conflicts_and_or_flattenings()
     {
         $this->assertAstFor('A or (B or C) and D or E)', 'OR(A, AND(OR(B, C), D), E)');
         $this->assertAstFor('(A or B) or (C and D or E))', 'OR(A, B, AND(C, D), E)');
@@ -30,7 +30,7 @@ class OptimizeAstVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_inlines_and_or_operators_containing_only_one_child()
+    public function it_inlines_and_or_operators_containing_only_one_child()
     {
         $this->assertVisitedAstBecomes(
             new AndSymbol([new QuerySymbol('foo', '=', 'bar')]), 
@@ -44,7 +44,7 @@ class OptimizeAstVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_removes_root_without_children()
+    public function it_removes_root_without_children()
     {
         $this->assertVisitedAstBecomes(new AndSymbol, 'NULL');
         $this->assertVisitedAstBecomes(new AndSymbol([new OrSymbol, new OrSymbol]), 'NULL');

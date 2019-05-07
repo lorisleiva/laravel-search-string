@@ -9,7 +9,7 @@ use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
 class RemoveNotSymbolVisitorTest extends TestCase
 {
     /** @test */
-    function it_negates_the_operator_of_a_query()
+    public function it_negates_the_operator_of_a_query()
     {
         $this->assertAstFor('not foo:bar', 'QUERY(foo != bar)');
         $this->assertAstFor('not foo:-1,2,3', 'QUERY(foo != [-1, 2, 3])');
@@ -22,7 +22,7 @@ class RemoveNotSymbolVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_negates_solo_symbols()
+    public function it_negates_solo_symbols()
     {
         $this->assertAstFor('foobar', 'SOLO(foobar)');
         $this->assertAstFor('not foobar', 'SOLO_NOT(foobar)');
@@ -31,7 +31,7 @@ class RemoveNotSymbolVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_negates_and_or_operator()
+    public function it_negates_and_or_operator()
     {
         $this->assertAstFor('not (A and B)', 'OR(SOLO_NOT(A), SOLO_NOT(B))');
         $this->assertAstFor('not (A or B)', 'AND(SOLO_NOT(A), SOLO_NOT(B))');
@@ -40,7 +40,7 @@ class RemoveNotSymbolVisitorTest extends TestCase
     }
 
     /** @test */
-    function it_cancel_the_negation_of_another_not()
+    public function it_cancel_the_negation_of_another_not()
     {
         $this->assertAstFor('not not foo:bar', 'QUERY(foo = bar)');
         $this->assertAstFor('not not foo:-1,2,3', 'QUERY(foo = [-1, 2, 3])');
