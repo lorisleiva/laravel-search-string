@@ -193,18 +193,6 @@ class BuildKeywordsVisitorTest extends TestCase
         $this->assertEquals(['QUERY(foo = 1)', 'QUERY(faz = 3)'], $matches->toArray());
     }
 
-    /** @test */
-    public function it_keeps_track_of_the_last_query_that_matched()
-    {
-        $matches = collect();
-        $callback = function ($query, $lastQuery) use ($matches) {
-            $this->assertEquals($matches->last(), $lastQuery);
-            $matches->push($query);
-        };
-
-        $this->buildKeywordWithRule('foo:1 bar:2 faz:3', '/^f/', $callback);
-    }
-
     public function assertAstEquals($expectedAst, $ast)
     {
         $this->assertEquals($expectedAst, $ast->accept(new InlineDumpVisitor));
@@ -225,9 +213,9 @@ class BuildKeywordsVisitorTest extends TestCase
                     parent::__construct($manager, null);
                 }
 
-                public function buildKeyword($keyword, $query, $lastQuery)
+                public function buildKeyword($keyword, $query)
                 {
-                    ($this->callback)($query, $lastQuery);
+                    ($this->callback)($query);
                 }
             }
         );

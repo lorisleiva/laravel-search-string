@@ -8,7 +8,6 @@ use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 class RemoveKeywordsVisitor extends Visitor
 {
     protected $manager;
-    protected $lastMatchedQuery = null;
 
     public function __construct($manager)
     {

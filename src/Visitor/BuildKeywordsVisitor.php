@@ -10,7 +10,6 @@ class BuildKeywordsVisitor extends Visitor
 {
     protected $manager;
     protected $builder;
-    protected $lastMatchedQuery = null;
 
     public function __construct($manager, $builder)
     {
@@ -21,32 +20,31 @@ class BuildKeywordsVisitor extends Visitor
     public function visitQuery(QuerySymbol $query)
     {
         if ($rule = $this->manager->getRuleForQuery($query, 'keywords')) {
-            $this->buildKeyword($rule->column, $query, $this->lastMatchedQuery);
-            $this->lastMatchedQuery = $query;
+            $this->buildKeyword($rule->column, $query);
         }
         
         return $query;
     }
 
-    public function buildKeyword($keyword, $query, $lastQuery)
+    public function buildKeyword($keyword, $query)
     {
         $methodName = 'build' . title_case(camel_case($keyword)) . 'Keyword';
 
-        return $this->$methodName($this->builder, $query, $lastQuery);
+        return $this->$methodName($query);
     }
 
-    protected function buildOrderByKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
+    protected function buildOrderByKeyword(QuerySymbol $query)
     {
-        $builder->getQuery()->orders = null;
+        $this->builder->getQuery()->orders = null;
 
-        collect($query->value)->each(function ($value) use ($builder) {
+        collect($query->value)->each(function ($value) {
             $desc = starts_with($value, '-') ? 'desc' : 'asc';
             $column = starts_with($value, '-') ? str_after($value, '-') : $value;
-            $builder->orderBy($column, $desc);
+            $this->builder->orderBy($column, $desc);
         });
     }
 
-    protected function buildSelectKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
+    protected function buildSelectKeyword(QuerySymbol $query)
     {
         $columns = array_wrap($query->value);
 
@@ -54,24 +52,24 @@ class BuildKeywordsVisitor extends Visitor
             ? $this->manager->getColumns()->diff($columns)
             : $this->manager->getColumns()->intersect($columns);
 
-        $builder->select($columns->values()->toArray());
+        $this->builder->select($columns->values()->toArray());
     }
 
-    protected function buildLimitKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
+    protected function buildLimitKeyword(QuerySymbol $query)
     {
         if (! ctype_digit($query->value)) {
             throw new InvalidSearchStringException('The limit must be an integer');
         }
 
-        $builder->limit($query->value);
+        $this->builder->limit($query->value);
     }
 
-    protected function buildOffsetKeyword(Builder $builder, QuerySymbol $query, $lastQuery)
+    protected function buildOffsetKeyword(QuerySymbol $query)
     {
         if (! ctype_digit($query->value)) {
             throw new InvalidSearchStringException('The offset must be an integer');
         }
 
-        $builder->offset($query->value);
+        $this->builder->offset($query->value);
     }
 }
