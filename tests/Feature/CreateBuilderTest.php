@@ -196,4 +196,23 @@ class CreateBuilderTest extends TestCase
             . "limit 3 offset 1"
         );
     }
+
+    /** @test */
+    public function it_uses_the_real_column_name_when_using_an_alias()
+    {
+        $model = $this->getModelWithColumns([
+            'zipcode' => 'postcode',
+            'created_at' => ['key' => 'created', 'date' => true, 'boolean' => true],
+            'activated' => ['key' => 'active', 'boolean' => true],
+        ]);
+
+        $this->assertWhereSqlFor('postcode:1028', "zipcode = 1028", $model);
+        $this->assertWhereSqlFor('postcode>10', "zipcode > 10", $model);
+        $this->assertWhereSqlFor('not postcode in (1000, 1002)', "zipcode not in ('1000', '1002')", $model);
+        $this->assertWhereSqlFor('created>2019-01-01', "created_at > 2019-01-01 23:59:59", $model);
+        $this->assertWhereSqlFor('created', "created_at is not null", $model);
+        $this->assertWhereSqlFor('not created', "created_at is null", $model);
+        $this->assertWhereSqlFor('active', "activated = true", $model);
+        $this->assertWhereSqlFor('not active', "activated = false", $model);
+    }
 }

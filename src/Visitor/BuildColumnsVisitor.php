@@ -3,11 +3,12 @@
 namespace Lorisleiva\LaravelSearchString\Visitor;
 
 use Illuminate\Database\Eloquent\Builder;
+use Lorisleiva\LaravelSearchString\Options\Rule;
+use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
-use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
-use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
+use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
 
 class BuildColumnsVisitor extends Visitor
@@ -44,18 +45,18 @@ class BuildColumnsVisitor extends Visitor
         return $not;
     }
 
-    public function visitQuery(QuerySymbol $query)
-    {
-        $this->buildQuery($query);
-
-        return $query;
-    }
-
     public function visitSolo(SoloSymbol $solo)
     {
         $this->buildSolo($solo);
 
         return $solo;
+    }
+
+    public function visitQuery(QuerySymbol $query)
+    {
+        $this->buildQuery($query);
+
+        return $query;
     }
 
     protected function createNestedBuilderWith($expressions, $newBoolean)
@@ -83,48 +84,19 @@ class BuildColumnsVisitor extends Visitor
         $this->boolean = $originalBoolean;
     }
 
-    protected function buildQuery(QuerySymbol $query)
-    {
-        $rule = $this->manager->getRuleForQuery($query);
-
-        if ($rule && $rule->date) {
-            return $this->buildDate($query);
-        }
-
-        if (in_array($query->operator, ['in', 'not in'])) {
-            return $this->buildInQuery($query);
-        }
-
-        if (in_array($query->operator, ['=', '!=']) && is_array($query->value)) {
-            return $this->buildInQuery($query);
-        }
-
-        return $this->buildBasicQuery($query);
-    }
-
     protected function buildSolo(SoloSymbol $solo)
     {
         $rule = $this->manager->getRule($solo->content);
 
         if ($rule && $rule->boolean && $rule->date) {
-            return $this->buildDateAsBoolean($solo);
+            return $this->builder->whereNull($rule->column, $this->boolean, ! $solo->negated);
         }
 
         if ($rule && $rule->boolean) {
-            return $this->buildBoolean($solo);
+            return $this->builder->where($rule->column, '=', ! $solo->negated, $this->boolean);
         }
 
         return $this->buildSearch($solo);
-    }
-
-    protected function buildBoolean(SoloSymbol $solo)
-    {
-        return $this->builder->where($solo->content, '=', ! $solo->negated, $this->boolean);
-    }
-
-    protected function buildDateAsBoolean(SoloSymbol $solo)
-    {
-        return $this->builder->whereNull($solo->content, $this->boolean, ! $solo->negated);
     }
 
     protected function buildSearch(SoloSymbol $solo)
@@ -147,17 +119,38 @@ class BuildColumnsVisitor extends Visitor
         return $this->builder->where($wheres->toArray(), null, null, $this->boolean);
     }
 
-    protected function buildDate(QuerySymbol $query)
+    protected function buildQuery(QuerySymbol $query)
+    {
+        if (! $rule = $this->manager->getRuleForQuery($query)) {
+            return;
+        }
+
+        if ($rule && $rule->date) {
+            return $this->buildDate($query, $rule);
+        }
+
+        if (in_array($query->operator, ['in', 'not in'])) {
+            return $this->buildInQuery($query, $rule);
+        }
+
+        if (in_array($query->operator, ['=', '!=']) && is_array($query->value)) {
+            return $this->buildInQuery($query, $rule);
+        }
+
+        return $this->buildBasicQuery($query, $rule);
+    }
+
+    protected function buildDate(QuerySymbol $query, Rule $rule)
     {
         $dateWithPrecision = new DateWithPrecision($query->value);
 
         if (! $dateWithPrecision->carbon) {
-            return $this->buildBasicQuery($query);
+            return $this->buildBasicQuery($query, $rule);
         }
 
         if (in_array($dateWithPrecision->precision, ['micro', 'second'])) {
             $query = new QuerySymbol($query->key, $query->operator, $dateWithPrecision->carbon);
-            return $this->buildBasicQuery($query);
+            return $this->buildBasicQuery($query, $rule);
         }
 
         list($start, $end) = $dateWithPrecision->getRange();
@@ -165,33 +158,33 @@ class BuildColumnsVisitor extends Visitor
         if (in_array($query->operator, ['>', '<', '>=', '<='])) {
             $extremity = in_array($query->operator, ['<', '>=']) ? $start : $end;
             $query = new QuerySymbol($query->key, $query->operator, $extremity);
-            return $this->buildBasicQuery($query);
+            return $this->buildBasicQuery($query, $rule);
         }
 
-        return $this->buildDateRange($query, $start, $end);
+        return $this->buildDateRange($query, $start, $end, $rule);
     }
 
-    protected function buildDateRange(QuerySymbol $query, $start, $end)
+    protected function buildDateRange(QuerySymbol $query, $start, $end, Rule $rule)
     {
         $exclude = in_array($query->operator, ['!=', 'not in']);
 
         return $this->builder->where([
-            [$query->key, ($exclude ? '<' : '>='), $start, $this->boolean],
-            [$query->key, ($exclude ? '>' : '<='), $end, $this->boolean],
+            [$rule->column, ($exclude ? '<' : '>='), $start, $this->boolean],
+            [$rule->column, ($exclude ? '>' : '<='), $end, $this->boolean],
         ], null, null, $this->boolean);
     }
 
-    protected function buildInQuery(QuerySymbol $query)
+    protected function buildInQuery(QuerySymbol $query, Rule $rule)
     {
         $notIn = in_array($query->operator, ['not in', '!=']);
         $value = array_wrap($query->value);
-        return $this->builder->whereIn($query->key, $value, $this->boolean, $notIn);
+        return $this->builder->whereIn($rule->column, $value, $this->boolean, $notIn);
     }
 
-    protected function buildBasicQuery(QuerySymbol $query)
+    protected function buildBasicQuery(QuerySymbol $query, Rule $rule)
     {
         $value = $this->parseValue($query->value);
-        return $this->builder->where($query->key, $query->operator, $value, $this->boolean);
+        return $this->builder->where($rule->column, $query->operator, $value, $this->boolean);
     }
 
     protected function parseValue($value)

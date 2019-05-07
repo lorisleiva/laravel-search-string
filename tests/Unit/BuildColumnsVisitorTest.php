@@ -55,6 +55,25 @@ class BuildColumnsVisitorTest extends TestCase
     }
 
     /** @test */
+    public function it_generates_where_clauses_from_aliased_columned_using_the_real_column_name()
+    {
+        $model = $this->getModelWithColumns([
+            'zipcode' => 'postcode',
+            'created_at' => ['key' => 'created', 'date' => true, 'boolean' => true],
+            'activated' => ['key' => 'active', 'boolean' => true],
+        ]);
+
+        $this->assertWhereClauses('postcode:1028', ['Basic[and][0]' => 'zipcode = 1028'], $model);
+        $this->assertWhereClauses('postcode>10', ['Basic[and][0]' => 'zipcode > 10'], $model);
+        $this->assertWhereClauses('not postcode in (1000, 1002)', ['NotIn[and][0]' => 'zipcode [1000, 1002]'], $model);
+        $this->assertWhereClauses('created>2019-01-01', ['Basic[and][0]' => 'created_at > 2019-01-01 23:59:59'], $model);
+        $this->assertWhereClauses('created', ['NotNull[and][0]' => 'created_at'], $model);
+        $this->assertWhereClauses('not created', ['Null[and][0]' => 'created_at'], $model);
+        $this->assertWhereClauses('active', ['Basic[and][0]' => 'activated = true'], $model);
+        $this->assertWhereClauses('not active', ['Basic[and][0]' => 'activated = false'], $model);
+    }
+
+    /** @test */
     public function it_searches_using_like_where_clauses()
     {
         $this->assertWhereClauses('foobar', [
@@ -100,17 +119,17 @@ class BuildColumnsVisitorTest extends TestCase
     /** @test */
     public function it_wraps_basic_queries_in_nested_and_or_where_clauses()
     {
-        $this->assertWhereClauses('name:1 and date>1', [
+        $this->assertWhereClauses('name:1 and created_at>1', [
             'Nested[and][0]' => [
                 'Basic[and][0]' => 'name = 1',
-                'Basic[and][1]' => 'date > 1',
+                'Basic[and][1]' => 'created_at > 1',
             ]
         ]);
 
-        $this->assertWhereClauses('name:1 or date>1', [
+        $this->assertWhereClauses('name:1 or created_at>1', [
             'Nested[and][0]' => [
                 'Basic[or][0]' => 'name = 1',
-                'Basic[or][1]' => 'date > 1',
+                'Basic[or][1]' => 'created_at > 1',
             ]
         ]);
     }
@@ -161,7 +180,7 @@ class BuildColumnsVisitorTest extends TestCase
     /** @test */
     public function it_wraps_complex_and_or_operators_in_nested_where_clauses()
     {
-        $this->assertWhereClauses('name:4 or (name:1 or name:2) and date>1 or name:3', [
+        $this->assertWhereClauses('name:4 or (name:1 or name:2) and created_at>1 or name:3', [
             'Nested[and][0]' => [
                 'Basic[or][0]' => 'name = 4',
                 'Nested[or][1]' => [
@@ -169,7 +188,7 @@ class BuildColumnsVisitorTest extends TestCase
                         'Basic[or][0]' => 'name = 1',
                         'Basic[or][1]' => 'name = 2',
                     ],
-                    'Basic[and][1]' => 'date > 1',
+                    'Basic[and][1]' => 'created_at > 1',
                 ],
                 'Basic[or][2]' => 'name = 3',
             ]
