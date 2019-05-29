@@ -121,7 +121,7 @@ Note that the spaces between operators don't matter.
 // Search queries
 // - Term must not be defined as a boolean
 // - At least one column must be defined as searchable
-'Apple'             // %Aplle% like at least one of the searchable columns
+'Apple'             // %Apple% like at least one of the searchable columns
 '"John Doe"'        // %John Doe% like at least one of the searchable columns
 'not "John Doe"'    // %John Doe% not like any of the searchable columns
 
