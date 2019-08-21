@@ -53,7 +53,7 @@ abstract class Rule
 
     protected function regexify($pattern)
     {
-        if (@preg_match($pattern, null) === false) {
+        if ('/' !== mb_substr($pattern, 1) && '/' !== mb_substr($pattern, -1)) {
             return '/^' . preg_quote($pattern, '/') . '$/';
         }
 
