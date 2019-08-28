@@ -53,11 +53,12 @@ abstract class Rule
 
     protected function regexify($pattern)
     {
-        if (@preg_match($pattern, null) === false) {
+        try {
+            preg_match($pattern, null);
+            return $pattern;
+        } catch (\Throwable $exception) {
             return '/^' . preg_quote($pattern, '/') . '$/';
         }
-
-        return $pattern;
     }
 
     public function __toString()
