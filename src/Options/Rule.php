@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Options;
 
+use Illuminate\Support\Arr;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 
 abstract class Rule
@@ -46,7 +47,7 @@ abstract class Rule
     protected function getPattern($rawRule, $key, $default = null)
     {
         $default = $default ?? $this->$key;
-        $pattern = array_get($rawRule, $key, $default);
+        $pattern = Arr::get($rawRule, $key, $default);
         $pattern = is_null($pattern) ? $default : $pattern;
         return $this->regexify($pattern);
     }

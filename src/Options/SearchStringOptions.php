@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Options;
 
+use Illuminate\Support\Arr;
 use Lorisleiva\LaravelSearchString\Options\ColumnRule;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 
@@ -18,12 +19,15 @@ trait SearchStringOptions
         ],
     ];
 
+    /**
+     * @param $model
+     */
     protected function generateOptions($model)
     {
         $options = array_replace_recursive(
             static::$fallbackOptions,
-            array_get(config('search-string'), 'default', []),
-            array_get(config('search-string'), get_class($model), []),
+            Arr::get(config('search-string'), 'default', []),
+            Arr::get(config('search-string'), get_class($model), []),
             $model->getSearchStringOptions() ?? []
         );
 
@@ -40,7 +44,7 @@ trait SearchStringOptions
 
     protected function parseColumns($options, $model)
     {
-        return collect(array_get($options, 'columns', []))
+        return collect(Arr::get($options, 'columns', []))
             ->mapWithKeys(function ($rule, $column) {
                 return $this->resolveLonelyColumn($rule, $column);
             })
@@ -53,7 +57,7 @@ trait SearchStringOptions
 
     protected function parseKeywords($options)
     {
-        return collect(array_get($options, 'keywords', []))
+        return collect(Arr::get($options, 'keywords', []))
             ->mapWithKeys(function ($rule, $keyword) {
                 return $this->resolveLonelyColumn($rule, $keyword);
             })
@@ -89,7 +93,7 @@ trait SearchStringOptions
 
     public function getOption($key, $default = null)
     {
-        return array_get($this->getOptions(), $key, $default);
+        return Arr::get($this->getOptions(), $key, $default);
     }
 
     public function getRule($key, $operator = null, $value = null, $type = 'columns')
