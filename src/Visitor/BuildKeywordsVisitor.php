@@ -3,6 +3,8 @@
 namespace Lorisleiva\LaravelSearchString\Visitor;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 
@@ -28,7 +30,7 @@ class BuildKeywordsVisitor extends Visitor
 
     public function buildKeyword($keyword, $query)
     {
-        $methodName = 'build' . title_case(camel_case($keyword)) . 'Keyword';
+        $methodName = 'build' . Str::title(Str::camel($keyword)) . 'Keyword';
 
         return $this->$methodName($query);
     }
@@ -38,15 +40,15 @@ class BuildKeywordsVisitor extends Visitor
         $this->builder->getQuery()->orders = null;
 
         collect($query->value)->each(function ($value) {
-            $desc = starts_with($value, '-') ? 'desc' : 'asc';
-            $column = starts_with($value, '-') ? str_after($value, '-') : $value;
+            $desc = Str::startsWith($value, '-') ? 'desc' : 'asc';
+            $column = Str::startsWith($value, '-') ? Str::after($value, '-') : $value;
             $this->builder->orderBy($column, $desc);
         });
     }
 
     protected function buildSelectKeyword(QuerySymbol $query)
     {
-        $columns = array_wrap($query->value);
+        $columns = Arr::wrap($query->value);
 
         $columns = in_array($query->operator, ['!=', 'not in'])
             ? $this->manager->getColumns()->diff($columns)

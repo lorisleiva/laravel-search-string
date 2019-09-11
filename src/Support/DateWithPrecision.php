@@ -3,6 +3,7 @@
 namespace Lorisleiva\LaravelSearchString\Support;
 
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class DateWithPrecision
 {
@@ -62,7 +63,7 @@ class DateWithPrecision
                     $this->precision = $precision;
 
                     if (! in_array($this->precision, ['micro', 'second'])) {
-                        $precision = title_case(camel_case($this->precision));
+                        $precision = Str::title(Str::camel($this->precision));
                         $this->carbon->{"startOf$precision"}();
                     }
 
@@ -79,7 +80,7 @@ class DateWithPrecision
             return $this->carbon;
         }
 
-        $precision = title_case(camel_case($this->precision));
+        $precision = Str::title(Str::camel($this->precision));
 
         return [
             $this->carbon->copy()->{"startOf$precision"}(),

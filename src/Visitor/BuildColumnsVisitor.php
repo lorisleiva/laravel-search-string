@@ -3,6 +3,7 @@
 namespace Lorisleiva\LaravelSearchString\Visitor;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 use Lorisleiva\LaravelSearchString\Options\Rule;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
@@ -177,7 +178,7 @@ class BuildColumnsVisitor extends Visitor
     protected function buildInQuery(QuerySymbol $query, Rule $rule)
     {
         $notIn = in_array($query->operator, ['not in', '!=']);
-        $value = array_wrap($query->value);
+        $value = Arr::wrap($query->value);
         return $this->builder->whereIn($rule->column, $value, $this->boolean, $notIn);
     }
 
@@ -190,7 +191,7 @@ class BuildColumnsVisitor extends Visitor
     protected function parseValue($value)
     {
         if (is_array($value)) {
-            return $this->parseValue(array_get($value, 0, ''));
+            return $this->parseValue(Arr::get($value, 0, ''));
         }
 
         if (is_numeric($value)) {

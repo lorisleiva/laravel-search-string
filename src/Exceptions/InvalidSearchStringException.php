@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Exceptions;
 
+use Illuminate\Support\Arr;
 use Lorisleiva\LaravelSearchString\Lexer\Token;
 
 class InvalidSearchStringException extends \Exception
@@ -40,12 +41,12 @@ class InvalidSearchStringException extends \Exception
 
     public function getToken()
     {
-        return array_get($this->options, 'token');
+        return Arr::get($this->options, 'token');
     }
 
     public function getExpectedTokens()
     {
-        return array_get($this->options, 'expectedTokens');
+        return Arr::get($this->options, 'expectedTokens');
     }
 
     public function __toString()
