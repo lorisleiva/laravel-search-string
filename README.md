@@ -7,7 +7,7 @@
 
 ## Introduction
 
-Laravel Search String provide a simple solution for scoping your database queries using a human readable and customizable syntax. It will transform a simple string into a powerful query builder. For example, the following search string will fetch the latest blog articles that are either not published or titled "My blog article".
+Laravel Search String provides a simple solution for scoping your database queries using a human readable and customizable syntax. It will transform a simple string into a powerful query builder. For example, the following search string will fetch the latest blog articles that are either not published or titled "My blog article".
 
 ```php
 Article::usingSearchString('title:"My blog article" or not published sort:-created_at');
