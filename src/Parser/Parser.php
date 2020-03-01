@@ -28,7 +28,7 @@ class Parser
         }
 
         $this->skip('T_SPACE');
-        $this->expect('T_RPARENT', 'T_EOL');
+        $this->expect('T_RPARENT', 'T_RBRACE', 'T_EOL');
 
         if ($expressions->isEmpty()) return false;
         if ($expressions->count() === 1) return $expressions->first();
@@ -56,7 +56,7 @@ class Parser
                 $this->nextWithout('T_SPACE');
 
                 if (! $expression = $this->parseExpression()) {
-                    throw $this->expectedAnythingBut('T_RPARENT', 'T_EOL');
+                    throw $this->expectedAnythingBut('T_RPARENT', 'T_RBRACE', 'T_EOL');
                 }
 
                 return new NotSymbol($expression);
@@ -73,7 +73,9 @@ class Parser
         switch ($key->type) {
             case 'T_HAS':
                 $this->nextWithout('T_SPACE');
-                return $this->parseRelation(); //TODO
+                $this->expect('T_LPARENT');
+                $this->nextWithout('T_SPACE');
+                return $this->parseRelation();
 
             case 'T_TERM':
                 $this->nextWithout('T_SPACE');
@@ -95,6 +97,7 @@ class Parser
                 return $this->parseNot();
 
             case 'T_RPARENT':
+            case 'T_RBRACE':
             case 'T_EOL':
             default:
                 return false;
@@ -147,21 +150,58 @@ class Parser
         }
     }
 
-    protected function parseRelation($key, $operator)
-    { //TODO
-        // switch ($this->current()->type) {
-        //     case 'T_TERM':
-        //     case 'T_STRING':
-        //         $value = $this->parseEndValue();
-        //         $this->nextWithout('T_SPACE');
+    protected function parseRelation() //TODO
+    {
+        switch ($this->current()->type) {
+            case 'T_TERM':
+            case 'T_STRING':
+                $relation = $this->parseEndValue();
+                $this->nextWithout('T_SPACE');
 
-        //         return $this->current()->hasType('T_LIST_SEPARATOR')
-        //             ? $this->parseArrayQuery($key, $operator, [$value])
-        //             : new QuerySymbol($key, $operator, $value);
+                $symbol = new RelationSymbol($relation);
 
-        //     default:
-        //         throw $this->expected('T_TERM', 'T_STRING');
-        // }
+                if ($this->current()->hasType('T_LBRACE')) {
+                    $this->nextWithout('T_SPACE');
+                    $symbol->constraints = $this->parseRelationConstraints();
+                    $this->expect('T_RBRACE');
+                    $this->nextWithout('T_RBRACE', 'T_SPACE');
+                }
+
+                $this->expect('T_RPARENT');
+                $this->nextWithout('T_SPACE');
+
+                if ($this->current()->hasType('T_COMPARATOR', 'T_ASSIGN')) {
+
+                    $operator = $this->current();
+
+                    $symbol->operator = $operator->type == 'T_ASSIGN' ? '=' : $operator->content;
+
+                    $this->nextWithout('T_SPACE');
+                    $this->expect('T_TERM');
+
+                    $value = $this->current()->content;
+
+                    if (!preg_match('/^\d+$/', $value)) {
+                        throw InvalidSearchStringException::fromParser($this->current(), null, 'Expected a whole number, got ' . $value);
+                    }
+
+                    $symbol->count = (int) $value;
+
+                    $this->next();
+                }
+
+                return $symbol;
+
+            default:
+                throw $this->expected('T_TERM', 'T_STRING');
+        }
+    }
+
+    protected function parseRelationConstraints()
+    {
+        $constraints = $this->parseOr();
+
+        return $constraints;
     }
 
     protected function parseArrayQuery($key, $operator, $accumulator)

@@ -118,6 +118,18 @@ class ParserTest extends TestCase
     }
 
     /** @test */
+    public function it_parses_relation_queries()
+    {
+        $this->assertAstFor('has(comments)', 'HAS(comments)');
+        $this->assertAstFor('has(comments{foo:bar})', 'HAS(comments WHERE(QUERY(foo = bar)))');
+        $this->assertAstFor('has(comments{foo:bar baz:bek})', 'HAS(comments WHERE(AND(QUERY(foo = bar), QUERY(baz = bek))))');
+        $this->assertAstFor('has(comments)>3', 'HAS(comments COUNT(> 3))');
+        $this->assertAstFor('has(comments{foo:bar})>3', 'HAS(comments WHERE(QUERY(foo = bar)) COUNT(> 3))');
+        $this->assertAstFor('not has(comments)', 'HAS_NOT(comments)');
+        // $this->assertAstFor('not has(comments{foo:bar})', '');
+    }
+
+    /** @test */
     public function it_returns_a_null_symbol_if_no_ast_root_could_be_parsed()
     {
         $this->assertAstFor('', 'NULL');
@@ -171,7 +183,7 @@ class ParserTest extends TestCase
     public function assertAstFor($input, $expectedAst)
     {
         $ast = $this->parse($input)->accept(new InlineDumpVisitor());
-        $this->assertEquals($expectedAst, $ast);
+        $this->assertSame($expectedAst, $ast);
     }
 
     public function assertParserFails($input, $problematicType = null)
@@ -181,7 +193,7 @@ class ParserTest extends TestCase
             $this->fail("Expected \"$input\" to fail. Instead got: \"$ast\"");
         } catch (InvalidSearchStringException $e) {
             if ($problematicType) {
-                $this->assertEquals($problematicType, $e->getToken()->type);
+                $this->assertSame($problematicType, $e->getToken()->type);
             } else {
                 $this->assertTrue(true);
             }

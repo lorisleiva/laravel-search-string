@@ -7,6 +7,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Parser\RelationSymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
 class DumpVisitor extends Visitor
@@ -60,6 +61,11 @@ class DumpVisitor extends Visitor
     {
         $boolean = $solo->negated ? 'false' : 'true';
         return $this->dump("SOLO [$boolean] $solo->content");
+    }
+
+    public function visitRelation(RelationSymbol $relation) //TODO
+    {
+        dd('DumpVisitor::visitRelation()');
     }
 
     public function visitNull(NullSymbol $null)

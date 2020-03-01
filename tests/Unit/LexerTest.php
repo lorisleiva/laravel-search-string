@@ -97,11 +97,11 @@ class LexerTest extends TestCase
     public function it_lexes_relation_queries()
     {
         $this->assertTokensFor('has(comments)', 'T_HAS T_LPARENT T_TERM T_RPARENT');
-        $this->assertTokensFor('has(comments{name})', 'T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_RBRACE T_RPARENT');
+        $this->assertTokensFor('has(comments{foo:bar})', 'T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT');
         $this->assertTokensFor('has(comments)>3', 'T_HAS T_LPARENT T_TERM T_RPARENT T_COMPARATOR T_TERM');
-        $this->assertTokensFor('has(comments{name})>3', 'T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_RBRACE T_RPARENT T_COMPARATOR T_TERM');
+        $this->assertTokensFor('has(comments{foo:bar})>3', 'T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT T_COMPARATOR T_TERM');
         $this->assertTokensFor('not has(comments)', 'T_NOT T_SPACE T_HAS T_LPARENT T_TERM T_RPARENT');
-        $this->assertTokensFor('not has(comments{name})', 'T_NOT T_SPACE T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_RBRACE T_RPARENT');
+        $this->assertTokensFor('not has(comments{foo:bar})', 'T_NOT T_SPACE T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT');
     }
 
     public function assertTokensFor($input, $expectedTokens)
