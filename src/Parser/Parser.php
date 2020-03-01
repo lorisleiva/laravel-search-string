@@ -71,6 +71,10 @@ class Parser
     {
         $key = $this->current();
         switch ($key->type) {
+            case 'T_HAS':
+                $this->nextWithout('T_SPACE');
+                return $this->parseRelation(); //TODO
+
             case 'T_TERM':
                 $this->nextWithout('T_SPACE');
                 return $this->parseOperator($key->content);
@@ -141,6 +145,23 @@ class Parser
             default:
                 throw $this->expected('T_TERM', 'T_STRING');
         }
+    }
+
+    protected function parseRelation($key, $operator)
+    { //TODO
+        // switch ($this->current()->type) {
+        //     case 'T_TERM':
+        //     case 'T_STRING':
+        //         $value = $this->parseEndValue();
+        //         $this->nextWithout('T_SPACE');
+
+        //         return $this->current()->hasType('T_LIST_SEPARATOR')
+        //             ? $this->parseArrayQuery($key, $operator, [$value])
+        //             : new QuerySymbol($key, $operator, $value);
+
+        //     default:
+        //         throw $this->expected('T_TERM', 'T_STRING');
+        // }
     }
 
     protected function parseArrayQuery($key, $operator, $accumulator)

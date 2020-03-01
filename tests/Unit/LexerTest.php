@@ -9,47 +9,47 @@ class LexerTest extends TestCase
     /** @test */
     public function it_lexes_quoted_strings()
     {
-        $this->assetTokensFor('"Hello world"', 'T_STRING');
+        $this->assertTokensFor('"Hello world"', 'T_STRING');
     }
 
     /** @test */
     public function it_lexes_assignments()
     {
-        $this->assetTokensFor('foo:bar', 'T_TERM T_ASSIGN T_TERM');
-        $this->assetTokensFor('foo=bar', 'T_TERM T_ASSIGN T_TERM');
-        $this->assetTokensFor('foo:"bar"', 'T_TERM T_ASSIGN T_STRING');
+        $this->assertTokensFor('foo:bar', 'T_TERM T_ASSIGN T_TERM');
+        $this->assertTokensFor('foo=bar', 'T_TERM T_ASSIGN T_TERM');
+        $this->assertTokensFor('foo:"bar"', 'T_TERM T_ASSIGN T_STRING');
     }
 
     /** @test */
     public function it_lexes_spaces_and_parenthesis()
     {
-        $this->assetTokensFor(' foo = bar ', 'T_SPACE T_TERM T_SPACE T_ASSIGN T_SPACE T_TERM T_SPACE');
-        $this->assetTokensFor('(foo:bar)', 'T_LPARENT T_TERM T_ASSIGN T_TERM T_RPARENT');
+        $this->assertTokensFor(' foo = bar ', 'T_SPACE T_TERM T_SPACE T_ASSIGN T_SPACE T_TERM T_SPACE');
+        $this->assertTokensFor('(foo:bar)', 'T_LPARENT T_TERM T_ASSIGN T_TERM T_RPARENT');
     }
 
     /** @test */
-    public function it_lexes_comparaisons()
+    public function it_lexes_comparisons()
     {
-        $this->assetTokensFor('foo<bar', 'T_TERM T_COMPARATOR T_TERM');
-        $this->assetTokensFor('foo<=bar', 'T_TERM T_COMPARATOR T_TERM');
-        $this->assetTokensFor('foo>bar', 'T_TERM T_COMPARATOR T_TERM');
-        $this->assetTokensFor('foo>=bar', 'T_TERM T_COMPARATOR T_TERM');
-        $this->assetTokensFor('foo<"bar"', 'T_TERM T_COMPARATOR T_STRING');
+        $this->assertTokensFor('foo<bar', 'T_TERM T_COMPARATOR T_TERM');
+        $this->assertTokensFor('foo<=bar', 'T_TERM T_COMPARATOR T_TERM');
+        $this->assertTokensFor('foo>bar', 'T_TERM T_COMPARATOR T_TERM');
+        $this->assertTokensFor('foo>=bar', 'T_TERM T_COMPARATOR T_TERM');
+        $this->assertTokensFor('foo<"bar"', 'T_TERM T_COMPARATOR T_STRING');
     }
 
     /** @test */
     public function it_lexes_boolean_operator()
     {
-        $this->assetTokensFor('foo and bar', 'T_TERM T_SPACE T_AND T_SPACE T_TERM');
-        $this->assetTokensFor('foo or bar', 'T_TERM T_SPACE T_OR T_SPACE T_TERM');
-        $this->assetTokensFor('foo and not bar', 'T_TERM T_SPACE T_AND T_SPACE T_NOT T_SPACE T_TERM');
+        $this->assertTokensFor('foo and bar', 'T_TERM T_SPACE T_AND T_SPACE T_TERM');
+        $this->assertTokensFor('foo or bar', 'T_TERM T_SPACE T_OR T_SPACE T_TERM');
+        $this->assertTokensFor('foo and not bar', 'T_TERM T_SPACE T_AND T_SPACE T_NOT T_SPACE T_TERM');
     }
 
     /** @test */
     public function it_lexes_in_operator_with_commas()
     {
-        $this->assetTokensFor(
-            'foo in (a,b,c)', 
+        $this->assertTokensFor(
+            'foo in (a,b,c)',
             'T_TERM T_SPACE T_IN T_SPACE T_LPARENT T_TERM T_LIST_SEPARATOR T_TERM T_LIST_SEPARATOR T_TERM T_RPARENT'
         );
     }
@@ -57,12 +57,12 @@ class LexerTest extends TestCase
     /** @test */
     public function it_lexes_complex_queries()
     {
-        $this->assetTokensFor(
-            'foo12bar.x.y.z and (foo:1 or bar> 3)', 
+        $this->assertTokensFor(
+            'foo12bar.x.y.z and (foo:1 or bar> 3)',
 
-            // foo12bar.x.y.z and 
-            'T_TERM T_SPACE T_AND T_SPACE ' . 
-            // (foo:1 or 
+            // foo12bar.x.y.z and
+            'T_TERM T_SPACE T_AND T_SPACE ' .
+            // (foo:1 or
             'T_LPARENT T_TERM T_ASSIGN T_TERM T_SPACE T_OR '.
             // bar> 3)
             'T_SPACE T_TERM T_COMPARATOR T_SPACE T_TERM T_RPARENT'
@@ -72,28 +72,28 @@ class LexerTest extends TestCase
     /** @test */
     public function it_lexes_greedily_on_terms()
     {
-        $this->assetTokensFor('and', 'T_AND');
-        $this->assetTokensFor('andora', 'T_TERM');
-        $this->assetTokensFor('or', 'T_OR');
-        $this->assetTokensFor('oracle', 'T_TERM');
-        $this->assetTokensFor('not', 'T_NOT');
-        $this->assetTokensFor('notice', 'T_TERM');
+        $this->assertTokensFor('and', 'T_AND');
+        $this->assertTokensFor('andora', 'T_TERM');
+        $this->assertTokensFor('or', 'T_OR');
+        $this->assertTokensFor('oracle', 'T_TERM');
+        $this->assertTokensFor('not', 'T_NOT');
+        $this->assertTokensFor('notice', 'T_TERM');
     }
 
     /** @test */
     public function terminating_keywords_operators_stay_keywords()
     {
-        $this->assetTokensFor('and', 'T_AND');
-        $this->assetTokensFor('or', 'T_OR');
-        $this->assetTokensFor('not', 'T_NOT');
-        $this->assetTokensFor('in', 'T_IN');
-        $this->assetTokensFor('and)', 'T_AND T_RPARENT');
-        $this->assetTokensFor('or)', 'T_OR T_RPARENT');
-        $this->assetTokensFor('not)', 'T_NOT T_RPARENT');
-        $this->assetTokensFor('in)', 'T_IN T_RPARENT');
+        $this->assertTokensFor('and', 'T_AND');
+        $this->assertTokensFor('or', 'T_OR');
+        $this->assertTokensFor('not', 'T_NOT');
+        $this->assertTokensFor('in', 'T_IN');
+        $this->assertTokensFor('and)', 'T_AND T_RPARENT');
+        $this->assertTokensFor('or)', 'T_OR T_RPARENT');
+        $this->assertTokensFor('not)', 'T_NOT T_RPARENT');
+        $this->assertTokensFor('in)', 'T_IN T_RPARENT');
     }
 
-    public function assetTokensFor($input, $expectedTokens)
+    public function assertTokensFor($input, $expectedTokens)
     {
         $tokens = $this->lex($input)->map->type->implode(' ');
         $this->assertEquals($expectedTokens, $tokens);
