@@ -56,6 +56,19 @@ class RemoveNotSymbolVisitorTest extends TestCase
         $this->assertAstFor('not not "John Doe"', 'SOLO(John Doe)');
     }
 
+    /** @test */
+    public function it_negates_relation_queries()
+    {
+        $this->assertAstFor('has(comments)', 'HAS(comments)');
+        $this->assertAstFor('not has(comments)', 'HAS_NOT(comments)');
+
+        $this->assertAstFor('has(comments{foo:bar})', 'HAS(comments WHERE(QUERY(foo = bar)))');
+        $this->assertAstFor('not has(comments{foo:bar})', 'HAS_NOT(comments WHERE(QUERY(foo = bar)))');
+
+        $this->assertAstFor('has(comments)>3', 'HAS(comments COUNT(> 3))');
+        $this->assertAstFor('not has(comments)>3', 'HAS(comments COUNT(<= 3))');
+    }
+
     public function assertAstFor($input, $expectedAst)
     {
         $ast = $this->parse($input)
