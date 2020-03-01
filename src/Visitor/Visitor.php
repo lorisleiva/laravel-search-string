@@ -7,6 +7,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Parser\RelationSymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
 abstract class Visitor
@@ -29,6 +30,11 @@ abstract class Visitor
     public function visitQuery(QuerySymbol $query)
     {
         return $query;
+    }
+
+    public function visitRelation(RelationSymbol $relation)
+    {
+        return $relation;
     }
 
     public function visitSolo(SoloSymbol $solo)

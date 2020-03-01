@@ -6,6 +6,7 @@ use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Parser\RelationSymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
 class RemoveNotSymbolVisitor extends Visitor
@@ -56,6 +57,11 @@ class RemoveNotSymbolVisitor extends Visitor
         return $this->negate
             ? new SoloSymbol($solo->content, ! $solo->negated)
             : $solo;
+    }
+
+    public function visitRelation(RelationSymbol $relation) //TODO
+    {
+        dd('RemoveNotSymbolVisitor::visitRelation()');
     }
 
     private function reverseOperator($operator)

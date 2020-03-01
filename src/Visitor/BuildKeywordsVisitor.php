@@ -7,6 +7,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Parser\RelationSymbol;
 
 class BuildKeywordsVisitor extends Visitor
 {
@@ -24,8 +25,17 @@ class BuildKeywordsVisitor extends Visitor
         if ($rule = $this->manager->getRuleForQuery($query, 'keywords')) {
             $this->buildKeyword($rule->column, $query);
         }
-        
+
         return $query;
+    }
+
+    public function visitRelation(RelationSymbol $relation) //TODO
+    {
+        if (!ctype_digit($relation->count)) {
+            throw new InvalidSearchStringException('The relation count must be an integer');
+        }
+
+        dd('BuildKeywordsVisitor::visitRelation()');
     }
 
     public function buildKeyword($keyword, $query)

@@ -6,6 +6,7 @@ use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
+use Lorisleiva\LaravelSearchString\Parser\RelationSymbol;
 
 class OptimizeAstVisitor extends Visitor
 {
@@ -41,5 +42,10 @@ class OptimizeAstVisitor extends Visitor
     {
         $leaf = $not->expression->accept($this);
         return $leaf instanceof NullSymbol ? new NullSymbol : new NotSymbol($leaf);
+    }
+
+    public function visitRelation(RelationSymbol $relation) //TODO
+    {
+        dd('OptimizeAstVisitor::visitRelation()');
     }
 }

@@ -10,6 +10,7 @@ use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
 use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Parser\RelationSymbol;
 use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
 
 class BuildColumnsVisitor extends Visitor
@@ -58,6 +59,11 @@ class BuildColumnsVisitor extends Visitor
         $this->buildQuery($query);
 
         return $query;
+    }
+
+    public function visitRelation(RelationSymbol $relation) //TODO
+    {
+        dd('BuildColumnsVisitor::visitRelation()');
     }
 
     protected function createNestedBuilderWith($expressions, $newBoolean)
