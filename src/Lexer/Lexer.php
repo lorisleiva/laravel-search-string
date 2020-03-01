@@ -8,22 +8,21 @@ use Lorisleiva\LaravelSearchString\Lexer\Token;
 class Lexer
 {
     protected $tokenMap = [
-        '(>=?|<=?)'                  => 'T_COMPARATOR',
-        '(=|:)'                      => 'T_ASSIGN',
-        '(and|AND)(?:[\(\)\s]|$)'    => 'T_AND',
-        '(or|OR)(?:[\(\)\s]|$)'      => 'T_OR',
-        '(not|NOT)(?:[\(\)\s]|$)'    => 'T_NOT',
-        '(in|IN)(?:[\(\)\s]|$)'      => 'T_IN',
-        '(has|HAS)(?:[\(\)\s]|$)'    => 'T_HAS',
-        '(,)'                        => 'T_LIST_SEPARATOR',
-        '(\.)'                       => 'T_DOT',
-        '(\()'                       => 'T_LPARENT',
-        '(\))'                       => 'T_RPARENT',
-        '(\{)'                       => 'T_LBRACE',
-        '(\})'                       => 'T_RBRACE',
-        '(\s+)'                      => 'T_SPACE',
-        '("[^"]*"|\'[^\']*\')'       => 'T_STRING',
-        '([^\s:><="\'\(\)\{\},\.]+)' => 'T_TERM',
+        '(>=?|<=?)'                => 'T_COMPARATOR',
+        '(=|:)'                    => 'T_ASSIGN',
+        '(and|AND)(?:[\(\)\s]|$)'  => 'T_AND',
+        '(or|OR)(?:[\(\)\s]|$)'    => 'T_OR',
+        '(not|NOT)(?:[\(\)\s]|$)'  => 'T_NOT',
+        '(in|IN)(?:[\(\)\s]|$)'    => 'T_IN',
+        '(has|HAS)(?:[\(\)\s]|$)'  => 'T_HAS',
+        '(,)'                      => 'T_LIST_SEPARATOR',
+        '(\()'                     => 'T_LPARENT',
+        '(\))'                     => 'T_RPARENT',
+        '(\{)'                     => 'T_LBRACE',
+        '(\})'                     => 'T_RBRACE',
+        '(\s+)'                    => 'T_SPACE',
+        '("[^"]*"|\'[^\']*\')'     => 'T_STRING',
+        '([^\s:><="\'\(\)\{\},]+)' => 'T_TERM',
     ];
 
     protected $delimiter = '~';
