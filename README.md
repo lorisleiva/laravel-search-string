@@ -81,7 +81,7 @@ Note that the spaces between operators don't matter.
 'rating = 99.99'
 'created_at: "2018-07-06 00:00:00"'
 
-// Comparaisons
+// Comparisons
 'title < B'
 'rating > 3'
 'created_at >= "2018-07-06 00:00:00"'
