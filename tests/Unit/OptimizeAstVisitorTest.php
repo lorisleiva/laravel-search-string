@@ -33,12 +33,12 @@ class OptimizeAstVisitorTest extends TestCase
     public function it_inlines_and_or_operators_containing_only_one_child()
     {
         $this->assertVisitedAstBecomes(
-            new AndSymbol([new QuerySymbol('foo', '=', 'bar')]), 
+            new AndSymbol([new QuerySymbol('foo', '=', 'bar')]),
             'QUERY(foo = bar)'
         );
 
         $this->assertVisitedAstBecomes(
-            new OrSymbol([new QuerySymbol('foo', '=', 'bar')]), 
+            new OrSymbol([new QuerySymbol('foo', '=', 'bar')]),
             'QUERY(foo = bar)'
         );
     }
@@ -54,6 +54,31 @@ class OptimizeAstVisitorTest extends TestCase
 
         $this->assertVisitedAstBecomes(new NotSymbol(new OrSymbol), 'NULL');
         $this->assertVisitedAstBecomes(new NotSymbol(new NotSymbol(new AndSymbol)), 'NULL');
+    }
+
+    /** @test */
+    public function it_optimizes_relation_queries()
+    {
+        // Redundant comparisons are removed
+        $this->assertAstFor('has(comments) > 0', 'HAS(comments)');
+        $this->assertAstFor('has(comments) >= 0', 'HAS(comments)');
+
+        $this->assertAstFor('has(comments) = 0', 'HAS_NOT(comments)');
+        $this->assertAstFor('has(comments) <= 0', 'HAS_NOT(comments)');
+        $this->assertAstFor('has(comments) < 1', 'HAS_NOT(comments)');
+
+        // Complex constraints are optimized
+        $this->assertAstFor('has(comments { A and (B and (C and D)) })', 'HAS(comments WHERE(AND(A, B, C, D)))');
+
+        // Nested relations are handled
+        $this->assertAstFor('has(comments.author{foo:bar})', 'HAS(comments.author WHERE(foo = bar))');
+
+        // Redundant child relations with no constraints are collapsed
+        $this->assertAstFor('has(comments{has(author{foo:bar})})', 'HAS(comments.author WHERE(foo = bar))');
+        $this->assertAstFor('has(comments{has(author{has(profiles{foo:bar})})})', 'HAS(comments.author.profiles WHERE(foo = bar))');
+
+        // Child relations with additional constraints are not collapsed
+        $this->assertAstFor('has(comments{baz:bek and has(author{foo:bar})})', 'HAS(comments WHERE(AND(baz = bek, HAS(author WHERE(foo = bar)))))');
     }
 
     public function assertAstFor($input, $expectedAst)

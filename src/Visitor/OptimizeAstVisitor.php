@@ -44,8 +44,28 @@ class OptimizeAstVisitor extends Visitor
         return $leaf instanceof NullSymbol ? new NullSymbol : new NotSymbol($leaf);
     }
 
-    public function visitRelation(RelationSymbol $relation) //TODO
+    public function visitRelation(RelationSymbol $relation)
     {
-        dd('OptimizeAstVisitor::visitRelation()');
+        if ($relation->constraints) {
+            $relation->constraints = $relation->constraints->accept($this);
+
+            if ($relation->constraints instanceof RelationSymbol) {
+                $relation->relation = $relation->relation . '.' . $relation->constraints->relation;
+                $relation->constraints = $relation->constraints->constraints;
+            }
+        }
+
+        switch (true) {
+            case $relation->operator == '>' && $relation->count == 0:
+            case $relation->operator == '>=' && $relation->count == 0:
+                return new RelationSymbol($relation->relation, $relation->constraints);
+
+            case $relation->operator == '=' && $relation->count == 0:
+            case $relation->operator == '<=' && $relation->count == 0:
+            case $relation->operator == '<' && $relation->count == 1:
+                return new RelationSymbol($relation->relation, $relation->constraints, null, null, true);
+        }
+
+        return $relation;
     }
 }

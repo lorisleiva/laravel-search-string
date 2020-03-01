@@ -121,9 +121,13 @@ class ParserTest extends TestCase
     public function it_parses_relation_queries()
     {
         $this->assertAstFor('has(comments)', 'HAS(comments)');
+        $this->assertAstFor('has(comments{ })', 'HAS(comments)');
 
         $this->assertAstFor('has(comments{foo:bar})', 'HAS(comments WHERE(QUERY(foo = bar)))');
         $this->assertAstFor('has(comments{foo:bar baz:bek})', 'HAS(comments WHERE(AND(QUERY(foo = bar), QUERY(baz = bek))))');
+
+        $this->assertAstFor('has(comments.author{foo:bar})', 'HAS(comments.author WHERE(QUERY(foo = bar)))');
+        $this->assertAstFor('has(comments{has(author{foo:bar})})', 'HAS(comments WHERE(HAS(author WHERE(QUERY(foo = bar)))))');
 
         $this->assertAstFor('has(comments)>3', 'HAS(comments COUNT(> 3))');
         $this->assertAstFor('has(comments{foo:bar})>3', 'HAS(comments WHERE(QUERY(foo = bar)) COUNT(> 3))');
