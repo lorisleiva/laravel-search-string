@@ -40,7 +40,7 @@ class InlineDumpVisitor extends Visitor
 
         if ($this->shortenQuery) {
             $value = is_array($value) ? '[' . implode(', ', $value) . ']' : $value;
-            return $query->key . (is_bool($value) ? '' : "$query->operator $value");
+            return $query->key . (is_bool($value) ? '' : " $query->operator $value");
         }
 
         $value = is_bool($value) ? ($value ? 'true' : 'false') : $value;
@@ -48,12 +48,13 @@ class InlineDumpVisitor extends Visitor
         return "QUERY($query->key $query->operator $value)";
     }
 
-    public function visitRelation(RelationSymbol $relation) //TODO
+    public function visitRelation(RelationSymbol $relation)
     {
         $has = [$relation->relation];
 
         if ($relation->constraints) {
-            $has[] = "WHERE({$relation->constraints->accept($this)})";
+            $constraints = $relation->constraints->accept($this);
+            $has[] = "WHERE($constraints)";
         }
 
         if ($relation->operator) {
@@ -63,7 +64,7 @@ class InlineDumpVisitor extends Visitor
         $not = $relation->negated ? '_NOT' : '';
         $has = implode(' ', $has);
 
-        return "HAS{$not}($has)";
+        return "HAS$not($has)";
     }
 
     public function visitSolo(SoloSymbol $solo)

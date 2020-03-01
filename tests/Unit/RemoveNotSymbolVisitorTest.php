@@ -61,6 +61,7 @@ class RemoveNotSymbolVisitorTest extends TestCase
     {
         $this->assertAstFor('has(comments)', 'HAS(comments)');
         $this->assertAstFor('not has(comments)', 'HAS_NOT(comments)');
+        $this->assertAstFor('not not has(comments)', 'HAS(comments)');
 
         $this->assertAstFor('has(comments{foo:bar})', 'HAS(comments WHERE(QUERY(foo = bar)))');
         $this->assertAstFor('not has(comments{foo:bar})', 'HAS_NOT(comments WHERE(QUERY(foo = bar)))');

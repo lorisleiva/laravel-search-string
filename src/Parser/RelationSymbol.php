@@ -23,6 +23,6 @@ class RelationSymbol extends Symbol
 
     public function accept(Visitor $visitor)
     {
-        return $visitor->visitRelation($this); //TODO
+        return $visitor->visitRelation($this);
     }
 }

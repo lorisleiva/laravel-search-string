@@ -102,6 +102,9 @@ class LexerTest extends TestCase
         $this->assertTokensFor('has(comments{foo:bar})>3', 'T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT T_COMPARATOR T_TERM');
         $this->assertTokensFor('not has(comments)', 'T_NOT T_SPACE T_HAS T_LPARENT T_TERM T_RPARENT');
         $this->assertTokensFor('not has(comments{foo:bar})', 'T_NOT T_SPACE T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT');
+
+        $this->assertTokensFor('has(comments.author{foo:bar})', 'T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT');
+        $this->assertTokensFor('has(comments{has(author{foo:bar})})', 'T_HAS T_LPARENT T_TERM T_LBRACE T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT T_RBRACE T_RPARENT');
     }
 
     public function assertTokensFor($input, $expectedTokens)
