@@ -107,6 +107,6 @@ class LexerTest extends TestCase
     public function assertTokensFor($input, $expectedTokens)
     {
         $tokens = $this->lex($input)->map->type->implode(' ');
-        $this->assertSame($expectedTokens, $tokens);
+        $this->assertEquals($expectedTokens, $tokens);
     }
 }

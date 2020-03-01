@@ -51,7 +51,6 @@ class InlineDumpVisitor extends Visitor
     public function visitRelation(RelationSymbol $relation) //TODO
     {
         $has = [$relation->relation];
-        $not = $relation->negated ? 'NOT_' : '';
 
         if ($relation->constraints) {
             $has[] = "WHERE({$relation->constraints->accept($this)})";
@@ -61,9 +60,10 @@ class InlineDumpVisitor extends Visitor
             $has[] = "COUNT($relation->operator $relation->count)";
         }
 
+        $not = $relation->negated ? '_NOT' : '';
         $has = implode(' ', $has);
 
-        return "{$not}HAS($has)";
+        return "HAS{$not}($has)";
     }
 
     public function visitSolo(SoloSymbol $solo)

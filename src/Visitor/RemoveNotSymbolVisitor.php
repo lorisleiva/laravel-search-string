@@ -59,9 +59,18 @@ class RemoveNotSymbolVisitor extends Visitor
             : $solo;
     }
 
-    public function visitRelation(RelationSymbol $relation) //TODO
+    public function visitRelation(RelationSymbol $relation)
     {
-        dd('RemoveNotSymbolVisitor::visitRelation()');
+        if ($this->negate) {
+            if ($relation->operator) {
+                $relation->operator = $this->reverseOperator($relation->operator);
+            }
+            else {
+                $relation->negated = !$relation->negated;
+            }
+        }
+
+        return $relation;
     }
 
     private function reverseOperator($operator)
