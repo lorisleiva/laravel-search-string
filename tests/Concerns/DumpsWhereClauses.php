@@ -26,7 +26,7 @@ trait DumpsWhereClauses
     {
         return collect($query->wheres)->mapWithKeys(function ($where, $i){
             $where = (object) $where;
-            $key = "$where->type[$where->boolean][$i]";
+            $key = "$where->type[{$where->boolean}][$i]";
 
             if (isset($where->query)) {
                 $children = $this->dumpWhereClausesForQuery($where->query);

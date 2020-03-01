@@ -17,9 +17,9 @@ class DummyModel extends Model
         'name' => [ 'searchable' => true ],
         'price',
         'description' => [ 'searchable' => true ],
-        'paid',         // Automatically marked as boolean
+        'paid',         // Automatically marked as boolean.
         'boolean_variable' => [ 'boolean' => true ],
-        'created_at',   // Automatically marked as date and boolean
+        'created_at',   // Automatically marked as date and boolean.
     ];
 
     protected $searchStringKeywords = [
