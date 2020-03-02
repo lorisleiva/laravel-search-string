@@ -75,7 +75,7 @@ class InlineDumpVisitor extends Visitor
         }
 
         if ($relation->operator) {
-            $has[] = "COUNT($relation->operator $relation->count)";
+            $has[] = "COUNT($relation->operator $relation->value)";
         }
 
         $not = $relation->negated ? '_NOT' : '';

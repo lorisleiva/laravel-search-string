@@ -54,104 +54,114 @@ class BuildColumnsVisitorTest extends TestCase
         $this->assertWhereClauses('not name:1,2,3', ['NotIn[and][0]' => 'name [1, 2, 3]']);
     }
 
-    /** @test */
-    public function it_can_generate_relation_where_has_clauses()
+    public function relationWhereClausesDataProvider()
     {
-        // Simple has on hasMany relation
-        $this->assertWhereClauses('has(comments)', [
-            'Exists[and][0]' => [
-                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
-            ]
-        ]);
-
-        // Simple not has on hasMany relation
-        $this->assertWhereClauses('not has(comments)', [
-            'NotExists[and][0]' => [
-                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
-            ]
-        ]);
-
-        // Simple aliased belongsTo relation
-        $this->assertWhereClauses('has(author)', [
-            'Exists[and][0]' => [
-                'Column[and][0]' => 'dummy_models.user_id = dummy_children.id',
-            ]
-        ]);
-
-        // Simple or has on hasMany relation
-        $this->assertWhereClauses('name = Foobar or has(comments)', [
-            'Nested[and][0]' => [
-                'Basic[or][0]' => 'name = Foobar',
-                'Exists[or][1]' => [
-                    'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
-                ]
-            ]
-        ]);
-
-        // Simple count on hasMany relation
-        $this->assertWhereClauses('has(comments) > 3', [
-            'Basic[and][0]' => '(select count(*) from `dummy_children` where `dummy_models`.`id` = `dummy_children`.`post_id`) > 3',
-        ]);
-
-        // Has on hasMany relation with constraints
-        $this->assertWhereClauses('has(comments { title = "Foo" active })', [
-            'Exists[and][0]' => [
-                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
-                'Nested[and][1]' => [
-                    'Basic[and][0]' => 'title = Foo',
-                    'Basic[and][1]' => 'active = true',
-                ]
-            ]
-        ]);
-
-        // Count hasMany relation with constraints
-        $this->assertWhereClauses('has(comments { active }) > 3', [
-            'Basic[and][0]' => '(select count(*) from `dummy_children` where `dummy_models`.`id` = `dummy_children`.`post_id` and `active` = ?) > 3',
-        ]);
-
-        // Non-countable belongsToMany relation without count
-        $this->assertWhereClauses('has(tags)', [
-            'Exists[and][0]' => [
-                'Column[and][0]' => 'dummy_models.id = post_category.category_id',
-            ]
-        ]);
-
-        // Non-countable belongsToMany relation with count
-        $this->assertWhereClauses('has(tags) > 10', [
-            'Basic[and][0]' => '(select count(*) from `dummy_children` inner join `post_category` on `dummy_children`.`id` = `post_category`.`post_id` where `dummy_models`.`id` = `post_category`.`category_id`) > 10',
-        ]);
-
-        // Non-queryable hasMany relation with query
-        $this->assertWhereClauses('has(views { active })', [
-            'Exists[and][0]' => [
-                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
-                'Basic[and][1]' => 'active = true',
-            ]
-        ]);
-
-        // Nested hasMany > belongsTo relation
-        $this->assertWhereClauses('has(comments.author)', [
-            'Exists[and][0]' => [
-                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
-                'Exists[and][1]' => [
-                    'Column[and][0]' => 'dummy_children.user_id = dummy_grand_children.id',
-                ]
-            ]
-        ]);
-
-        // Deeply nested hasMany > belongsTo > hasMany relation
-        $this->assertWhereClauses('has(comments.author.profiles)', [
-            'Exists[and][0]' => [
-                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
-                'Exists[and][1]' => [
-                    'Column[and][0]' => 'dummy_children.user_id = dummy_grand_children.id',
-                    'Exists[and][1]' => [
-                        'Column[and][0]' => 'dummy_grand_children.id = laravel_reserved_0.user_id',
+        return [
+            'Simple has on hasMany relation' => [
+                'has(comments)', [
+                    'Exists[and][0]' => [
+                        'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
                     ]
                 ]
-            ]
-        ]);
+            ],
+            'Simple not has on hasMany relation' => [
+                'not has(comments)', [
+                    'NotExists[and][0]' => [
+                        'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+                    ]
+                ]
+            ],
+            'Simple aliased belongsTo relation' => [
+                'has(author)', [
+                    'Exists[and][0]' => [
+                        'Column[and][0]' => 'dummy_models.user_id = dummy_children.id',
+                    ]
+                ]
+            ],
+            'Simple or has on hasMany relation' => [
+                'name = Foobar or has(comments)', [
+                    'Nested[and][0]' => [
+                        'Basic[or][0]' => 'name = Foobar',
+                        'Exists[or][1]' => [
+                            'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+                        ]
+                    ]
+                ]
+            ],
+            'Simple count on hasMany relation' => [
+                'has(comments) > 3', [
+                    'Basic[and][0]' => '(select count(*) from `dummy_children` where `dummy_models`.`id` = `dummy_children`.`post_id`) > 3',
+                ]
+            ],
+            'Has on hasMany relation with constraints' => [
+                'has(comments { title = "Foo" active })', [
+                    'Exists[and][0]' => [
+                        'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+                        'Nested[and][1]' => [
+                            'Basic[and][0]' => 'title = Foo',
+                            'Basic[and][1]' => 'active = true',
+                        ]
+                    ]
+                ]
+            ],
+            'Count hasMany relation with constraints' => [
+                'has(comments { active }) > 3', [
+                    'Basic[and][0]' => '(select count(*) from `dummy_children` where `dummy_models`.`id` = `dummy_children`.`post_id` and `active` = ?) > 3',
+                ]
+            ],
+            'Non-countable belongsToMany relation without count' => [
+                'has(tags)', [
+                    'Exists[and][0]' => [
+                        'Column[and][0]' => 'dummy_models.id = post_category.category_id',
+                    ]
+                ]
+            ],
+            'Non-countable belongsToMany relation with count' => [
+                'has(tags) > 10', [
+                    'Basic[and][0]' => '(select count(*) from `dummy_children` inner join `post_category` on `dummy_children`.`id` = `post_category`.`post_id` where `dummy_models`.`id` = `post_category`.`category_id`) > 10',
+                ]
+            ],
+            'Non-queryable hasMany relation with query' => [
+                'has(views { active })', [
+                    'Exists[and][0]' => [
+                        'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+                        'Basic[and][1]' => 'active = true',
+                    ]
+                ]
+            ],
+            'Nested hasMany > belongsTo relation' => [
+                'has(comments.author)', [
+                    'Exists[and][0]' => [
+                        'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+                        'Exists[and][1]' => [
+                            'Column[and][0]' => 'dummy_children.user_id = dummy_grand_children.id',
+                        ]
+                    ]
+                ]
+            ],
+            'Deeply nested hasMany > belongsTo > hasMany relation' => [
+                'has(comments.author.profiles)', [
+                    'Exists[and][0]' => [
+                        'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+                        'Exists[and][1]' => [
+                            'Column[and][0]' => 'dummy_children.user_id = dummy_grand_children.id',
+                            'Exists[and][1]' => [
+                                'Column[and][0]' => 'dummy_grand_children.id = laravel_reserved_0.user_id',
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+        ];
+    }
 
+    /**
+     * @test
+     * @dataProvider relationWhereClausesDataProvider
+     */
+    public function it_can_generate_relation_where_has_clauses($input, $expected)
+    {
+        $this->assertWhereClauses($input, $expected);
     }
 
     /** @test */
