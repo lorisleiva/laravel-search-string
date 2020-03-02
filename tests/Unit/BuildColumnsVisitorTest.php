@@ -130,12 +130,28 @@ class BuildColumnsVisitorTest extends TestCase
             ]
         ]);
 
-        // Simple aliased belongsTo relation
-        // $this->assertWhereClauses('has(comments.author)', [
-        //     'Exists[and][0]' => [
-        //     ]
-        // ]);
+        // Nested hasMany > belongsTo relation
+        $this->assertWhereClauses('has(comments.author)', [
+            'Exists[and][0]' => [
+                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+                'Exists[and][1]' => [
+                    'Column[and][0]' => 'dummy_children.user_id = dummy_grand_children.id',
+                ]
+            ]
+        ]);
 
+        // Deeply nested hasMany > belongsTo > hasMany relation
+        $this->assertWhereClauses('has(comments.author.profiles)', [
+            'Exists[and][0]' => [
+                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+                'Exists[and][1]' => [
+                    'Column[and][0]' => 'dummy_children.user_id = dummy_grand_children.id',
+                    'Exists[and][1]' => [
+                        'Column[and][0]' => 'dummy_grand_children.id = laravel_reserved_0.user_id',
+                    ]
+                ]
+            ]
+        ]);
 
     }
 
