@@ -29,15 +29,6 @@ class BuildKeywordsVisitor extends Visitor
         return $query;
     }
 
-    public function visitRelation(RelationSymbol $relation)
-    {
-        if ($relation->operator && !ctype_digit($relation->value)) {
-            throw new InvalidSearchStringException('The relation count must be an integer');
-        }
-
-        return $relation;
-    }
-
     public function buildKeyword($keyword, $query)
     {
         $methodName = 'build' . Str::title(Str::camel($keyword)) . 'Keyword';

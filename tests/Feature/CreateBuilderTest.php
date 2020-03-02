@@ -216,45 +216,86 @@ class CreateBuilderTest extends TestCase
         $this->assertWhereSqlFor('not active', "activated = false", $model);
     }
 
-    /** @test */
-    public function it_filters_relation_queries()
+    public function validRelationQueriesDataProvider()
     {
-        // Simple has on hasMany relation
-        $this->assertWhereSqlFor('has(comments)', 'select * from dummy_models where ??'); //name = "Foobar"
+        return [
+            'Simple has on hasMany relation' => [
+                'has(comments)',
+                "exists (select * from dummy_children where dummy_models.id = dummy_children.post_id)"
+            ],
+            'Simple not has on hasMany relation' => [
+                'not has(comments)',
+                "not exists (select * from dummy_children where dummy_models.id = dummy_children.post_id)"
+            ],
+            'Simple aliased belongsTo relation' => [
+                'has(author)',
+                "exists (select * from dummy_children where dummy_models.user_id = dummy_children.id)"
+            ],
+            'Simple or has on hasMany relation' => [
+                'name = Foobar or has(comments)',
+                "(name = 'Foobar' or exists (select * from dummy_children where dummy_models.id = dummy_children.post_id))"
+            ],
+            'Simple count on hasMany relation' => [
+                'has(comments) > 3',
+                "(select count(*) from dummy_children where dummy_models.id = dummy_children.post_id) > 1"
+            ],
+            'Has on hasMany relation with constraints' => [
+                'has(comments { title = "Foo" active })',
+                "exists (select * from dummy_children where dummy_models.id = dummy_children.post_id and (title = 'Foo' and active = true))"
+            ],
+            'Count hasMany relation with constraints' => [
+                'has(comments { active }) > 3',
+                "(select count(*) from dummy_children where dummy_models.id = dummy_children.post_id and active = true) > 1"
+            ],
+            'Non-countable belongsToMany relation without count' => [
+                'has(tags)',
+                "exists (select * from dummy_children inner join post_category on dummy_children.id = post_category.post_id where dummy_models.id = post_category.category_id)"
+            ],
+            'Non-queryable hasMany relation without query' => [
+                'has(views)',
+                "exists (select * from dummy_children where dummy_models.id = dummy_children.post_id)"
+            ],
+            'Nested hasMany > belongsTo relation' => [
+                'has(comments.author)',
+                "exists (select * from dummy_children where dummy_models.id = dummy_children.post_id and exists (select * from dummy_grand_children where dummy_children.user_id = dummy_grand_children.id))"
+            ],
+            'Deeply nested hasMany > belongsTo > hasMany relation' => [
+                'has(comments.author.profiles)',
+                "exists (select * from dummy_children where dummy_models.id = dummy_children.post_id and "
+                . "exists (select * from dummy_grand_children where dummy_children.user_id = dummy_grand_children.id and "
+                . "exists (select * from dummy_grand_children as laravel_reserved_0 "
+                . "where dummy_grand_children.id = laravel_reserved_0.user_id)))"
+            ],
+        ];
+    }
 
-        // Simple not has on hasMany relation
-        $this->assertWhereSqlFor('not has(comments)', '');
+    /**
+     * @test
+     * @dataProvider validRelationQueriesDataProvider
+     */
+    public function it_filters_relation_queries($input, $expected)
+    {
+        $this->assertWhereSqlFor($input, $expected);
+    }
 
-        // Simple aliased belongsTo relation
-        $this->assertWhereSqlFor('has(author)', '');
+    public function invalidRelationQueriesDataProvider()
+    {
+        return [
+            'Non-countable belongsToMany relation with count'    => ['has(tags) > 10'],
+            'Non-queryable hasMany relation with query'          => ['has(views { active })'],
+        ];
+    }
 
-        // Simple or has on hasMany relation
-        $this->assertWhereSqlFor('name < 0 or has(comments)', '');
+    /**
+     * @test
+     * @dataProvider invalidRelationQueriesDataProvider
+     */
+    public function it_does_not_filter_invalid_relation_queries($input)
+    {
+        config()->set('search-string.fail', 'exceptions');
 
-        // Simple count on hasMany relation
-        $this->assertWhereSqlFor('has(comments) > 3', '');
+        $this->expectException(InvalidSearchStringException::class);
 
-        // Has on hasMany relation with constraints
-        $this->assertWhereSqlFor('has(comments { title = "Foo" active })', '');
-
-        // Count hasMany relation with constraints
-        $this->assertWhereSqlFor('has(comments { active }) > 3', '');
-
-        // Non-countable belongsToMany relation without count
-        $this->assertWhereSqlFor('has(tags)', '');
-
-        // Non-countable belongsToMany relation with count
-        $this->assertWhereSqlFor('has(tags) > 10', '');
-
-        // Non-queryable hasMany relation with query
-        $this->assertWhereSqlFor('has(views { active })', '');
-
-        // Nested hasMany > belongsTo relation
-        $this->assertWhereSqlFor('has(comments.author)', '');
-
-        // Deeply nested hasMany > belongsTo > hasMany relation
-        $this->assertWhereSqlFor('has(comments.author.profiles)', '');
-
-        // $this->assertWhereSqlFor('', '');
+        $this->assertWhereSqlFor($input, '');
     }
 }
