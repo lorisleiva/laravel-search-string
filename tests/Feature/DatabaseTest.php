@@ -29,56 +29,204 @@ class DatabaseTest extends TestCase
     public function relationQueriesDataProvider()
     {
         return [
+            'Basic filter' => [
+                'name : "TESTABLE NAME"',
+                DummyModel::class,
+                [
+                    'count' => 2,
+                    'attributes' => ['name' => 'TESTABLE NAME'],
+                ],
+                [
+                    'count' => 3,
+                ]
+            ],
             'Basic has hasMany relation' => [
                 'has(comments)',
-                function() {
-                    return factory(DummyModel::class, 2)->create()->each(function ($post) {
-                        $post->comments()->saveMany(factory(DummyChild::class, 1)->make());
-                    });
-                },
-                function() {
-                    return factory(DummyModel::class, 3)->create();
-                }
+                DummyModel::class,
+                [
+                    'count' => 2,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'count' => 1,
+                        ],
+                    ],
+                ],
+                [
+                    'count' => 3,
+                ]
             ],
             'Count hasMany relation greaterThan' => [
                 'has(comments) > 2',
-                function() {
-                    return factory(DummyModel::class, 2)->create()->each(function ($post) {
-                        $post->comments()->saveMany(factory(DummyChild::class, 3)->make());
-                    });
-                },
-                function() {
-                    return factory(DummyModel::class, 3)->create()->each(function ($post) {
-                        $post->comments()->saveMany(factory(DummyChild::class, 1)->make());
-                    });
-                }
+                DummyModel::class,
+                [
+                    'count' => 2,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'count' => 3,
+                        ],
+                    ],
+                ],
+                [
+                    'count' => 3,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'count' => 1,
+                        ],
+                    ],
+                ]
             ],
             'Count hasMany relation lessThan' => [
                 'has(comments) < 2',
-                function() {
-                    return factory(DummyModel::class, 2)->create()->each(function ($post) {
-                        $post->comments()->saveMany(factory(DummyChild::class, 1)->make());
-                    });
-                },
-                function() {
-                    return factory(DummyModel::class, 3)->create()->each(function ($post) {
-                        $post->comments()->saveMany(factory(DummyChild::class, 3)->make());
-                    });
-                }
+                DummyModel::class,
+                [
+                    'count' => 2,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'count' => 1,
+                        ],
+                    ],
+                ],
+                [
+                    'count' => 3,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'count' => 3,
+                        ],
+                    ],
+                ]
+            ],
+            'Has hasMany relation with constraints' => [
+                'has(comments { active })',
+                DummyModel::class,
+                [
+                    'count' => 2,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => true],
+                            'count' => 3,
+                        ],
+                    ],
+                ],
+                [
+                    'count' => 3,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => false],
+                            'count' => 2,
+                        ],
+                    ],
+                ]
+            ],
+            'Count has hasMany relation with constraints greaterThan' => [
+                'has(comments { active }) > 2',
+                DummyModel::class,
+                [
+                    'count' => 2,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => true],
+                            'count' => 3,
+                        ],
+                    ],
+                ],
+                [
+                    'count' => 3,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => true],
+                            'count' => 1,
+                        ],
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => false],
+                            'count' => 2,
+                        ],
+                    ],
+                ]
+            ],
+            'Count has hasMany relation with constraints lessThan' => [
+                'has(comments { active }) < 2',
+                DummyModel::class,
+                [
+                    'count' => 3,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => true],
+                            'count' => 1,
+                        ],
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => false],
+                            'count' => 2,
+                        ],
+                    ],
+                ],
+                [
+                    'count' => 2,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => true],
+                            'count' => 3,
+                        ],
+                    ],
+                ]
             ],
         ];
+    }
+
+    protected function makeModels(array $options, bool $create = false)
+    {
+        $method = $create ? 'create' : 'make';
+
+        $records = factory($options['model'], $options['count'] ?? 1)->$method($options['attributes'] ?? []);
+
+        if ($children = $options['children'] ?? false) {
+            $records->each(function ($model) use ($children) {
+                foreach ($children as $child) {
+                    $relation = $child['relation'];
+                    $model->$relation()->saveMany($this->makeModels($child));
+                }
+            });
+        }
+
+        return $records;
     }
 
     /**
      * @test
      * @dataProvider relationQueriesDataProvider
      */
-    public function it_filters_by_relation($input, \Closure $matches, \Closure $notMatches)
+    public function it_filters_by_relation($input, $model, $matches, $notMatches)
     {
-        $has = $matches()->map->id;
-        $missing = $notMatches()->map->id;
+        $matches['model'] = $matches['model'] ?? $model;
+        $notMatches['model'] = $notMatches['model'] ?? $model;
 
-        // Basic search string
+        $has = $this->makeModels($matches, true)->map->id;
+        $missing = $this->makeModels($notMatches, true)->map->id;
 
         $includedResults = DummyModel::usingSearchString($input)->pluck('id')->toArray();
 
