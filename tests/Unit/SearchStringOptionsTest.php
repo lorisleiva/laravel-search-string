@@ -94,6 +94,46 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
+    public function it_can_define_relations()
+    {
+        $model = $this->getModelWithRelations(['comments']);
+
+        $this->assertRelationRulesFor($model, [
+            'comments' => '[/^comments$/][queryable][countable]',
+        ]);
+    }
+
+    /** @test */
+    public function it_can_define_relations_which_are_not_queryable()
+    {
+        $model = $this->getModelWithRelations(['comments' => ['queryable' => false]]);
+
+        $this->assertRelationRulesFor($model, [
+            'comments' => '[/^comments$/][countable]',
+        ]);
+    }
+
+    /** @test */
+    public function it_can_define_relations_which_are_not_countable()
+    {
+        $model = $this->getModelWithRelations(['comments' => ['countable' => false]]);
+
+        $this->assertRelationRulesFor($model, [
+            'comments' => '[/^comments$/][queryable]',
+        ]);
+    }
+
+    /** @test */
+    public function it_can_define_relations_which_are_not_queryable_or_countable()
+    {
+        $model = $this->getModelWithRelations(['comments' => ['queryable' => false, 'countable' => false]]);
+
+        $this->assertRelationRulesFor($model, [
+            'comments' => '[/^comments$/][]',
+        ]);
+    }
+
+    /** @test */
     public function it_default_date_and_boolean_to_true_if_column_is_cast_as_date()
     {
         // Cast as datetime
@@ -184,6 +224,13 @@ class SearchStringOptionsTest extends TestCase
     {
         $manager = $this->getSearchStringManager($model);
         $options = $manager->getOption('keywords')->map->__toString()->toArray();
+        $this->assertEquals($expected, $options);
+    }
+
+    public function assertRelationRulesFor($model, $expected)
+    {
+        $manager = $this->getSearchStringManager($model);
+        $options = $manager->getOption('relations')->map->__toString()->toArray();
         $this->assertEquals($expected, $options);
     }
 }

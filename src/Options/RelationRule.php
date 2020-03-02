@@ -31,12 +31,11 @@ class RelationRule extends Rule
 
     public function __toString()
     {
-        $parent = parent::__toString();
         $booleans = collect([
             $this->queryable ? 'queryable' : null,
             $this->countable ? 'countable' : null,
         ])->filter()->implode('][');
 
-        return "{$parent}[$booleans]";
+        return "[$this->key][$booleans]";
     }
 }
