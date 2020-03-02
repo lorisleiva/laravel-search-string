@@ -22,10 +22,11 @@ trait SearchString
     {
         return [
             'columns' => $this->searchStringColumns ?? [],
+            'relations' => $this->searchStringRelations ?? [],
             'keywords' => $this->searchStringKeywords ?? [],
         ];
     }
-    
+
     public function getSearchStringVisitors($manager, $builder)
     {
         return [

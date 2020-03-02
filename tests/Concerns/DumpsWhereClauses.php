@@ -33,11 +33,17 @@ trait DumpsWhereClauses
                 return [$key => $children];
             }
 
+            if ($where->type == 'Column') {
+                return [$key => "$where->first $where->operator $where->second"];
+            }
+
             $value = $where->value ?? $where->values ?? null;
             $value = is_array($value) ? ('[' . implode(', ', $value) . ']') : $value;
             $value = is_bool($value) ? ($value ? 'true' : 'false') : $value;
             $value = isset($where->operator) ? "$where->operator $value" : $value;
+
             return [$key => is_null($value) ? $where->column : "$where->column $value"];
+
         })->toArray();
     }
 }

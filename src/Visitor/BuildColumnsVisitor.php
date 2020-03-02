@@ -61,9 +61,11 @@ class BuildColumnsVisitor extends Visitor
         return $query;
     }
 
-    public function visitRelation(RelationSymbol $relation) //TODO
+    public function visitRelation(RelationSymbol $relation)
     {
-        dd('BuildColumnsVisitor::visitRelation()');
+        $this->buildRelation($relation);
+
+        return $relation;
     }
 
     protected function createNestedBuilderWith($expressions, $newBoolean)
@@ -192,6 +194,43 @@ class BuildColumnsVisitor extends Visitor
     {
         $value = $this->parseValue($query->value);
         return $this->builder->where($rule->column, $query->operator, $value, $this->boolean);
+    }
+
+    protected function buildRelation(RelationSymbol $relation)
+    {
+        if (!$rule = $this->manager->getRuleForRelation($relation)) {
+            return;
+        }
+
+        // TODO Should it error if not countable or queryable? Or just adapt the query?
+
+        // Save and update the new boolean.
+        $originalBoolean = $this->boolean;
+        $this->boolean = 'and';
+
+        $operator = $relation->negated ? '<' : $relation->operator ?? '>=';
+        $count = $relation->negated ? 1 : $relation->count ?? 1;
+
+        $callback = $relation->constraints ? function ($relationBuilder) use ($relation) {
+
+            // Save and update the new builder.
+            $originalBuilder = $this->builder;
+            $this->builder = $relationBuilder;
+
+            // Generate the nested builder.
+            $relation->constraints->accept($this);
+
+            // Restore the original builder.
+            $this->builder = $originalBuilder;
+        } : null;
+
+        // Create nested builder that follows the original boolean.
+        $this->builder->has($rule->column, $operator, $count, $originalBoolean, $callback);
+
+        // Restore the original boolean.
+        $this->boolean = $originalBoolean;
+
+        return $this->builder;
     }
 
     protected function parseValue($value)

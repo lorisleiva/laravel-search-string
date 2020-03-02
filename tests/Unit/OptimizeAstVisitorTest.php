@@ -62,6 +62,7 @@ class OptimizeAstVisitorTest extends TestCase
         // Redundant comparisons are removed
         $this->assertAstFor('has(comments) > 0', 'HAS(comments)');
         $this->assertAstFor('has(comments) >= 0', 'HAS(comments)');
+        $this->assertAstFor('has(comments) >= 1', 'HAS(comments)');
 
         $this->assertAstFor('has(comments) = 0', 'HAS_NOT(comments)');
         $this->assertAstFor('has(comments) <= 0', 'HAS_NOT(comments)');
