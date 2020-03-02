@@ -95,7 +95,7 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
-    public function it_can_define_relations()
+    public function it_can_define_default_relations()
     {
         $model = $this->getModelWithRelations(['comments']);
 
@@ -105,7 +105,7 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
-    public function it_can_define_relations_which_are_not_queryable()
+    public function it_can_define_unqueryable_relations()
     {
         $model = $this->getModelWithRelations(['comments' => ['queryable' => false]]);
 
@@ -115,7 +115,7 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
-    public function it_can_define_relations_which_are_not_countable()
+    public function it_can_define_uncountable_relations()
     {
         $model = $this->getModelWithRelations(['comments' => ['countable' => false]]);
 
@@ -125,7 +125,7 @@ class SearchStringOptionsTest extends TestCase
     }
 
     /** @test */
-    public function it_can_define_relations_which_are_not_queryable_or_countable()
+    public function it_can_define_unqueryable_uncountable_relations()
     {
         $model = $this->getModelWithRelations(['comments' => ['queryable' => false, 'countable' => false]]);
 

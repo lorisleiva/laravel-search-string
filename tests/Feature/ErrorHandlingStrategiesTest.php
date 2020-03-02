@@ -64,6 +64,38 @@ class ErrorHandlingStrategiesTest extends TestCase
     }
 
     /** @test */
+    public function exceptions_strategy_throws_on_invalid_relation_error()
+    {
+        $this->setStrategy('exceptions');
+        $this->expectException(InvalidSearchStringException::class);
+        $this->build('has(foobar)');
+    }
+
+    /** @test */
+    public function exceptions_strategy_throws_on_invalid_count_relation_error()
+    {
+        $this->setStrategy('exceptions');
+        $this->expectException(InvalidSearchStringException::class);
+        $this->build('has(comments) > "foo"');
+    }
+
+    /** @test */
+    public function exceptions_strategy_throws_on_uncountable_relation_error()
+    {
+        $this->setStrategy('exceptions');
+        $this->expectException(InvalidSearchStringException::class);
+        $this->build('has(tags) > 2');
+    }
+
+    /** @test */
+    public function exceptions_strategy_throws_on_unqueryable_relation_error()
+    {
+        $this->setStrategy('exceptions');
+        $this->expectException(InvalidSearchStringException::class);
+        $this->build('has(views { active })');
+    }
+
+    /** @test */
     public function all_results_strategy_returns_an_unmodified_query_builder()
     {
         $this->setStrategy('all-results');
