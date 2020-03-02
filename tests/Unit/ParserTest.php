@@ -162,6 +162,14 @@ class ParserTest extends TestCase
         $this->assertAstFor('not has(comments{foo:bar})', 'NOT(HAS(comments WHERE(QUERY(foo = bar))))');
     }
 
+
+
+    /** @test */
+    public function it_throws_an_exception_if_the_relation_count_is_not_an_integer()
+    {
+        $this->assertParserFails('has(comments) > foo');
+    }
+
     /** @test */
     public function it_returns_a_null_symbol_if_no_ast_root_could_be_parsed()
     {

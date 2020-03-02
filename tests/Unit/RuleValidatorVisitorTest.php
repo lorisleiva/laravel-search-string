@@ -9,23 +9,43 @@ use Lorisleiva\LaravelSearchString\Visitor\RuleValidatorVisitor;
 
 class RuleValidatorVisitorTest extends TestCase
 {
-    /** @test */
-    public function it_validates_relation_queries()
+    public function validRelationQueriesDataProvider()
     {
-        $this->assertRuleIsValid('has(comments)');
-        $this->assertRuleIsValid('has(comments) > 2');
-        $this->assertRuleIsValid('has(comments { active } ) > 2');
-        $this->assertRuleIsValid('has(comments.author)');
-        $this->assertRuleIsValid('has(comments.author.profiles)');
+        return [
+            ['has(comments)'],
+            ['has(comments) > 2'],
+            ['has(comments { active } ) > 2'],
+            ['has(comments.author)'],
+            ['has(comments.author.profiles)'],
+        ];
     }
 
-    /** @test */
-    public function it_fails_to_validate_invalid_relation_queries()
+    /**
+     * @test
+     * @dataProvider validRelationQueriesDataProvider
+     */
+    public function it_validates_relation_queries($input)
     {
-        $this->assertRuleIsInvalid('has(tags) > 10', 'cannot be counted', 'tags');
-        $this->assertRuleIsInvalid('has(foo)', 'does not exist', 'foo');
-        $this->assertRuleIsInvalid('has(views { active })', 'cannot be queried', 'views');
-        // $this->assertRuleIsInvalid('has(??)', 'cannot be queried'); //TODO
+        $this->assertRuleIsValid($input);
+    }
+
+    public function invalidRelationQueriesDataProvider()
+    {
+        return [
+            'Non countable relation cannot be counted'        => ['has(tags) > 10', 'cannot be counted', 'tags'],
+            'Not existent relation does not exist'            => ['has(foo)', 'does not exist', 'foo'],
+            'Non queryable relation cannot be queried'        => ['has(views { active })', 'cannot be queried', 'views'],
+            // 'Non queryable nested relation cannot be queried' => ['has(??)', 'cannot be queried', '??'], // TODO
+        ];
+    }
+
+    /**
+     * @test
+     * @dataProvider invalidRelationQueriesDataProvider
+     */
+    public function it_fails_to_validate_invalid_relation_queries($input, $reason, $relation)
+    {
+        $this->assertRuleIsInvalid($input, $reason, $relation);
     }
 
     protected function assertRuleIsValid($input)
@@ -33,7 +53,7 @@ class RuleValidatorVisitorTest extends TestCase
         return $this->assertRuleIsInvalid($input, null);
     }
 
-    protected function assertRuleIsInvalid($input, $reason, $relation = '%s')
+    protected function assertRuleIsInvalid($input, $reason, $relation = null)
     {
         $manager = $this->getSearchStringManager(null);
 
@@ -47,6 +67,7 @@ class RuleValidatorVisitorTest extends TestCase
             $validated = false;
 
             if (!$valid) {
+                $relation = $relation ?: '%s';
                 $this->assertStringMatchesFormat("The relation [$relation] $reason", $e->getMessage(), "Failed asserting that the invalid reason was [$reason]");
             }
         }

@@ -193,13 +193,6 @@ class BuildKeywordsVisitorTest extends TestCase
         $this->assertEquals(['QUERY(foo = 1)', 'QUERY(faz = 3)'], $matches->toArray());
     }
 
-    /** @test */
-    public function it_throws_an_exception_if_the_relation_count_is_not_an_integer()
-    {
-        $this->expectException(InvalidSearchStringException::class);
-        $this->getBuilderFor('has(comments) > foo');
-    }
-
     public function assertAstEquals($expectedAst, $ast)
     {
         $this->assertEquals($expectedAst, $ast->accept(new InlineDumpVisitor));

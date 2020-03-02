@@ -56,18 +56,28 @@ class RemoveNotSymbolVisitorTest extends TestCase
         $this->assertAstFor('not not "John Doe"', 'SOLO(John Doe)');
     }
 
-    /** @test */
-    public function it_negates_relation_queries()
+    public function negatedRelationQueriesDataProvider()
     {
-        $this->assertAstFor('has(comments)', 'HAS(comments)');
-        $this->assertAstFor('not has(comments)', 'HAS_NOT(comments)');
-        $this->assertAstFor('not not has(comments)', 'HAS(comments)');
+        return [
+            'Positive relation'       => ['has(comments)', 'HAS(comments)'],
+            'Negated relation'        => ['not has(comments)', 'HAS_NOT(comments)'],
+            'Double-negated relation' => ['not not has(comments)', 'HAS(comments)'],
 
-        $this->assertAstFor('has(comments{foo:bar})', 'HAS(comments WHERE(QUERY(foo = bar)))');
-        $this->assertAstFor('not has(comments{foo:bar})', 'HAS_NOT(comments WHERE(QUERY(foo = bar)))');
+            'Positive relation with constraints' => ['has(comments{foo:bar})', 'HAS(comments WHERE(QUERY(foo = bar)))'],
+            'Negative relation with constraints' => ['not has(comments{foo:bar})', 'HAS_NOT(comments WHERE(QUERY(foo = bar)))'],
 
-        $this->assertAstFor('has(comments)>3', 'HAS(comments COUNT(> 3))');
-        $this->assertAstFor('not has(comments)>3', 'HAS(comments COUNT(<= 3))');
+            'Positive count relation' => ['has(comments)>3', 'HAS(comments COUNT(> 3))'],
+            'Negated count relation'  => ['not has(comments)>3', 'HAS(comments COUNT(<= 3))'],
+        ];
+    }
+
+    /**
+     * @test
+     * @dataProvider negatedRelationQueriesDataProvider
+     */
+    public function it_negates_relation_queries($input, $expected)
+    {
+        $this->assertAstFor($input, $expected);
     }
 
     public function assertAstFor($input, $expectedAst)
