@@ -4,6 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Tests\Concerns;
 
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Query\Expression;
 
 trait DumpsWhereClauses
 {
@@ -27,6 +28,10 @@ trait DumpsWhereClauses
         return collect($query->wheres)->mapWithKeys(function ($where, $i){
             $where = (object) $where;
             $key = "$where->type[{$where->boolean}][$i]";
+
+            // if ($where->column instanceof Expression) {
+                // $value = $where->column->getValue(); // TODO
+            // }
 
             if (isset($where->query)) {
                 $children = $this->dumpWhereClausesForQuery($where->query);

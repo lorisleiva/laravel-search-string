@@ -24,6 +24,7 @@ class DummyModel extends Model
 
     protected $searchStringRelations = [
         'comments',
+        'user' => 'author',
         'categories' => [
             'key' => 'tags',
             'countable' => false,
@@ -56,7 +57,7 @@ class DummyModel extends Model
         return $this->hasMany(DummyChild::class, 'post_id');
     }
 
-    public function author()
+    public function user()
     {
         return $this->belongsTo(DummyChild::class);
     }

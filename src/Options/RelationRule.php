@@ -21,9 +21,9 @@ class RelationRule extends Rule
 
     public function match($relation, $hasQuery = true, $hasCount = true)
     {
-        return preg_match($this->key, $relation)
-            && ($hasQuery ? $this->queryable : true)
-            && ($hasCount ? $this->countable : true);
+        return preg_match($this->key, $relation);
+            // && ($hasQuery ? $this->queryable : true)
+            // && ($hasCount ? $this->countable : true);
     }
 
     public function matchRelation(RelationSymbol $relation)
