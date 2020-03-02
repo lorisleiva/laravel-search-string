@@ -47,6 +47,11 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return $this->getModelWithOptions(['keywords' => $keywords]);
     }
 
+    public function getModelWithRelations($relations)
+    {
+        return $this->getModelWithOptions(['relations' => $relations]);
+    }
+
     public function getSearchStringManager($model = null)
     {
         return new SearchStringManager($model ?? new DummyModel);
