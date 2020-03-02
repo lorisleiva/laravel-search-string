@@ -5,12 +5,14 @@ namespace Lorisleiva\LaravelSearchString\Options;
 use Illuminate\Support\Arr;
 use Lorisleiva\LaravelSearchString\Options\ColumnRule;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Parser\RelationSymbol;
 
 trait SearchStringOptions
 {
     protected $options = [];
     protected static $fallbackOptions = [
         'columns' => [],
+        'relations' => [],
         'keywords' => [
             'order_by' => 'sort',
             'select' => 'fields',
@@ -33,11 +35,12 @@ trait SearchStringOptions
 
         $this->options = $this->parseOptions($options, $model);
     }
-    
+
     protected function parseOptions($options, $model)
     {
         return collect([
             'columns' => $this->parseColumns($options, $model),
+            'relations' => $this->parseRelations($options, $model),
             'keywords' => $this->parseKeywords($options),
         ]);
     }
@@ -52,6 +55,17 @@ trait SearchStringOptions
                 $isDate = $this->castAsDate($model, $column);
                 $isBoolean = $this->castAsBoolean($model, $column);
                 return new ColumnRule($column, $rule, $isDate, $isBoolean);
+            });
+    }
+
+    protected function parseRelations($options, $model)
+    {
+        return collect(Arr::get($options, 'relations', []))
+            ->mapWithKeys(function ($rule, $relation) {
+                return $this->resolveLonelyColumn($rule, $relation);
+            })
+            ->map(function ($rule, $relation) {
+                return new RelationRule($relation, $rule);
             });
     }
 
@@ -106,6 +120,13 @@ trait SearchStringOptions
     public function getRuleForQuery(QuerySymbol $query, $type = 'columns')
     {
         return $this->getRule($query->key, $query->operator, $query->value, $type);
+    }
+
+    public function getRuleForRelation(RelationSymbol $relation)
+    {
+        return $this->getOption('relations')->first(function ($rule) use ($relation) {
+            return $rule->match($relation->relation, (bool) $relation->constraints, (bool) $relation->operator);
+        });
     }
 
     public function getColumns()

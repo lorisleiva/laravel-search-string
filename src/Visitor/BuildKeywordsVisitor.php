@@ -29,13 +29,13 @@ class BuildKeywordsVisitor extends Visitor
         return $query;
     }
 
-    public function visitRelation(RelationSymbol $relation) //TODO
+    public function visitRelation(RelationSymbol $relation)
     {
         if (!ctype_digit($relation->count)) {
             throw new InvalidSearchStringException('The relation count must be an integer');
         }
 
-        dd('BuildKeywordsVisitor::visitRelation()');
+        return $relation;
     }
 
     public function buildKeyword($keyword, $query)

@@ -4,6 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Visitor;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Parser\RelationSymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
 class RuleValidatorVisitor extends Visitor
@@ -32,5 +33,10 @@ class RuleValidatorVisitor extends Visitor
         }
 
         throw new InvalidSearchStringException("Invalid key pattern [$queryAsString]");
+    }
+
+    public function visitRelation(RelationSymbol $relation) //TODO
+    {
+        dd('RuleValidatorVisitor::visitRelation()');
     }
 }

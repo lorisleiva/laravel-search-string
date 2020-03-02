@@ -56,6 +56,37 @@ class BuildColumnsVisitorTest extends TestCase
     }
 
     /** @test */
+    public function it_can_generate_relation_where_has_clauses()
+    {
+        $this->assertWhereClauses('has(comments)', [
+            'Exists[and][0]' => [
+                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+            ]
+        ]);
+
+        $this->assertWhereClauses('has(tags)', [
+            'Exists[and][0]' => [
+                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+            ]
+        ]);
+
+        $this->assertWhereClauses('name < 0 or has(comments)', [
+            'Nested[and][0]' => [
+                'Basic[or][0]' => 'name < 0',
+                'Exists[or][1]' => [
+                    'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+                ]
+            ]
+        ]);
+
+        $this->assertWhereClauses('has(comments) > 3', [
+            'Basic[and][0]' => '(select count(*) from `dummy_children` where `dummy_models`.`id` = `dummy_children`.`post_id`) > 3',
+        ]);
+
+
+    }
+
+    /** @test */
     public function it_generates_where_clauses_from_aliased_columned_using_the_real_column_name()
     {
         $model = $this->getModelWithColumns([

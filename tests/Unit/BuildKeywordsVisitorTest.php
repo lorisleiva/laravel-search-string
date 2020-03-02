@@ -38,7 +38,7 @@ class BuildKeywordsVisitorTest extends TestCase
         $builder = $this->getBuilderFor('not fields:name');
 
         $this->assertEquals(
-            ['price', 'description', 'paid', 'boolean_variable', 'created_at'], 
+            ['price', 'description', 'paid', 'boolean_variable', 'created_at'],
             $builder->getQuery()->columns
         );
     }
@@ -141,7 +141,7 @@ class BuildKeywordsVisitorTest extends TestCase
     /**
      * Offset
      */
-    
+
     /** @test */
     public function it_sets_the_offset_of_the_builder()
     {
@@ -173,7 +173,7 @@ class BuildKeywordsVisitorTest extends TestCase
     /**
      * Generic
      */
-    
+
     /** @test */
     public function it_does_not_change_the_ast()
     {
@@ -191,6 +191,13 @@ class BuildKeywordsVisitorTest extends TestCase
 
         $ast = $this->buildKeywordWithRule('foo:1 bar:2 faz:3', '/^f/', $callback);
         $this->assertEquals(['QUERY(foo = 1)', 'QUERY(faz = 3)'], $matches->toArray());
+    }
+
+    /** @test */
+    public function it_throws_an_exception_if_the_relation_count_is_not_an_integer()
+    {
+        $this->expectException(InvalidSearchStringException::class);
+        $this->getBuilderFor('has(comments) > foo');
     }
 
     public function assertAstEquals($expectedAst, $ast)
