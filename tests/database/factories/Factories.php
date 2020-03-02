@@ -32,7 +32,9 @@ $factory->define(DummyChild::class, function (Faker $faker) {
     return [
         'title'   => $faker->words(3, true),
         'active'  => $faker->boolean,
-        // 'post_id' => factory(DummyModel::class),
+        // 'post_id' => function ($post) {
+        //     return factory(DummyModel::class);
+        // },
     ];
 });
 
@@ -40,6 +42,8 @@ $factory->define(DummyGrandChild::class, function (Faker $faker) {
     return [
         'name'    => $faker->name,
         'active'  => $faker->boolean,
-        // 'user_id' => factory(DummyChild::class),
+        // 'user_id' => function ($child) {
+        //     return factory(DummyChild::class);
+        // }
     ];
 });
