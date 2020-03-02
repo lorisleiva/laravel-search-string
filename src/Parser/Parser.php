@@ -150,7 +150,7 @@ class Parser
         }
     }
 
-    protected function parseRelation() //TODO
+    protected function parseRelation()
     {
         switch ($this->current()->type) {
             case 'T_TERM':
@@ -158,14 +158,14 @@ class Parser
                 $relation = $this->parseEndValue();
                 $this->nextWithout('T_SPACE');
 
-                $symbol = new RelationSymbol($relation);
-
                 if ($this->current()->hasType('T_LBRACE')) {
                     $this->nextWithout('T_SPACE');
-                    $symbol->constraints = $this->parseRelationConstraints();
+                    $constraints = $this->parseRelationConstraints();
                     $this->expect('T_RBRACE');
                     $this->nextWithout('T_RBRACE', 'T_SPACE');
                 }
+
+                $symbol = new RelationSymbol($relation, $constraints ?? null);
 
                 $this->expect('T_RPARENT');
                 $this->nextWithout('T_SPACE');

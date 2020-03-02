@@ -9,6 +9,7 @@ use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\RelationSymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
+use Lorisleiva\LaravelSearchString\Parser\Symbol;
 
 class InlineDumpVisitor extends Visitor
 {
@@ -48,11 +49,27 @@ class InlineDumpVisitor extends Visitor
         return "QUERY($query->key $query->operator $value)";
     }
 
+    protected function flattenRelation(RelationSymbol $relation)
+    {
+        if ($relation->constraints instanceof RelationSymbol) {
+            $child = $relation->constraints;
+
+            $relation->relation = $relation->relation . '.' . $child->relation;
+            $relation->constraints = $child->constraints;
+
+            $relation = $this->flattenRelation($relation);
+        }
+
+        return $relation;
+    }
+
     public function visitRelation(RelationSymbol $relation)
     {
+        $relation = $this->flattenRelation($relation);
+
         $has = [$relation->relation];
 
-        if ($relation->constraints) {
+        if ($relation->constraints instanceof Symbol) {
             $constraints = $relation->constraints->accept($this);
             $has[] = "WHERE($constraints)";
         }

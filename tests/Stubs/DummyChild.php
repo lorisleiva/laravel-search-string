@@ -17,4 +17,9 @@ class DummyChild extends Model
         'active',
         'title',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(static::class, 'comment_id');
+    }
 }

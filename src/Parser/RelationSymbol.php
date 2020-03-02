@@ -12,8 +12,24 @@ class RelationSymbol extends Symbol
     public $value;
     public $negated;
 
-    function __construct($relation, $constraints = null, $operator = null, $value = null, $negated = false)
+    function __construct($relation, $constraints, $operator = null, $value = null, $negated = false)
     {
+        if (strpos($relation, '.') !== false) {
+            $relations = explode('.', $relation);
+            $deepestRelation = array_pop($relations);
+            $relation = array_shift($relations);
+
+            $relations = array_reverse($relations);
+
+            $symbol = new static($deepestRelation, $constraints);
+
+            foreach ($relations as $nestedRelation) {
+                $symbol = new static($nestedRelation, $symbol);
+            }
+
+            $constraints = $symbol;
+        }
+
         $this->relation = $relation;
         $this->constraints = $constraints;
         $this->operator = $operator;

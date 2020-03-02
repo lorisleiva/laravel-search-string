@@ -58,28 +58,28 @@ class BuildColumnsVisitorTest extends TestCase
     /** @test */
     public function it_can_generate_relation_where_has_clauses()
     {
-        // Simple has
+        // Simple has on hasMany relation
         $this->assertWhereClauses('has(comments)', [
             'Exists[and][0]' => [
                 'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
             ]
         ]);
 
-        // Simple not has
+        // Simple not has on hasMany relation
         $this->assertWhereClauses('not has(comments)', [
             'NotExists[and][0]' => [
                 'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
             ]
         ]);
 
-        // Simple aliased relation
+        // Simple aliased belongsTo relation
         $this->assertWhereClauses('has(author)', [
             'Exists[and][0]' => [
                 'Column[and][0]' => 'dummy_models.user_id = dummy_children.id',
             ]
         ]);
 
-        // Simple or has
+        // Simple or has on hasMany relation
         $this->assertWhereClauses('name < 0 or has(comments)', [
             'Nested[and][0]' => [
                 'Basic[or][0]' => 'name < 0',
@@ -89,12 +89,12 @@ class BuildColumnsVisitorTest extends TestCase
             ]
         ]);
 
-        // Simple count relation
+        // Simple count on hasMany relation
         $this->assertWhereClauses('has(comments) > 3', [
             'Basic[and][0]' => '(select count(*) from `dummy_children` where `dummy_models`.`id` = `dummy_children`.`post_id`) > 3',
         ]);
 
-        // Has with constraints
+        // Has on hasMany relation with constraints
         $this->assertWhereClauses('has(comments { title = "Foo" active })', [
             'Exists[and][0]' => [
                 'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
@@ -105,22 +105,36 @@ class BuildColumnsVisitorTest extends TestCase
             ]
         ]);
 
-        // Count relation with constraints
+        // Count hasMany relation with constraints
         $this->assertWhereClauses('has(comments { active }) > 3', [
             'Basic[and][0]' => '(select count(*) from `dummy_children` where `dummy_models`.`id` = `dummy_children`.`post_id` and `active` = ?) > 3',
         ]);
 
-        // Non-countable relation without count
+        // Non-countable belongsToMany relation without count
         $this->assertWhereClauses('has(tags)', [
             'Exists[and][0]' => [
-                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+                'Column[and][0]' => 'dummy_models.id = post_category.category_id',
             ]
         ]);
 
-        // Non-countable relation with count
+        // Non-countable belongsToMany relation with count
         $this->assertWhereClauses('has(tags) > 10', [
-            'Basic[and][0]' => '(select count(*) from `dummy_children` where `dummy_models`.`id` = `dummy_children`.`post_id`) > 10',
+            'Basic[and][0]' => '(select count(*) from `dummy_children` inner join `post_category` on `dummy_children`.`id` = `post_category`.`post_id` where `dummy_models`.`id` = `post_category`.`category_id`) > 10',
         ]);
+
+        // Non-queryable hasMany relation with query
+        $this->assertWhereClauses('has(views { active })', [
+            'Exists[and][0]' => [
+                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+                'Basic[and][1]' => 'active = true',
+            ]
+        ]);
+
+        // Simple aliased belongsTo relation
+        // $this->assertWhereClauses('has(comments.author)', [
+        //     'Exists[and][0]' => [
+        //     ]
+        // ]);
 
 
     }
