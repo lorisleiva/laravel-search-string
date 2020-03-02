@@ -49,7 +49,7 @@ class DummyModel extends Model
 
     public function categories()
     {
-        return $this->hasMany(DummyChild::class, 'post_id');
+        return $this->belongsToMany(DummyChild::class, 'post_category', 'category_id', 'post_id');
     }
 
     public function pageViews()

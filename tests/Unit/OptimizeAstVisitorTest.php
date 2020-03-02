@@ -70,16 +70,6 @@ class OptimizeAstVisitorTest extends TestCase
 
         // Complex constraints are optimized
         $this->assertAstFor('has(comments { A and (B and (C and D)) })', 'HAS(comments WHERE(AND(A, B, C, D)))');
-
-        // Nested relations are handled
-        $this->assertAstFor('has(comments.author{foo:bar})', 'HAS(comments.author WHERE(foo = bar))');
-
-        // Redundant child relations with no constraints are collapsed
-        $this->assertAstFor('has(comments{has(author{foo:bar})})', 'HAS(comments.author WHERE(foo = bar))');
-        $this->assertAstFor('has(comments{has(author{has(profiles{foo:bar})})})', 'HAS(comments.author.profiles WHERE(foo = bar))');
-
-        // Child relations with additional constraints are not collapsed
-        $this->assertAstFor('has(comments{baz:bek and has(author{foo:bar})})', 'HAS(comments WHERE(AND(baz = bek, HAS(author WHERE(foo = bar)))))');
     }
 
     public function assertAstFor($input, $expectedAst)

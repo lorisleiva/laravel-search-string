@@ -120,14 +120,40 @@ class ParserTest extends TestCase
     /** @test */
     public function it_parses_relation_queries()
     {
+        // Simple relations with no constraints
         $this->assertAstFor('has(comments)', 'HAS(comments)');
         $this->assertAstFor('has(comments{ })', 'HAS(comments)');
 
+        // Simple relations with constraints
         $this->assertAstFor('has(comments{foo:bar})', 'HAS(comments WHERE(QUERY(foo = bar)))');
         $this->assertAstFor('has(comments{foo:bar baz:bek})', 'HAS(comments WHERE(AND(QUERY(foo = bar), QUERY(baz = bek))))');
 
+        // Nested relations with child constraints
         $this->assertAstFor('has(comments.author{foo:bar})', 'HAS(comments.author WHERE(QUERY(foo = bar)))');
-        $this->assertAstFor('has(comments{has(author{foo:bar})})', 'HAS(comments WHERE(HAS(author WHERE(QUERY(foo = bar)))))');
+        $this->assertAstFor('has(comments{has(author{foo:bar})})', 'HAS(comments.author WHERE(QUERY(foo = bar)))');
+
+        // Child relations with no parent constraints are collapsed
+        $this->assertAstFor('has(comments.author.profiles{foo:bar})', 'HAS(comments.author.profiles WHERE(QUERY(foo = bar)))');
+        $this->assertAstFor('has(comments {
+                has(author {
+                    has(profiles{
+                        foo:bar
+                    })
+                })
+            })', 'HAS(comments.author.profiles WHERE(QUERY(foo = bar)))');
+
+        // Child relations with parent constraints are not collapsed
+        $this->assertAstFor('has(comments{baz:bek and has(author{foo:bar})})', 'HAS(comments WHERE(AND(QUERY(baz = bek), HAS(author WHERE(QUERY(foo = bar))))))');
+
+        // Child relations with some parent constraints are collapsed where possible
+        $this->assertAstFor('has(comments {
+                baz:bek
+                has(author {
+                    has(profiles{
+                        foo:bar
+                    })
+                })
+            })', 'HAS(comments WHERE(AND(QUERY(baz = bek), HAS(author.profiles WHERE(QUERY(foo = bar))))))');
 
         $this->assertAstFor('has(comments)>3', 'HAS(comments COUNT(> 3))');
         $this->assertAstFor('has(comments{foo:bar})>3', 'HAS(comments WHERE(QUERY(foo = bar)) COUNT(> 3))');

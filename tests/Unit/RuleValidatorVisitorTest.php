@@ -15,6 +15,7 @@ class RuleValidatorVisitorTest extends TestCase
         $this->assertRuleIsValid('has(comments)');
         $this->assertRuleIsValid('has(comments) > 2');
         $this->assertRuleIsValid('has(comments { active } ) > 2');
+        $this->assertRuleIsValid('has(comments.author)');
     }
 
     /** @test */
@@ -35,13 +36,16 @@ class RuleValidatorVisitorTest extends TestCase
         try {
             $this->parse($input)->accept(new RuleValidatorVisitor($manager));
         }
-        catch (\Throwable $e) {
+        catch (InvalidSearchStringException $e) {
             $validated = false;
 
             if (!$valid) {
-                $this->assertInstanceOf(InvalidSearchStringException::class, $e, 'Failed asserting that an invalid search string exception was thrown');
                 $this->assertStringMatchesFormat("The relation [%s] $reason", $e->getMessage(), "Failed asserting that the invalid reason was [$reason]");
             }
+        }
+        catch (\Throwable $e) {
+            $validated = false;
+            throw $e;
         }
 
         $state = $valid ? 'valid' : 'invalid';

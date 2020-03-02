@@ -202,8 +202,6 @@ class BuildColumnsVisitor extends Visitor
             return;
         }
 
-        // TODO Should it error if not countable or queryable? Or just adapt the query?
-
         // Save and update the new boolean.
         $originalBoolean = $this->boolean;
         $this->boolean = 'and';
