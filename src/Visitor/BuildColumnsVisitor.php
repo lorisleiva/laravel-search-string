@@ -212,7 +212,7 @@ class BuildColumnsVisitor extends Visitor
 
         $relationship = $rule->column;
         $operator = $relation->negated ? '<' : $relation->operator ?? '>=';
-        $count = $relation->negated ? 1 : $relation->count ?? 1;
+        $count = $relation->negated ? 1 : $relation->value ?? 1;
 
         $related = $this->builder->getModel()->$relationship()->getRelated();
 

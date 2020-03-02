@@ -237,7 +237,7 @@ class CreateBuilderTest extends TestCase
             ],
             'Simple count on hasMany relation' => [
                 'has(comments) > 3',
-                "(select count(*) from dummy_children where dummy_models.id = dummy_children.post_id) > 1"
+                "(select count(*) from dummy_children where dummy_models.id = dummy_children.post_id) > 3"
             ],
             'Has on hasMany relation with constraints' => [
                 'has(comments { title = "Foo" active })',
@@ -245,7 +245,7 @@ class CreateBuilderTest extends TestCase
             ],
             'Count hasMany relation with constraints' => [
                 'has(comments { active }) > 3',
-                "(select count(*) from dummy_children where dummy_models.id = dummy_children.post_id and active = true) > 1"
+                "(select count(*) from dummy_children where dummy_models.id = dummy_children.post_id and active = true) > 3"
             ],
             'Non-countable belongsToMany relation without count' => [
                 'has(tags)',
@@ -263,8 +263,8 @@ class CreateBuilderTest extends TestCase
                 'has(comments.author.profiles)',
                 "exists (select * from dummy_children where dummy_models.id = dummy_children.post_id and "
                 . "exists (select * from dummy_grand_children where dummy_children.user_id = dummy_grand_children.id and "
-                . "exists (select * from dummy_grand_children as laravel_reserved_0 "
-                . "where dummy_grand_children.id = laravel_reserved_0.user_id)))"
+                . "exists (select * from dummy_grand_children as laravel_reserved_1 "
+                . "where dummy_grand_children.id = laravel_reserved_1.user_id)))"
             ],
         ];
     }
@@ -281,8 +281,9 @@ class CreateBuilderTest extends TestCase
     public function invalidRelationQueriesDataProvider()
     {
         return [
-            'Non-countable belongsToMany relation with count'    => ['has(tags) > 10'],
-            'Non-queryable hasMany relation with query'          => ['has(views { active })'],
+            'Non-existent relation'                           => ['has(foobar)'],
+            'Non-countable belongsToMany relation with count' => ['has(tags) > 10'],
+            'Non-queryable hasMany relation with query'       => ['has(views { active })'],
         ];
     }
 
