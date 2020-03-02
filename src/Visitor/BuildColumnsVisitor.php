@@ -11,6 +11,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\RelationSymbol;
+use Lorisleiva\LaravelSearchString\Parser\Symbol;
 use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
 
 class BuildColumnsVisitor extends Visitor
@@ -198,7 +199,9 @@ class BuildColumnsVisitor extends Visitor
 
     protected function buildRelation(RelationSymbol $relation)
     {
+        // dump('-----RELATION-----', $relation);
         if (!$rule = $this->manager->getRuleForRelation($relation)) {
+            // dump('===== NO RULE =====', get_class($this->builder->getModel()), $relation->relation);
             return;
         }
 
@@ -211,23 +214,33 @@ class BuildColumnsVisitor extends Visitor
         $count = $relation->negated ? 1 : $relation->count ?? 1;
 
         $related = $this->builder->getModel()->$relationship()->getRelated();
+        // dump('-----RELATED-----', get_class($related));
 
-        $callback = $relation->constraints ? function ($relationBuilder) use ($relation, $related) {
+        //$relation->constraints ?
+        $callback = function ($relationBuilder) use ($relation, $related) {
 
             // Save and update the new builder.
             $originalBuilder = $this->builder;
             $this->builder = $relationBuilder;
 
-            $visitor = new static($related->getSearchStringManager(), $this->builder);
+            $originalManager = $this->manager;
+            $this->manager = $related->getSearchStringManager();
 
-            // Generate the nested builder.
-            $relation->constraints->accept($visitor);
+            $visitor = new static($this->manager, $this->builder);
+
+            if ($relation->constraints instanceof Symbol) {
+                // Generate the relation builder.
+                $relation->constraints->accept($visitor);
+            }
 
             // Restore the original builder.
             $this->builder = $originalBuilder;
-        } : null;
+            $this->manager = $originalManager;
+        };
+        //  : null;
 
         // Create nested builder that follows the original boolean.
+        // dump('-----RELATIONSHIP-----', $relationship);
         $this->builder->has($relationship, $operator, $count, $originalBoolean, $callback);
 
         // Restore the original boolean.

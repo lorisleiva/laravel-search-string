@@ -5,7 +5,7 @@ namespace Lorisleiva\LaravelSearchString\Tests\Stubs;
 use Illuminate\Database\Eloquent\Model;
 use Lorisleiva\LaravelSearchString\Concerns\SearchString;
 
-class DummyChild extends Model
+class DummyGrandChild extends Model
 {
     use SearchString;
 
@@ -19,11 +19,11 @@ class DummyChild extends Model
     ];
 
     protected $searchStringRelations = [
-        'user' => 'author',
+        'profiles',
     ];
 
-    public function user()
+    public function profiles()
     {
-        return $this->belongsTo(DummyGrandChild::class);
+        return $this->hasMany(static::class, 'user_id');
     }
 }
