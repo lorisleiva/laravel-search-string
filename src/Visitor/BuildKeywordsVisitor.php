@@ -31,7 +31,7 @@ class BuildKeywordsVisitor extends Visitor
 
     public function visitRelation(RelationSymbol $relation)
     {
-        if (!ctype_digit($relation->count)) {
+        if ($relation->operator && !ctype_digit($relation->value)) {
             throw new InvalidSearchStringException('The relation count must be an integer');
         }
 

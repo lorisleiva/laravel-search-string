@@ -15,7 +15,7 @@ class DummyChild extends Model
 
     protected $searchStringColumns = [
         'active',
-        'title',
+        'title' => ['searchable' => true],
     ];
 
     protected $searchStringRelations = [

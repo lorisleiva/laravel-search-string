@@ -16,17 +16,24 @@ class RuleValidatorVisitorTest extends TestCase
         $this->assertRuleIsValid('has(comments) > 2');
         $this->assertRuleIsValid('has(comments { active } ) > 2');
         $this->assertRuleIsValid('has(comments.author)');
+        $this->assertRuleIsValid('has(comments.author.profiles)');
     }
 
     /** @test */
     public function it_fails_to_validate_invalid_relation_queries()
     {
-        $this->assertRuleIsValid('has(tags) > 10', 'cannot be counted');
-        $this->assertRuleIsValid('has(foo)', 'does not exist');
-        $this->assertRuleIsValid('has(views { active })', 'cannot be queried');
+        $this->assertRuleIsInvalid('has(tags) > 10', 'cannot be counted', 'tags');
+        $this->assertRuleIsInvalid('has(foo)', 'does not exist', 'foo');
+        $this->assertRuleIsInvalid('has(views { active })', 'cannot be queried', 'views');
+        // $this->assertRuleIsInvalid('has(??)', 'cannot be queried'); //TODO
     }
 
-    public function assertRuleIsValid($input, $reason = null)
+    protected function assertRuleIsValid($input)
+    {
+        return $this->assertRuleIsInvalid($input, null);
+    }
+
+    protected function assertRuleIsInvalid($input, $reason, $relation = '%s')
     {
         $manager = $this->getSearchStringManager(null);
 
@@ -40,7 +47,7 @@ class RuleValidatorVisitorTest extends TestCase
             $validated = false;
 
             if (!$valid) {
-                $this->assertStringMatchesFormat("The relation [%s] $reason", $e->getMessage(), "Failed asserting that the invalid reason was [$reason]");
+                $this->assertStringMatchesFormat("The relation [$relation] $reason", $e->getMessage(), "Failed asserting that the invalid reason was [$reason]");
             }
         }
         catch (\Throwable $e) {

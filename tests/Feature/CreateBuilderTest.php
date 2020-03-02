@@ -215,4 +215,46 @@ class CreateBuilderTest extends TestCase
         $this->assertWhereSqlFor('active', "activated = true", $model);
         $this->assertWhereSqlFor('not active', "activated = false", $model);
     }
+
+    /** @test */
+    public function it_filters_relation_queries()
+    {
+        // Simple has on hasMany relation
+        $this->assertWhereSqlFor('has(comments)', 'select * from dummy_models where ??'); //name = "Foobar"
+
+        // Simple not has on hasMany relation
+        $this->assertWhereSqlFor('not has(comments)', '');
+
+        // Simple aliased belongsTo relation
+        $this->assertWhereSqlFor('has(author)', '');
+
+        // Simple or has on hasMany relation
+        $this->assertWhereSqlFor('name < 0 or has(comments)', '');
+
+        // Simple count on hasMany relation
+        $this->assertWhereSqlFor('has(comments) > 3', '');
+
+        // Has on hasMany relation with constraints
+        $this->assertWhereSqlFor('has(comments { title = "Foo" active })', '');
+
+        // Count hasMany relation with constraints
+        $this->assertWhereSqlFor('has(comments { active }) > 3', '');
+
+        // Non-countable belongsToMany relation without count
+        $this->assertWhereSqlFor('has(tags)', '');
+
+        // Non-countable belongsToMany relation with count
+        $this->assertWhereSqlFor('has(tags) > 10', '');
+
+        // Non-queryable hasMany relation with query
+        $this->assertWhereSqlFor('has(views { active })', '');
+
+        // Nested hasMany > belongsTo relation
+        $this->assertWhereSqlFor('has(comments.author)', '');
+
+        // Deeply nested hasMany > belongsTo > hasMany relation
+        $this->assertWhereSqlFor('has(comments.author.profiles)', '');
+
+        // $this->assertWhereSqlFor('', '');
+    }
 }

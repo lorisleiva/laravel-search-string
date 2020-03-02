@@ -15,7 +15,7 @@ class DummyGrandChild extends Model
 
     protected $searchStringColumns = [
         'active',
-        'title',
+        'name' => [ 'searchable' => true ],
     ];
 
     protected $searchStringRelations = [
