@@ -51,13 +51,13 @@ class OptimizeAstVisitor extends Visitor
         }
 
         switch (true) {
-            case $relation->operator == '>' && $relation->count == 0:
-            case $relation->operator == '>=' && $relation->count <= 1:
+            case $relation->operator == '>' && $relation->value == 0:
+            case $relation->operator == '>=' && $relation->value <= 1:
                 return new RelationSymbol($relation->relation, $relation->constraints);
 
-            case $relation->operator == '=' && $relation->count == 0:
-            case $relation->operator == '<=' && $relation->count == 0:
-            case $relation->operator == '<' && $relation->count == 1:
+            case $relation->operator == '=' && $relation->value == 0:
+            case $relation->operator == '<=' && $relation->value == 0:
+            case $relation->operator == '<' && $relation->value == 1:
                 return new RelationSymbol($relation->relation, $relation->constraints, null, null, true);
         }
 

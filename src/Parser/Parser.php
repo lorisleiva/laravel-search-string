@@ -181,11 +181,11 @@ class Parser
 
                     $value = $this->current()->content;
 
-                    if (!preg_match('/^\d+$/', $value)) {
+                    if (!ctype_digit($value)) {
                         throw InvalidSearchStringException::fromParser($this->current(), null, 'Expected a whole number, got ' . $value);
                     }
 
-                    $symbol->count = (int) $value;
+                    $symbol->value = $value;
 
                     $this->next();
                 }
