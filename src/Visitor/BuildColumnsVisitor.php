@@ -208,24 +208,29 @@ class BuildColumnsVisitor extends Visitor
         $originalBoolean = $this->boolean;
         $this->boolean = 'and';
 
+        $relationship = $rule->column;
         $operator = $relation->negated ? '<' : $relation->operator ?? '>=';
         $count = $relation->negated ? 1 : $relation->count ?? 1;
 
-        $callback = $relation->constraints ? function ($relationBuilder) use ($relation) {
+        $related = $this->builder->getModel()->$relationship()->getRelated();
+
+        $callback = $relation->constraints ? function ($relationBuilder) use ($relation, $related) {
 
             // Save and update the new builder.
             $originalBuilder = $this->builder;
             $this->builder = $relationBuilder;
 
+            $visitor = new static($related->getSearchStringManager(), $this->builder);
+
             // Generate the nested builder.
-            $relation->constraints->accept($this);
+            $relation->constraints->accept($visitor);
 
             // Restore the original builder.
             $this->builder = $originalBuilder;
         } : null;
 
         // Create nested builder that follows the original boolean.
-        $this->builder->has($rule->column, $operator, $count, $originalBoolean, $callback);
+        $this->builder->has($relationship, $operator, $count, $originalBoolean, $callback);
 
         // Restore the original boolean.
         $this->boolean = $originalBoolean;

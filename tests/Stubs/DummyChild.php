@@ -15,5 +15,6 @@ class DummyChild extends Model
 
     protected $searchStringColumns = [
         'active',
+        'title',
     ];
 }

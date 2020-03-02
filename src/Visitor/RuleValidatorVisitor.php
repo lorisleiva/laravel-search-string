@@ -35,8 +35,20 @@ class RuleValidatorVisitor extends Visitor
         throw new InvalidSearchStringException("Invalid key pattern [$queryAsString]");
     }
 
-    public function visitRelation(RelationSymbol $relation) //TODO
+    public function visitRelation(RelationSymbol $relation)
     {
-        dd('RuleValidatorVisitor::visitRelation()');
+        if (!$rule = $this->manager->getRuleForRelation($relation)) {
+            throw new InvalidSearchStringException("The relation [$relation->relation] does not exist");
+        }
+
+        if ($relation->constraints && !$rule->queryable) {
+            throw new InvalidSearchStringException("The relation [$relation->relation] cannot be queried");
+        }
+
+        if ($relation->operator && !$rule->countable) {
+            throw new InvalidSearchStringException("The relation [$relation->relation] cannot be counted");
+        }
+
+        return $relation;
     }
 }

@@ -57,18 +57,28 @@ class BuildColumnsVisitorTest extends TestCase
     /** @test */
     public function it_can_generate_relation_where_has_clauses()
     {
+        // Simple has
         $this->assertWhereClauses('has(comments)', [
             'Exists[and][0]' => [
                 'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
             ]
         ]);
 
-        $this->assertWhereClauses('has(tags)', [
-            'Exists[and][0]' => [
+        // Simple not has
+        $this->assertWhereClauses('not has(comments)', [
+            'NotExists[and][0]' => [
                 'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
             ]
         ]);
 
+        // Simple aliased relation
+        $this->assertWhereClauses('has(author)', [
+            'Exists[and][0]' => [
+                'Column[and][0]' => 'dummy_models.user_id = dummy_children.id',
+            ]
+        ]);
+
+        // Simple or has
         $this->assertWhereClauses('name < 0 or has(comments)', [
             'Nested[and][0]' => [
                 'Basic[or][0]' => 'name < 0',
@@ -78,11 +88,49 @@ class BuildColumnsVisitorTest extends TestCase
             ]
         ]);
 
+        // Simple count relation
         $this->assertWhereClauses('has(comments) > 3', [
             'Basic[and][0]' => '(select count(*) from `dummy_children` where `dummy_models`.`id` = `dummy_children`.`post_id`) > 3',
         ]);
 
+        // Has with constraints
+        $this->assertWhereClauses('has(comments { title = "Foo" active })', [
+            'Exists[and][0]' => [
+                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+                'Nested[and][1]' => [
+                    'Basic[and][0]' => 'title = Foo',
+                    'Basic[and][1]' => 'active = true',
+                ]
+            ]
+        ]);
 
+        // Count relation with constraints
+        $this->assertWhereClauses('has(comments { active }) > 3', [
+            'Basic[and][0]' => '(select count(*) from `dummy_children` where `dummy_models`.`id` = `dummy_children`.`post_id` and `active` = ?) > 3',
+        ]);
+
+        // Non-countable relation without count
+        $this->assertWhereClauses('has(tags)', [
+            'Exists[and][0]' => [
+                'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
+            ]
+        ]);
+
+        // Non-countable relation with count
+        $this->assertWhereClauses('has(tags) > 10', [
+            'Basic[and][0]' => '(select count(*) from `dummy_children` where `dummy_models`.`id` = `dummy_children`.`post_id`) > 10',
+        ]);
+
+
+    }
+
+    /** @test */
+    public function it_does_not_add_has_clause_if_not_searchable_relations_were_given()
+    {
+        $model = $this->getModelWithOptions([]);
+
+        $this->assertWhereClauses('has(foobar)', [], $model);
+        $this->assertWhereClauses('not has(foobar)', [], $model);
     }
 
     /** @test */
