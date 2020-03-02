@@ -80,9 +80,9 @@ class BuildColumnsVisitorTest extends TestCase
         ]);
 
         // Simple or has on hasMany relation
-        $this->assertWhereClauses('name < 0 or has(comments)', [
+        $this->assertWhereClauses('name = Foobar or has(comments)', [
             'Nested[and][0]' => [
-                'Basic[or][0]' => 'name < 0',
+                'Basic[or][0]' => 'name = Foobar',
                 'Exists[or][1]' => [
                     'Column[and][0]' => 'dummy_models.id = dummy_children.post_id',
                 ]

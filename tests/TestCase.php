@@ -17,6 +17,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     protected function getEnvironmentSetUp($app)
     {
         $app['config']->set('search-string', include __DIR__ . '/../src/config.php');
+        // dd($app['config']->set('database.default', 'testing')); //FIXME for real database tests
     }
 
     public function getModelWithOptions($options)

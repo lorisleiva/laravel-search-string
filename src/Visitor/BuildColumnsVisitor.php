@@ -202,9 +202,7 @@ class BuildColumnsVisitor extends Visitor
 
     protected function buildRelation(RelationSymbol $relation)
     {
-        // dump('-----RELATION-----', $relation);
         if (!$rule = $this->manager->getRuleForRelation($relation)) {
-            // dump('===== NO RULE =====', get_class($this->builder->getModel()), $relation->relation);
             return;
         }
 
@@ -217,9 +215,7 @@ class BuildColumnsVisitor extends Visitor
         $count = $relation->negated ? 1 : $relation->count ?? 1;
 
         $related = $this->builder->getModel()->$relationship()->getRelated();
-        // dump('-----RELATED-----', get_class($related));
 
-        //$relation->constraints ?
         $callback = function ($relationBuilder) use ($relation, $related) {
 
             // Save and update the new builder.
@@ -236,14 +232,12 @@ class BuildColumnsVisitor extends Visitor
                 $relation->constraints->accept($visitor);
             }
 
-            // Restore the original builder.
+            // Restore the original builder and manager.
             $this->builder = $originalBuilder;
             $this->manager = $originalManager;
         };
-        //  : null;
 
         // Create nested builder that follows the original boolean.
-        // dump('-----RELATIONSHIP-----', $relationship);
         $this->builder->has($relationship, $operator, $count, $originalBoolean, $callback);
 
         // Restore the original boolean.
