@@ -78,6 +78,8 @@ class LexerTest extends TestCase
         $this->assertTokensFor('oracle', 'T_TERM');
         $this->assertTokensFor('not', 'T_NOT');
         $this->assertTokensFor('notice', 'T_TERM');
+        $this->assertTokensFor('has', 'T_HAS');
+        $this->assertTokensFor('hash', 'T_TERM');
     }
 
     /** @test */
@@ -91,6 +93,8 @@ class LexerTest extends TestCase
         $this->assertTokensFor('or)', 'T_OR T_RPARENT');
         $this->assertTokensFor('not)', 'T_NOT T_RPARENT');
         $this->assertTokensFor('in)', 'T_IN T_RPARENT');
+        $this->assertTokensFor('has', 'T_HAS');
+        $this->assertTokensFor('has)', 'T_HAS T_RPARENT');
     }
 
     public function relationQueriesDataProvider()
