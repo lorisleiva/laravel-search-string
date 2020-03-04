@@ -29,7 +29,6 @@ class ParserTest extends TestCase
         $this->assertAstFor('amount >= 0', 'QUERY(amount >= 0)');
         $this->assertAstFor('amount < 0', 'QUERY(amount < 0)');
         $this->assertAstFor('amount <= 0', 'QUERY(amount <= 0)');
-        $this->assertAstFor('users.todos <= 10', 'QUERY(users.todos <= 10)');
         $this->assertAstFor('date > "2018-05-14 00:41:10"', 'QUERY(date > 2018-05-14 00:41:10)');
     }
 
@@ -117,57 +116,119 @@ class ParserTest extends TestCase
         );
     }
 
-    /** @test */
-    public function it_parses_relation_queries()
+    public function relationQueriesDataProvider()
     {
-        // Simple relations with no constraints
-        $this->assertAstFor('has(comments)', 'HAS(comments)');
-        $this->assertAstFor('has(comments{ })', 'HAS(comments)');
+        return [
+            'Simple relation' => [
+                'has(comments)', 'HAS(comments)'
+            ],
+            'Simple relation with empty constraints' => [
+                'has(comments{ })', 'HAS(comments)'
+            ],
 
-        // Simple relations with constraints
-        $this->assertAstFor('has(comments{foo:bar})', 'HAS(comments WHERE(QUERY(foo = bar)))');
-        $this->assertAstFor('has(comments{foo:bar baz:bek})', 'HAS(comments WHERE(AND(QUERY(foo = bar), QUERY(baz = bek))))');
+            'Simple relation with constraints' => [
+                'has(comments{foo:bar})', 'HAS(comments WHERE(QUERY(foo = bar)))'
+            ],
+            'Simple relation with multiple constraints' => [
+                'has(comments{foo:bar baz:bek})', 'HAS(comments WHERE(AND(QUERY(foo = bar), QUERY(baz = bek))))'
+            ],
 
-        // Nested relations with child constraints
-        $this->assertAstFor('has(comments.author{foo:bar})', 'HAS(comments.author WHERE(QUERY(foo = bar)))');
-        $this->assertAstFor('has(comments{has(author{foo:bar})})', 'HAS(comments.author WHERE(QUERY(foo = bar)))');
+            'Dot-nested relation with child constraints' => [
+                'has(comments.author{foo:bar})', 'HAS(comments.author WHERE(QUERY(foo = bar)))'
+            ],
+            'Nested relation with child constraints' => [
+                'has(comments{has(author{foo:bar})})', 'HAS(comments.author WHERE(QUERY(foo = bar)))'
+            ],
 
-        // Child relations with no parent constraints are collapsed
-        $this->assertAstFor('has(comments.author.profiles{foo:bar})', 'HAS(comments.author.profiles WHERE(QUERY(foo = bar)))');
-        $this->assertAstFor('has(comments {
-                has(author {
-                    has(profiles{
-                        foo:bar
+            'Dot-nested relations with no parent constraints are collapsed' => [
+                'has(comments.author.profiles{foo:bar})', 'HAS(comments.author.profiles WHERE(QUERY(foo = bar)))'
+            ],
+            'Nested relations with no parent constraints are collapsed' => [
+                'has(comments {
+                    has(author {
+                        has(profiles{
+                            foo:bar
+                        })
                     })
-                })
-            })', 'HAS(comments.author.profiles WHERE(QUERY(foo = bar)))');
+                })', 'HAS(comments.author.profiles WHERE(QUERY(foo = bar)))'
+            ],
 
-        // Child relations with parent constraints are not collapsed
-        $this->assertAstFor('has(comments{baz:bek and has(author{foo:bar})})', 'HAS(comments WHERE(AND(QUERY(baz = bek), HAS(author WHERE(QUERY(foo = bar))))))');
+            'Nested relations with parent constraints are not collapsed' => [
+                'has(comments{baz:bek and has(author{foo:bar})})', 'HAS(comments WHERE(AND(QUERY(baz = bek), HAS(author WHERE(QUERY(foo = bar))))))'
+            ],
 
-        // Child relations with some parent constraints are collapsed where possible
-        $this->assertAstFor('has(comments {
-                baz:bek
-                has(author {
-                    has(profiles{
-                        foo:bar
+            'Nested relations with some parent constraints are collapsed where possible' => [
+                'has(comments {
+                    baz:bek
+                    has(author {
+                        has(profiles{
+                            foo:bar
+                        })
                     })
-                })
-            })', 'HAS(comments WHERE(AND(QUERY(baz = bek), HAS(author.profiles WHERE(QUERY(foo = bar))))))');
+                })', 'HAS(comments WHERE(AND(QUERY(baz = bek), HAS(author.profiles WHERE(QUERY(foo = bar))))))'
+            ],
 
-        $this->assertAstFor('has(comments)>3', 'HAS(comments COUNT(> 3))');
-        $this->assertAstFor('has(comments{foo:bar})>3', 'HAS(comments WHERE(QUERY(foo = bar)) COUNT(> 3))');
+            'Simple count relation' => [
+                'has(comments)>3', 'HAS(comments COUNT(> 3))'
+            ],
+            'Count related with constraints' => [
+                'has(comments{foo:bar})>3', 'HAS(comments WHERE(QUERY(foo = bar)) COUNT(> 3))'
+            ],
 
-        $this->assertAstFor('not has(comments)', 'NOT(HAS(comments))');
-        $this->assertAstFor('not has(comments{foo:bar})', 'NOT(HAS(comments WHERE(QUERY(foo = bar))))');
+            'Negated count relation' => [
+                'not has(comments)', 'NOT(HAS(comments))'
+            ],
+            'Negated count relation with constraints' => [
+                'not has(comments{foo:bar})', 'NOT(HAS(comments WHERE(QUERY(foo = bar))))'
+            ],
+        ];
     }
 
+    /**
+     * @test
+     * @dataProvider relationQueriesDataProvider
+     */
+    public function it_parses_relation_queries($input, $expected)
+    {
+        $this->assertAstFor($input, $expected);
+    }
 
+    public function invalidRelationQueriesDataProvider()
+    {
+        return [
+            'Unclosed parenthesis' => [
+                'has(comments', 'T_EOL'
+            ],
+            'Unclosed brace' => [
+                'has(comments {)', 'T_RPARENT'
+            ],
+            'Unopened parenthesis' => [
+                'has comments)', 'T_TERM'
+            ],
+            'Orphaned has' => [
+                'has', 'T_EOL'
+            ],
+            'Incomplete query' => [
+                'has(comments { active = })', 'T_RBRACE'
+            ],
+        ];
+    }
+
+    /**
+     * @test
+     * @dataProvider invalidRelationQueriesDataProvider
+     */
+    public function it_fails_to_parse_invalid_relation_queries($input, $expected)
+    {
+        $this->assertParserFails($input, $expected);
+    }
 
     /** @test */
     public function it_throws_an_exception_if_the_relation_count_is_not_an_integer()
     {
         $this->assertParserFails('has(comments) > foo');
+        $this->assertParserFails('has(comments) > "bar"');
+        $this->assertParserFails('has(comments) > =');
     }
 
     /** @test */
@@ -177,7 +238,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    public function it_fail_to_parse_unfinished_queries()
+    public function it_fails_to_parse_unfinished_queries()
     {
         $this->assertParserFails('not ', 'T_EOL');
         $this->assertParserFails('foo = ', 'T_EOL');
@@ -187,7 +248,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    public function it_fail_to_parse_strings_as_query_keys()
+    public function it_fails_to_parse_strings_as_query_keys()
     {
         $this->assertParserFails('"string as key":foo', 'T_ASSIGN');
         $this->assertParserFails('foo and bar and "string as key" > 3', 'T_COMPARATOR');
@@ -209,7 +270,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    public function it_fail_to_parse_weird_operator_combinations()
+    public function it_fails_to_parse_weird_operator_combinations()
     {
         $this->assertParserFails('foo<>3', 'T_COMPARATOR');
         $this->assertParserFails('foo=>3', 'T_COMPARATOR');

@@ -93,18 +93,51 @@ class LexerTest extends TestCase
         $this->assertTokensFor('in)', 'T_IN T_RPARENT');
     }
 
-    /** @test */
-    public function it_lexes_relation_queries()
+    public function relationQueriesDataProvider()
     {
-        $this->assertTokensFor('has(comments)', 'T_HAS T_LPARENT T_TERM T_RPARENT');
-        $this->assertTokensFor('has(comments{foo:bar})', 'T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT');
-        $this->assertTokensFor('has(comments)>3', 'T_HAS T_LPARENT T_TERM T_RPARENT T_COMPARATOR T_TERM');
-        $this->assertTokensFor('has(comments{foo:bar})>3', 'T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT T_COMPARATOR T_TERM');
-        $this->assertTokensFor('not has(comments)', 'T_NOT T_SPACE T_HAS T_LPARENT T_TERM T_RPARENT');
-        $this->assertTokensFor('not has(comments{foo:bar})', 'T_NOT T_SPACE T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT');
+        return [
+            'Simple relation with no constraints' => [
+                'has(comments)',
+                'T_HAS T_LPARENT T_TERM T_RPARENT'
+            ],
+            'Simple relation with constraints' => [
+                'has(comments{foo:bar})',
+                'T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT'
+            ],
+            'Count relation with no constraints' => [
+                'has(comments)>3',
+                'T_HAS T_LPARENT T_TERM T_RPARENT T_COMPARATOR T_TERM'
+            ],
+            'Count relation with constraints' => [
+                'has(comments{foo:bar})>3',
+                'T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT T_COMPARATOR T_TERM'
+            ],
+            'Negated simple relation with no constraints' => [
+                'not has(comments)',
+                'T_NOT T_SPACE T_HAS T_LPARENT T_TERM T_RPARENT'
+            ],
+            'Negated simple with constraints' => [
+                'not has(comments{foo:bar})',
+                'T_NOT T_SPACE T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT'
+            ],
+            'Dot-nested relation with constraints' => [
+                'has(comments.author{foo:bar})',
+                'T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT'
+            ],
+            'Nested relations with constraints' => [
+                'has(comments{has(author{foo:bar})})',
+                'T_HAS T_LPARENT T_TERM T_LBRACE T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT T_RBRACE T_RPARENT'
+            ],
+        ];
+    }
 
-        $this->assertTokensFor('has(comments.author{foo:bar})', 'T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT');
-        $this->assertTokensFor('has(comments{has(author{foo:bar})})', 'T_HAS T_LPARENT T_TERM T_LBRACE T_HAS T_LPARENT T_TERM T_LBRACE T_TERM T_ASSIGN T_TERM T_RBRACE T_RPARENT T_RBRACE T_RPARENT');
+    /**
+     * @test
+     * @dataProvider relationQueriesDataProvider
+     */
+    public function it_lexes_relation_queries($input, $expected)
+    {
+        $this->assertTokensFor($input, $expected);
     }
 
     public function assertTokensFor($input, $expectedTokens)
