@@ -4,6 +4,8 @@ namespace Lorisleiva\LaravelSearchString\Visitor;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
+use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
+use Lorisleiva\LaravelSearchString\Options\ColumnRule;
 use Lorisleiva\LaravelSearchString\Options\Rule;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
@@ -126,6 +128,10 @@ class BuildColumnsVisitor extends Visitor
             return;
         }
 
+        if ($rule && $rule->map && $rule->map->isNotEmpty()) {
+            return $this->parseMappedRuleValue($query, $rule);
+        }
+
         if ($rule && $rule->date) {
             return $this->buildDate($query, $rule);
         }
@@ -203,5 +209,15 @@ class BuildColumnsVisitor extends Visitor
         }
 
         return $value;
+    }
+
+    protected function parseMappedRuleValue(QuerySymbol $query, ColumnRule $rule)
+    {
+        if (! $rule->map->offsetExists($query->value)) {
+            throw new InvalidSearchStringException();
+        }
+
+        $query = new QuerySymbol($query->key, $query->operator, $rule->map[$query->value]);
+        return $this->buildBasicQuery($query, $rule);
     }
 }

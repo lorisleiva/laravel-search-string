@@ -24,6 +24,8 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return new class($options) extends Model {
             use SearchString;
 
+            protected $table = 'dummyModel';
+
             public function __construct($options)
             {
                 $this->options = $options;
@@ -69,7 +71,9 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     public function assertWhereSqlFor($input, $expectedSql, $model = null)
     {
         $actualSql = $this->dumpSql($this->build($input, $model));
-        $actualSql = preg_replace('/select \* from [\w\.]+ where (.*)/', '$1', $actualSql);
+
+        $actualSql = preg_replace('/select \* from [\w\.\:]+ where (.*)/', '$1', $actualSql);
+
         $this->assertEquals($expectedSql, $actualSql);
     }
 
