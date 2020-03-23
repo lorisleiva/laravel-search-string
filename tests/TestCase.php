@@ -71,9 +71,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     public function assertWhereSqlFor($input, $expectedSql, $model = null)
     {
         $actualSql = $this->dumpSql($this->build($input, $model));
-
-        $actualSql = preg_replace('/select \* from [\w\.\:]+ where (.*)/', '$1', $actualSql);
-
+        $actualSql = preg_replace('/select \* from [\w\.]+ where (.*)/', '$1', $actualSql);
         $this->assertEquals($expectedSql, $actualSql);
     }
 
