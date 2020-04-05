@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
+use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\DumpsWhereClauses;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
@@ -71,6 +72,36 @@ class BuildColumnsVisitorTest extends TestCase
         $this->assertWhereClauses('not created', ['Null[and][0]' => 'created_at'], $model);
         $this->assertWhereClauses('active', ['Basic[and][0]' => 'activated = true'], $model);
         $this->assertWhereClauses('not active', ['Basic[and][0]' => 'activated = false'], $model);
+    }
+
+    /** @test */
+    public function it_generates_where_clauses_from_aliased_columned_using_the_real_column_name_and_mapped_values()
+    {
+        $model = $this->getModelWithColumns([
+            'support_level_id' => ['key' => 'support_level', 'map' => [
+                'testing' => 1,
+                'community' => 2,
+                'official' => 3
+            ]]
+        ]);
+
+        $this->assertWhereClauses('support_level:testing', ['Basic[and][0]' => 'support_level_id = 1'], $model);
+        $this->assertWhereClauses('support_level:community', ['Basic[and][0]' => 'support_level_id = 2'], $model);
+        $this->assertWhereClauses('support_level:official', ['Basic[and][0]' => 'support_level_id = 3'], $model);
+    }
+
+    /** @test */
+    public function it_failes_to_generate_where_clauses_from_aliased_columned_using_the_real_column_name_and_mapped_values_if_mapped_value_does_not_exists()
+    {
+        $model = $this->getModelWithColumns([
+            'support_level_id' => ['key' => 'support_level', 'map' => [
+                'testing' => 1,
+            ]]
+        ]);
+
+        $this->expectException(InvalidSearchStringException::class);
+
+        $this->assertWhereClauses('support_level:invalid', ['Basic[and][0]' => 'support_level_id = 1'], $model);
     }
 
     /** @test */

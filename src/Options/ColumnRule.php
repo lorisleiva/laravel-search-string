@@ -3,6 +3,7 @@
 namespace Lorisleiva\LaravelSearchString\Options;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Lorisleiva\LaravelSearchString\Options\Rule;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 
@@ -11,6 +12,7 @@ class ColumnRule extends Rule
     public $searchable = false;
     public $date = false;
     public $boolean = false;
+    public $map = [];
 
     public function __construct($column, $rule = null, $isDate = false, $isBoolean = false)
     {
@@ -19,6 +21,7 @@ class ColumnRule extends Rule
         $this->boolean = Arr::get($rule, 'boolean', $isBoolean || $isDate);
         $this->date = Arr::get($rule, 'date', $isDate);
         $this->searchable = Arr::get($rule, 'searchable', false);
+        $this->map = Collection::wrap(Arr::get($rule, 'map', collect()));
     }
 
     public function __toString()
@@ -30,6 +33,14 @@ class ColumnRule extends Rule
             $this->date ? 'date' : null,
         ])->filter()->implode('][');
 
-        return "{$parent}[$booleans]";
+        $mappings = $this->map->map(function ($value, $key) {
+            return "{$key}={$value}";
+        })->implode(',');
+
+        if ($mappings !== '') {
+            $mappings = "[{$mappings}]";
+        }
+
+        return "{$parent}[{$booleans}]$mappings";
     }
 }

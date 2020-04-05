@@ -162,6 +162,22 @@ class SearchStringOptionsTest extends TestCase
         $this->assertEquals($expected, $options);
     }
 
+    /** @test */
+    public function it_does_nothing_to_the_key_map()
+    {
+        $model = $this->getModelWithColumns([
+            'testing' => [
+                'map' => [
+                    'test' => 1
+                ]
+            ]
+        ]);
+
+        $this->assertColumnsRulesFor($model, [
+            'testing' => '[/^testing$/ /.*/ /.*/][][test=1]'
+        ]);
+    }
+
     public function assertKeywordRulesFor($model, $expected)
     {
         $manager = $this->getSearchStringManager($model);
