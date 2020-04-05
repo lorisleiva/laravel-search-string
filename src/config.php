@@ -12,7 +12,7 @@ return [
     | - exceptions: Throw an `InvalidSearchStringException`.
     |
     */
-   
+
     'fail' => 'all-results',
 
     /*
@@ -25,7 +25,7 @@ return [
     | to a model, using its class name as a key, e.g. 'App\User'.
     |
     */
-   
+
     'default' => [
         'keywords' => [
             'order_by' => 'sort',
