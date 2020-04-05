@@ -24,7 +24,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return new class($options) extends Model {
             use SearchString;
 
-            protected $table = 'dummyModel';
+            protected $table = 'dummy_models';
 
             public function __construct($options)
             {

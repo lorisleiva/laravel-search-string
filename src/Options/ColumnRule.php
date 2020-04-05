@@ -4,8 +4,6 @@ namespace Lorisleiva\LaravelSearchString\Options;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Lorisleiva\LaravelSearchString\Options\Rule;
-use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 
 class ColumnRule extends Rule
 {
@@ -21,7 +19,7 @@ class ColumnRule extends Rule
         $this->boolean = Arr::get($rule, 'boolean', $isBoolean || $isDate);
         $this->date = Arr::get($rule, 'date', $isDate);
         $this->searchable = Arr::get($rule, 'searchable', false);
-        $this->map = Collection::wrap(Arr::get($rule, 'map', collect()));
+        $this->map = Collection::wrap(Arr::get($rule, 'map', []));
     }
 
     public function __toString()

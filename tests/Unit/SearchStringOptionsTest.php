@@ -4,7 +4,6 @@ namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
 use Illuminate\Database\Eloquent\Model;
 use Lorisleiva\LaravelSearchString\Concerns\SearchString;
-use Lorisleiva\LaravelSearchString\SearchStringManager;
 use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModel;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
 
@@ -155,27 +154,30 @@ class SearchStringOptionsTest extends TestCase
         ]);
     }
 
+    /** @test */
+    public function it_can_define_a_value_mapping()
+    {
+        $model = $this->getModelWithColumns([
+            'support_level_id' => [
+                'key' => 'support_level',
+                'map' => [
+                    'testing' => 1,
+                    'community' => 2,
+                    'official' => 3,
+                ],
+            ]
+        ]);
+
+        $this->assertColumnsRulesFor($model, [
+            'support_level_id' => '[/^support_level$/ /.*/ /.*/][][testing=1,community=2,official=3]'
+        ]);
+    }
+
     public function assertColumnsRulesFor($model, $expected)
     {
         $manager = $this->getSearchStringManager($model);
         $options = $manager->getOption('columns')->map->__toString()->toArray();
         $this->assertEquals($expected, $options);
-    }
-
-    /** @test */
-    public function it_does_nothing_to_the_key_map()
-    {
-        $model = $this->getModelWithColumns([
-            'testing' => [
-                'map' => [
-                    'test' => 1
-                ]
-            ]
-        ]);
-
-        $this->assertColumnsRulesFor($model, [
-            'testing' => '[/^testing$/ /.*/ /.*/][][test=1]'
-        ]);
     }
 
     public function assertKeywordRulesFor($model, $expected)

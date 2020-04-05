@@ -75,36 +75,6 @@ class BuildColumnsVisitorTest extends TestCase
     }
 
     /** @test */
-    public function it_generates_where_clauses_from_aliased_columned_using_the_real_column_name_and_mapped_values()
-    {
-        $model = $this->getModelWithColumns([
-            'support_level_id' => ['key' => 'support_level', 'map' => [
-                'testing' => 1,
-                'community' => 2,
-                'official' => 3
-            ]]
-        ]);
-
-        $this->assertWhereClauses('support_level:testing', ['Basic[and][0]' => 'support_level_id = 1'], $model);
-        $this->assertWhereClauses('support_level:community', ['Basic[and][0]' => 'support_level_id = 2'], $model);
-        $this->assertWhereClauses('support_level:official', ['Basic[and][0]' => 'support_level_id = 3'], $model);
-    }
-
-    /** @test */
-    public function it_failes_to_generate_where_clauses_from_aliased_columned_using_the_real_column_name_and_mapped_values_if_mapped_value_does_not_exists()
-    {
-        $model = $this->getModelWithColumns([
-            'support_level_id' => ['key' => 'support_level', 'map' => [
-                'testing' => 1,
-            ]]
-        ]);
-
-        $this->expectException(InvalidSearchStringException::class);
-
-        $this->assertWhereClauses('support_level:invalid', ['Basic[and][0]' => 'support_level_id = 1'], $model);
-    }
-
-    /** @test */
     public function it_searches_using_like_where_clauses()
     {
         $this->assertWhereClauses('foobar', [
@@ -224,5 +194,37 @@ class BuildColumnsVisitorTest extends TestCase
                 'Basic[or][2]' => 'name = 3',
             ]
         ]);
+    }
+
+    /** @test */
+    public function it_updates_query_values_according_to_the_rules_map()
+    {
+        $model = $this->getModelWithColumns([
+            'support_level_id' => [
+                'key' => 'support_level',
+                'map' => [
+                    'testing' => 1,
+                    'community' => 2,
+                    'official' => 3,
+                ],
+            ]
+        ]);
+
+        $this->assertWhereClauses('support_level:testing', ['Basic[and][0]' => 'support_level_id = 1'], $model);
+        $this->assertWhereClauses('support_level:community', ['Basic[and][0]' => 'support_level_id = 2'], $model);
+        $this->assertWhereClauses('support_level:official', ['Basic[and][0]' => 'support_level_id = 3'], $model);
+    }
+
+    /** @test */
+    public function it_does_not_update_query_values_if_the_rule_mapping_is_missing()
+    {
+        $model = $this->getModelWithColumns([
+            'support_level_id' => [
+                'key' => 'support_level',
+                'map' => ['testing' => 1],
+            ]
+        ]);
+
+        $this->assertWhereClauses('support_level:missing_value', ['Basic[and][0]' => 'support_level_id = missing_value'], $model);
     }
 }

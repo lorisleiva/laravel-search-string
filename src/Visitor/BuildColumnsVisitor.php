@@ -2,9 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Visitor;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
-use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Options\ColumnRule;
 use Lorisleiva\LaravelSearchString\Options\Rule;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
@@ -128,11 +126,10 @@ class BuildColumnsVisitor extends Visitor
             return;
         }
 
-        if ($rule && $rule->map && $rule->map->isNotEmpty()) {
-            return $this->parseMappedRuleValue($query, $rule);
-        }
+        // Update the query value if the rule defines a mapping.
+        $query = $this->mapQueryValue($query, $rule);
 
-        if ($rule && $rule->date) {
+        if ($rule->date) {
             return $this->buildDate($query, $rule);
         }
 
@@ -211,13 +208,12 @@ class BuildColumnsVisitor extends Visitor
         return $value;
     }
 
-    protected function parseMappedRuleValue(QuerySymbol $query, ColumnRule $rule)
+    protected function mapQueryValue(QuerySymbol $query, ColumnRule $rule)
     {
-        if (! $rule->map->offsetExists($query->value)) {
-            throw new InvalidSearchStringException();
+        if ($rule->map && $rule->map->has($query->value)) {
+            return new QuerySymbol($query->key, $query->operator, $rule->map->get($query->value));
         }
 
-        $query = new QuerySymbol($query->key, $query->operator, $rule->map[$query->value]);
-        return $this->buildBasicQuery($query, $rule);
+        return $query;
     }
 }
