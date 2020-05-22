@@ -7,7 +7,9 @@
 
 ## Introduction
 
-Laravel Search String provides a simple solution for scoping your database queries using a human readable and customizable syntax. It will transform a simple string into a powerful query builder. For example, the following search string will fetch the latest blog articles that are either not published or titled "My blog article".
+Laravel Search String provides a simple solution for scoping your database queries using a human readable and customizable syntax. It will transform a simple string into a powerful query builder.
+
+For example, the following search string will fetch the latest blog articles that are either not published or titled "My blog article".
 
 ```php
 Article::usingSearchString('title:"My blog article" or not published sort:-created_at');
@@ -45,7 +47,7 @@ Article::where('published_at', '>=', '2020-01-01')
        }, '>', 100);
 ```
 
-As you can see, not only it provides a very convenient way to communicate with your Laravel API (instead of allowing dozens of query fields), it also can be presented to your users as a tool to explore their data.
+As you can see, it not only provides a very convenient way to communicate with your Laravel API (instead of allowing dozens of query fields), but it can also be presented to your users as a tool to explore their data.
 
 ## Installation
 
@@ -98,6 +100,7 @@ Article::usingSearchString('title:"Hello world" has(comments) > 100')->get();
 ## The search string syntax
 
 Note that the spaces between operators don't matter.
+
 ### Column queries
 #### Exact matches
 ```php
@@ -178,26 +181,39 @@ Note that the spaces between operators don't matter.
 `morphTo`, `morphOne`, `morphMany`, `morphToMany`
 
 #### Relation existence queries
-* Relation must be configured as searchable on parent model
+* The relation must be configured as searchable on the parent model
 * A relationship is configured in one direction only, so its inverse will not be queryable unless it is separately configured
 ```php
-'has(comments)'                      // Only articles which have any comments
-'not has(comments)'                  // Only articles which have no comments
+// Only articles which have any comments
+'has(comments)'
+
+// Only articles which have no comments
+'not has(comments)'
 ```
+
 #### Relation count queries
-* If relation is defined as countable on parent model (true by default)
+* If the relation is defined as countable on the parent model (true by default)
 ```php
-'has(comments) >= 100'               // Only articles which have at least 100 comments
-'has(comments) < 10'                 // Only articles which have less than 10 comments
+// Only articles which have at least 100 comments
+'has(comments) >= 100'
+
+// Only articles which have less than 10 comments
+'has(comments) < 10'
 ```
 #### Relation queries with child criteria
-* If relation is defined as queryable on parent model (true by default)
-* Related model must use the `SearchString` trait and have its own searchable columns configured
+* If the relation is defined as queryable on the parent model (true by default)
+* The related model must also use the `SearchString` trait and have its own searchable columns configured
 ```php
-'has(comments { not spam })'         // Only articles which have an least one comment which is not marked as spam
-'not has(comments { spam })'         // Only articles which do not have any comments which are marked as spam
-'has(user { name : "John Doe" })'    // Only articles by the user named John Doe
+// Only articles which have an least one comment which is not marked as spam
+'has(comments { not spam })'
+
+// Only articles which do not have any comments which are marked as spam
+'not has(comments { spam })'
+
+// Only articles by the user named John Doe
+'has(user { name : "John Doe" })'
 ```
+
 #### Nested relation queries
 * All models in the chain must use the `SearchString` trait
 * All related models must be configured as searchable on their parent models
@@ -279,7 +295,7 @@ If a column is marked as a `date`, the value of the query will be intelligently 
 $query->where('created_at', '>', 'YYYY-MM-DD 00:00:00');
 // where `YYYY-MM-DD` matches the date of tomorrow.
 
-'created_at = "July, 6 2018"' // Equivalent to:
+'created_at = "July 6, 2018"' // Equivalent to:
 $query->where('created_at', '>=', '2018-07-06 00:00:00');
       ->where('created_at', '<=', '2018-07-06 23:59:59');
 ```
@@ -287,7 +303,7 @@ $query->where('created_at', '>=', '2018-07-06 00:00:00');
 By default any column that is cast as a date (using Laravel properties), will be marked as a date for LaravelSearchString. You can force a column to not be marked as a date by assigning `date` to `false`.
 
 #### Boolean columns
-If a column is marked as a `boolean`, it can be used without any operator nor value. For exemple, if the `paid` column is marked as boolean:
+If a column is marked as a `boolean`, it can be used with no operator or value. For example, if the `paid` column is marked as boolean:
 
 ```php
 'paid' // Equivalent to:
