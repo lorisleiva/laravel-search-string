@@ -17,6 +17,9 @@ class RuleValidatorVisitorTest extends TestCase
             ['has(comments { active } ) > 2'],
             ['has(comments.author)'],
             ['has(comments.author.profiles)'],
+            ['author.foo'],
+            ['author.foo:bar'],
+            ['author.foo.bar:baz'],
         ];
     }
 
@@ -32,10 +35,12 @@ class RuleValidatorVisitorTest extends TestCase
     public function invalidRelationQueriesDataProvider()
     {
         return [
-            'Non countable relation cannot be counted'        => ['has(tags) > 10', 'cannot be counted', 'tags'],
-            'Not existent relation does not exist'            => ['has(foo)', 'does not exist', 'foo'],
-            'Non queryable relation cannot be queried'        => ['has(views { active })', 'cannot be queried', 'views'],
+            'Non countable relation cannot be counted'           => ['has(tags) > 10', 'cannot be counted', 'tags'],
+            'Non existent relation does not exist'               => ['has(foo)', 'does not exist', 'foo'],
+            'Non queryable relation cannot be queried'           => ['has(views { active })', 'cannot be queried', 'views'],
+            'Non queryable relation cannot be queried with dot'  => ['views.active', 'cannot be queried', 'views'],
             // 'Non queryable nested relation cannot be queried' => ['has(??)', 'cannot be queried', '??'], // TODO
+            // 'Non countable nested relation cannot be counted' => ['has(??)', 'cannot be counted', '??'], // TODO
         ];
     }
 
@@ -66,7 +71,9 @@ class RuleValidatorVisitorTest extends TestCase
         catch (InvalidSearchStringException $e) {
             $validated = false;
 
-            if (!$valid) {
+            if ($valid) {
+                throw $e;
+            } else {
                 $relation = $relation ?: '%s';
                 $this->assertStringMatchesFormat("The relation [$relation] $reason", $e->getMessage(), "Failed asserting that the invalid reason was [$reason]");
             }

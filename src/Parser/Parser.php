@@ -84,7 +84,7 @@ class Parser
             case 'T_STRING':
                 $content = $this->parseEndValue();
                 $this->next();
-                return new SoloSymbol($content);
+                return $this->newSoloSymbol($content);
 
             case 'T_LPARENT':
                 $this->next();
@@ -129,7 +129,7 @@ class Parser
                 throw $this->expectedAnythingBut('T_LIST_SEPARATOR');
 
             default:
-                return new SoloSymbol($key);
+                return $this->newSoloSymbol($key);
         }
     }
 
@@ -141,9 +141,11 @@ class Parser
                 $value = $this->parseEndValue();
                 $this->nextWithout('T_SPACE');
 
-                return $this->current()->hasType('T_LIST_SEPARATOR')
-                    ? $this->parseArrayQuery($key, $operator, [$value])
-                    : new QuerySymbol($key, $operator, $value);
+                if ($this->current()->hasType('T_LIST_SEPARATOR')) {
+                    return $this->parseArrayQuery($key, $operator, [$value]);
+                }
+
+                return $this->newQuerySymbol($key, $operator, $value);
 
             default:
                 throw $this->expected('T_TERM', 'T_STRING');
@@ -212,16 +214,18 @@ class Parser
                 $accumulator = array_merge($accumulator, [$this->parseEndValue()]);
                 $this->nextWithout('T_SPACE');
 
-                return $this->current()->hasType('T_LIST_SEPARATOR')
-                    ? $this->parseArrayQuery($key, $operator, $accumulator)
-                    : new QuerySymbol($key, $operator, $accumulator);
+                if ($this->current()->hasType('T_LIST_SEPARATOR')) {
+                    return $this->parseArrayQuery($key, $operator, $accumulator);
+                }
+
+                return $this->newQuerySymbol($key, $operator, $accumulator);
 
             case 'T_LIST_SEPARATOR':
                 $this->nextWithout('T_SPACE');
                 return $this->parseArrayQuery($key, $operator, $accumulator);
 
             default:
-                return new QuerySymbol($key, $operator, $accumulator);
+                return $this->newQuerySymbol($key, $operator, $accumulator);
         }
     }
 
@@ -231,6 +235,32 @@ class Parser
         return $token->hasType('T_STRING')
             ? substr($token->content, 1, -1)
             : $token->content;
+    }
+
+    protected function newQuerySymbol($key, $operator, $value)
+    {
+        if (Symbol::termHasDot($key)) {
+            $dot = strrpos($key, '.');
+            $relation = substr($key, 0, $dot);
+            $key = substr($key, $dot + 1);
+
+            return new SimpleRelationSymbol($relation, new QuerySymbol($key, $operator, $value));
+        }
+
+        return new QuerySymbol($key, $operator, $value);
+    }
+
+    protected function newSoloSymbol($key)
+    {
+        if (Symbol::termHasDot($key)) {
+            $dot = strrpos($key, '.');
+            $relation = substr($key, 0, $dot);
+            $key = substr($key, $dot + 1);
+
+            return new SimpleRelationSymbol($relation, new SoloSymbol($key));
+        }
+
+        return new SoloSymbol($key);
     }
 
     protected function current()

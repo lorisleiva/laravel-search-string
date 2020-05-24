@@ -184,9 +184,28 @@ class ParserTest extends TestCase
         ];
     }
 
+    public function dotRelationQueriesDataProvider()
+    {
+        return [
+            'Dot-nested related field as relation query' => [
+                'comments.foo:bar', 'HAS(comments WHERE(QUERY(foo = bar)))'
+            ],
+            'Dot-nested related solo field as relation query' => [
+                'comments.spam', 'HAS(comments WHERE(SOLO(spam)))'
+            ],
+            'Deeply dot-nested related field as relation query' => [
+                'comments.users.ideas.foo:bar', 'HAS(comments.users.ideas WHERE(QUERY(foo = bar)))'
+            ],
+            'Deeply dot-nested solo related field as relation query' => [
+                'comments.users.ideas.active', 'HAS(comments.users.ideas WHERE(SOLO(active)))'
+            ],
+        ];
+    }
+
     /**
      * @test
-     * @dataProvider relationQueriesDataProvider
+     * @dataProviderX relationQueriesDataProvider
+     * @dataProvider dotRelationQueriesDataProvider
      */
     public function it_parses_relation_queries($input, $expected)
     {

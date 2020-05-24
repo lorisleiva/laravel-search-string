@@ -14,7 +14,7 @@ class RelationSymbol extends Symbol
 
     function __construct($relation, $constraints, $operator = null, $value = null, $negated = false)
     {
-        if (strpos($relation, '.') !== false) {
+        if (static::termHasDot($relation)) {
             $relations = explode('.', $relation);
             $deepestRelation = array_pop($relations);
             $relation = array_shift($relations);

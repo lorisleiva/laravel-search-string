@@ -180,6 +180,11 @@ Note that the spaces between operators don't matter.
 * Polymorphic relations are not yet supported:  
 `morphTo`, `morphOne`, `morphMany`, `morphToMany`
 
+> The examples below use the following model relationships:
+> 
+> * **Article** --hasMany--> **Comment** --belongsTo--> **User** (commenter)  
+> * **Article** --belongsTo--> **User** (author)
+
 #### Relation existence queries
 * The relation must be configured as searchable on the parent model
 * A relationship is configured in one direction only, so its inverse will not be queryable unless it is separately configured
@@ -192,7 +197,7 @@ Note that the spaces between operators don't matter.
 ```
 
 #### Relation count queries
-* If the relation is defined as countable on the parent model (true by default)
+* The relation must be configured as countable on the parent model (true by default)
 ```php
 // Only articles which have at least 100 comments
 'has(comments) >= 100'
@@ -201,7 +206,7 @@ Note that the spaces between operators don't matter.
 'has(comments) < 10'
 ```
 #### Relation queries with child criteria
-* If the relation is defined as queryable on the parent model (true by default)
+* The relation must be configured as queryable on the parent model (true by default)
 * The related model must also use the `SearchString` trait and have its own searchable columns configured
 ```php
 // Only articles which have an least one comment which is not marked as spam
@@ -209,14 +214,15 @@ Note that the spaces between operators don't matter.
 
 // Only articles which do not have any comments which are marked as spam
 'not has(comments { spam })'
-
+```
+```php
 // Only articles by the user named John Doe
 'has(user { name : "John Doe" })'
 ```
 
 #### Nested relation queries
 * All models in the chain must use the `SearchString` trait
-* All related models must be configured as searchable on their parent models
+* All child models must be configured as searchable on their parent models
 * Dot notation can be used for deeply nested relationships if criteria are only on the deepest child level, i.e. `has(x.y { ... })`
 * If criteria are needed on any of the upper levels of the chain, the queries are nested within one another, i.e. `has(x ... { has(y ... ) })})`
 ```php
@@ -225,13 +231,78 @@ Note that the spaces between operators don't matter.
 
 // Equivalent to:
 'has(comments has(user { not banned })})'
-
+```
+```php
 // Only articles by users who have written more than 10 articles since 1 Jan 2020
 'has(user.articles { created_at >= "2020-01-01 00:00:00" }) > 10'
-
+```
+```php
 // Only articles with more than 10 comments that are not marked as spam by users who are not banned
 'has(comments { not spam and has(user { not banned })}) > 10' 
 ```
+
+#### Simple related field queries
+For simple queries on a single related field, it is possible to use a dot notation in the form `relation.field`.
+* Multiple levels of nesting are possible
+* Both "one" and "many" relationships are supported
+
+The following groups of examples are equivalent:
+```php
+// Only articles written by John Doe
+'user.name = "John Doe"'
+'has(user { name = "John Doe" })'
+```
+```php
+// Only articles not written by John Doe
+'not user.name = "John Doe"'
+'has(user { not name = "John Doe" })'
+```
+```php
+// Only articles with comments written by the user with the email address "jane.dow@example.com"
+'comments.user.email = "jane.dow@example.com"'
+'has(comments.user { email = "jane.dow@example.com" })'
+'has(comments has(user { email = "jane.dow@example.com" }))'
+```
+
+##### Important notes
+* If a `relation.field` statement is negated, the negation applies to the field value, not to the existence of the relationship.
+
+    The following examples are equivalent:
+    ```php
+    // Articles which have comments which are not marked as spam
+    'not comments.spam'
+    'has(comments { not spam })'
+
+    // - Includes articles with some comments marked as spam and some not
+    // - Excludes articles with no comments
+    ```
+    But are not equivalent to:
+    ```php
+    // Articles which have no comments which are marked as spam
+    'not has(comments { spam })'
+
+    // - Includes articles with no comments
+    // - Includes articles where no comments are marked as spam
+    // - Excludes articles where at least one comment is marked as spam
+    ```
+
+* Multiple `relation.field` statements are queried separately, and are not equivalent to a single `has` statement with multiple criteria.
+
+    The following examples are equivalent:
+    ```php
+    // Articles with comments published today and with comments which are marked as spam
+    'comments.published = today and comments.spam'
+    'has(comments { published = today }) and has(comments { spam })'
+    
+    // - Includes spam comments published yesterday
+    // - Includes non-spam comments published today
+    ```
+    But are not equivalent to:
+    ```php
+    // Articles with comments published today which are also spam
+    'has(comments { published = today and spam }))'
+    ```
+
 
 ### Special keywords
 ```php

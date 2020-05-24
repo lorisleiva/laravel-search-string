@@ -7,6 +7,7 @@ use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
 use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
 use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Parser\RelationSymbol;
+use Lorisleiva\LaravelSearchString\Parser\SimpleRelationSymbol;
 use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
 
 class RemoveNotSymbolVisitor extends Visitor
@@ -67,6 +68,17 @@ class RemoveNotSymbolVisitor extends Visitor
             }
             else {
                 $relation->negated = !$relation->negated;
+            }
+        }
+
+        return $relation;
+    }
+
+    public function visitSimpleRelation(SimpleRelationSymbol $relation)
+    {
+        if ($this->negate) {
+            if ($relation->constraints) {
+                $relation->constraints = $relation->constraints->accept($this);
             }
         }
 
