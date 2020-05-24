@@ -195,32 +195,73 @@ class DatabaseTest extends TestCase
                     ],
                 ]
             ],
+            'Dot-nested hasMany relation' => [
+                'comments.active',
+                DummyModel::class,
+                [
+                    'count' => 2,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => true],
+                            'count' => 3,
+                        ],
+                    ],
+                ],
+                [
+                    'count' => 3,
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => false],
+                            'count' => 2,
+                        ],
+                    ],
+                ]
+            ],
+            'Multiple dot-nested hasMany relations treated as separate queries' => [
+                'comments.active and comments.title = "Foo"',
+                DummyModel::class,
+                [
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => true, 'title' => 'Foo'],
+                        ],
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => true, 'title' => 'Bar'],
+                        ],
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => false, 'title' => 'Foo'],
+                        ],
+                    ],
+                ],
+                [
+                    'children' => [
+                        [
+                            'relation' => 'comments',
+                            'model' => DummyChild::class,
+                            'attributes' => ['active' => false, 'title' => 'Bar'],
+                        ],
+                    ],
+                ],
+                false
+            ],
         ];
-    }
-
-    protected function makeModels(array $options, bool $create = false)
-    {
-        $method = $create ? 'create' : 'make';
-
-        $records = factory($options['model'], $options['count'] ?? 1)->$method($options['attributes'] ?? []);
-
-        if ($children = $options['children'] ?? false) {
-            $records->each(function ($model) use ($children) {
-                foreach ($children as $child) {
-                    $relation = $child['relation'];
-                    $model->$relation()->saveMany($this->makeModels($child));
-                }
-            });
-        }
-
-        return $records;
     }
 
     /**
      * @test
      * @dataProvider relationQueriesDataProvider
      */
-    public function it_filters_by_relation($input, $model, $matches, $notMatches)
+    public function it_filters_by_relation(string $input, string $model, array $matches, array $notMatches, bool $testNegated = true)
     {
         $matches['model'] = $matches['model'] ?? $model;
         $notMatches['model'] = $notMatches['model'] ?? $model;
@@ -242,6 +283,10 @@ class DatabaseTest extends TestCase
             $this->assertNotContains($id, $includedResults, "Failed asserting that record ID $id does not meet the search string");
         }
 
+        if (!$testNegated) {
+            return;
+        }
+
         // Negated search string
 
         $excludedResults = DummyModel::usingSearchString("not ($input)")->pluck('id')->toArray();
@@ -257,6 +302,25 @@ class DatabaseTest extends TestCase
         foreach ($has as $id) {
             $this->assertNotContains($id, $excludedResults, "Failed asserting that record ID $id meets the search string");
         }
+    }
 
+    protected function makeModels(array $options, bool $create = false)
+    {
+        $method = $create ? 'create' : 'make';
+
+        $records = factory($options['model'], $options['count'] ?? 1)->$method($options['attributes'] ?? []);
+
+        // dump($records->toArray()); //FIXME
+
+        if ($children = $options['children'] ?? false) {
+            $records->each(function ($model) use ($children) {
+                foreach ($children as $child) {
+                    $relation = $child['relation'];
+                    $model->$relation()->saveMany($this->makeModels($child));
+                }
+            });
+        }
+
+        return $records;
     }
 }

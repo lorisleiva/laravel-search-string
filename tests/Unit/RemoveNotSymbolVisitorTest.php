@@ -70,16 +70,24 @@ class RemoveNotSymbolVisitorTest extends TestCase
             'Negated count relation'  => ['not has(comments)>3', 'HAS(comments COUNT(<= 3))'],
 
             'Negated dot-nested related field as relation query' => [
-                'not comments.foo:bar', 'HAS(comments WHERE(QUERY(foo != bar)))'
+                'not comments.foo:bar',
+                'HAS(comments WHERE(QUERY(foo != bar)))'
             ],
             'Negated dot-nested related solo field as relation query' => [
-                'not comments.spam', 'HAS(comments WHERE(SOLO_NOT(spam)))'
+                'not comments.spam',
+                'HAS(comments WHERE(SOLO_NOT(spam)))'
             ],
             'Negated deeply dot-nested related field as relation query' => [
-                'not comments.users.ideas.foo:bar', 'HAS(comments.users.ideas WHERE(QUERY(foo != bar)))'
+                'not comments.users.ideas.foo:bar',
+                'HAS(comments.users.ideas WHERE(QUERY(foo != bar)))'
             ],
             'Negated deeply dot-nested solo related field as relation query' => [
-                'not comments.users.ideas.active', 'HAS(comments.users.ideas WHERE(SOLO_NOT(active)))'
+                'not comments.users.ideas.active',
+                'HAS(comments.users.ideas WHERE(SOLO_NOT(active)))'
+            ],
+            'Negated grouping of dot-nested related fields' => [
+                'not ( comments.foo and comments.bar )',
+                'OR(HAS(comments WHERE(SOLO_NOT(foo))), HAS(comments WHERE(SOLO_NOT(bar))))'
             ],
         ];
     }
