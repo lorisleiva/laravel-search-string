@@ -263,8 +263,8 @@ class CreateBuilderTest extends TestCase
                 'has(comments.author.profiles)',
                 "exists (select * from dummy_children where dummy_models.id = dummy_children.post_id and "
                 . "exists (select * from dummy_grand_children where dummy_children.user_id = dummy_grand_children.id and "
-                . "exists (select * from dummy_grand_children as laravel_reserved_0 "
-                . "where dummy_grand_children.id = laravel_reserved_0.user_id)))"
+                . "exists (select * from dummy_grand_children as laravel_reserved_%d "
+                . "where dummy_grand_children.id = laravel_reserved_%d.user_id)))"
             ],
             'Single related field query on hasMany relation' => [
                 'comments.active',

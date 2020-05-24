@@ -77,13 +77,13 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     {
         $actualSql = $this->dumpSql($this->build($input, $model));
         $actualSql = preg_replace('/select \* from [\w\.]+ where (.*)/', '$1', $actualSql);
-        $this->assertEquals($expectedSql, $actualSql);
+        $this->assertStringMatchesFormat($expectedSql, $actualSql);
     }
 
     public function assertSqlFor($input, $expectedSql, $model = null)
     {
         $actualSql = $this->dumpSql($this->build($input, $model));
-        $this->assertEquals($expectedSql, $actualSql);
+        $this->assertStringMatchesFormat($expectedSql, $actualSql);
     }
 
     public function dumpSql($builder)
