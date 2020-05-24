@@ -89,6 +89,17 @@ class RemoveNotSymbolVisitorTest extends TestCase
                 'not ( comments.foo and comments.bar )',
                 'OR(HAS(comments WHERE(SOLO_NOT(foo))), HAS(comments WHERE(SOLO_NOT(bar))))'
             ],
+            'Grouping of dot-nested related field and simple query' => [
+                'comments.foo and baz: "boo"',
+                'AND(HAS(comments WHERE(SOLO(foo))), QUERY(baz = boo))'
+            ],
+            'Negated grouping of dot-nested related field and simple query' => [
+                'not ( comments.foo and baz: "boo" )',
+                'OR(HAS(comments WHERE(SOLO_NOT(foo))), QUERY(baz != boo))'
+            ],
+            'Double-negated dot-nested related field' => [
+                'not not comments.foo', 'HAS(comments WHERE(SOLO(foo)))'
+            ],
         ];
     }
 
