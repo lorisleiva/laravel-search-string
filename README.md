@@ -224,7 +224,7 @@ Note that the spaces between operators don't matter.
 * All models in the chain must use the `SearchString` trait
 * All child models must be configured as searchable on their parent models
 * Dot notation can be used for deeply nested relationships if criteria are only on the deepest child level, i.e. `has(x.y { ... })`
-* If criteria are needed on any of the upper levels of the chain, the queries are nested within one another, i.e. `has(x ... { has(y ... ) })})`
+* If criteria are needed on any of the upper levels of the chain, the `has` statements are nested within one another, i.e. `has(x ... { has(y ... ) })})`
 ```php
 // Only articles with comments by users who are not banned
 'has(comments.user { not banned })'
@@ -243,7 +243,7 @@ Note that the spaces between operators don't matter.
 
 #### Simple related field queries
 For simple queries on a single related field, it is possible to use a dot notation in the form `relation.field`.
-* Multiple levels of nesting are possible
+* Multiple levels of relationship nesting are possible (e.g. `relation.relation.field`)
 * Both "one" and "many" relationships are supported
 
 The following groups of examples are equivalent:
@@ -294,15 +294,14 @@ The following groups of examples are equivalent:
     'comments.published = today and comments.spam'
     'has(comments { published = today }) and has(comments { spam })'
     
-    // - Includes spam comments published yesterday
-    // - Includes non-spam comments published today
+    // - Includes articles with comments marked as spam which were published before today
+    // - Includes articles with comments published today which are not marked as spam
     ```
     But are not equivalent to:
     ```php
     // Articles with comments published today which are also spam
     'has(comments { published = today and spam }))'
     ```
-
 
 ### Special keywords
 ```php
