@@ -333,3 +333,5 @@ return [
     // ...
 ];
 ```
+
+> **Note:** Attempting to silently fail with `no-results` will fall back to `all-results` when paginating a query-builder result. This is because, internally, the `LengthAwarePaginator` will override the intended behaviour by setting `skip` and `take` on the builder before running the query.
