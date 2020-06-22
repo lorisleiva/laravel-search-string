@@ -9,22 +9,28 @@ class LexerTest extends TestCase
     /** @test */
     public function it_lexes_quoted_strings()
     {
-        $this->assetTokensFor('"Hello world"', 'T_STRING');
+        $this->assetTokensFor('"Hello world"', 'T_DOUBLE_LQUOTE T_STRING T_DOUBLE_RQUOTE');
+        $this->assetTokensFor("'Hello world'", 'T_SINGLE_LQUOTE T_STRING T_SINGLE_RQUOTE');
     }
 
     /** @test */
     public function it_lexes_assignments()
     {
-        $this->assetTokensFor('foo:bar', 'T_TERM T_ASSIGN T_TERM');
-        $this->assetTokensFor('foo=bar', 'T_TERM T_ASSIGN T_TERM');
-        $this->assetTokensFor('foo:"bar"', 'T_TERM T_ASSIGN T_STRING');
+        $this->assetTokensFor('foo:bar', 'T_TERM T_ASSIGNMENT T_TERM');
+        $this->assetTokensFor('foo=bar', 'T_TERM T_ASSIGNMENT T_TERM');
+        $this->assetTokensFor("foo:'bar'", 'T_TERM T_ASSIGNMENT T_SINGLE_LQUOTE T_STRING T_SINGLE_RQUOTE');
     }
 
     /** @test */
-    public function it_lexes_spaces_and_parenthesis()
+    public function it_ignores_spaces()
     {
-        $this->assetTokensFor(' foo = bar ', 'T_SPACE T_TERM T_SPACE T_ASSIGN T_SPACE T_TERM T_SPACE');
-        $this->assetTokensFor('(foo:bar)', 'T_LPARENT T_TERM T_ASSIGN T_TERM T_RPARENT');
+        $this->assetTokensFor(' foo = bar ', 'T_TERM T_ASSIGNMENT T_TERM');
+    }
+
+    /** @test */
+    public function it_lexes_parenthesis()
+    {
+        $this->assetTokensFor('(foo:bar)', 'T_LPARENTHESIS T_TERM T_ASSIGNMENT T_TERM T_RPARENTHESIS');
     }
 
     /** @test */
@@ -34,23 +40,23 @@ class LexerTest extends TestCase
         $this->assetTokensFor('foo<=bar', 'T_TERM T_COMPARATOR T_TERM');
         $this->assetTokensFor('foo>bar', 'T_TERM T_COMPARATOR T_TERM');
         $this->assetTokensFor('foo>=bar', 'T_TERM T_COMPARATOR T_TERM');
-        $this->assetTokensFor('foo<"bar"', 'T_TERM T_COMPARATOR T_STRING');
+        $this->assetTokensFor('foo<"bar"', 'T_TERM T_COMPARATOR T_DOUBLE_LQUOTE T_STRING T_DOUBLE_RQUOTE');
     }
 
     /** @test */
     public function it_lexes_boolean_operator()
     {
-        $this->assetTokensFor('foo and bar', 'T_TERM T_SPACE T_AND T_SPACE T_TERM');
-        $this->assetTokensFor('foo or bar', 'T_TERM T_SPACE T_OR T_SPACE T_TERM');
-        $this->assetTokensFor('foo and not bar', 'T_TERM T_SPACE T_AND T_SPACE T_NOT T_SPACE T_TERM');
+        $this->assetTokensFor('foo and bar', 'T_TERM T_AND T_TERM');
+        $this->assetTokensFor('foo or bar', 'T_TERM T_OR T_TERM');
+        $this->assetTokensFor('foo and not bar', 'T_TERM T_AND T_NOT T_TERM');
     }
 
     /** @test */
     public function it_lexes_in_operator_with_commas()
     {
         $this->assetTokensFor(
-            'foo in (a,b,c)', 
-            'T_TERM T_SPACE T_IN T_SPACE T_LPARENT T_TERM T_LIST_SEPARATOR T_TERM T_LIST_SEPARATOR T_TERM T_RPARENT'
+            'foo in (a,b,c)',
+            'T_TERM T_IN T_LPARENTHESIS T_TERM T_COMMA T_TERM T_COMMA T_TERM T_RPARENTHESIS'
         );
     }
 
@@ -58,14 +64,8 @@ class LexerTest extends TestCase
     public function it_lexes_complex_queries()
     {
         $this->assetTokensFor(
-            'foo12bar.x.y.z and (foo:1 or bar> 3)', 
-
-            // foo12bar.x.y.z and 
-            'T_TERM T_SPACE T_AND T_SPACE ' . 
-            // (foo:1 or 
-            'T_LPARENT T_TERM T_ASSIGN T_TERM T_SPACE T_OR '.
-            // bar> 3)
-            'T_SPACE T_TERM T_COMPARATOR T_SPACE T_TERM T_RPARENT'
+            'foo12bar.x.y?z and (foo:1 or bar> 3)',
+            'T_TERM T_AND T_LPARENTHESIS T_TERM T_ASSIGNMENT T_TERM T_OR T_TERM T_COMPARATOR T_TERM T_RPARENTHESIS'
         );
     }
 
@@ -87,15 +87,16 @@ class LexerTest extends TestCase
         $this->assetTokensFor('or', 'T_OR');
         $this->assetTokensFor('not', 'T_NOT');
         $this->assetTokensFor('in', 'T_IN');
-        $this->assetTokensFor('and)', 'T_AND T_RPARENT');
-        $this->assetTokensFor('or)', 'T_OR T_RPARENT');
-        $this->assetTokensFor('not)', 'T_NOT T_RPARENT');
-        $this->assetTokensFor('in)', 'T_IN T_RPARENT');
+        $this->assetTokensFor('and)', 'T_AND T_RPARENTHESIS');
+        $this->assetTokensFor('or)', 'T_OR T_RPARENTHESIS');
+        $this->assetTokensFor('not)', 'T_NOT T_RPARENTHESIS');
+        $this->assetTokensFor('in)', 'T_IN T_RPARENTHESIS');
     }
 
     public function assetTokensFor($input, $expectedTokens)
     {
-        $tokens = $this->lex($input)->map->type->implode(' ');
-        $this->assertEquals($expectedTokens, $tokens);
+        $tokens = $this->lex($input)->map->token;
+        $tokens->pop(); // Ignore EOF token.
+        $this->assertEquals($expectedTokens, $tokens->implode(' '));
     }
 }

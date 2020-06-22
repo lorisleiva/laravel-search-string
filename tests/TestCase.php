@@ -55,7 +55,8 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 
     public function lex($input, $model = null)
     {
-        return $this->getSearchStringManager($model)->lex($input);
+        $generator = $this->getSearchStringManager($model)->lex($input);
+        return collect(iterator_to_array($generator));
     }
 
     public function parse($input, $model = null)

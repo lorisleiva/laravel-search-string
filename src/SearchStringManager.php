@@ -2,10 +2,11 @@
 
 namespace Lorisleiva\LaravelSearchString;
 
+use Hoa\Compiler\Llk\Lexer;
+use Hoa\Compiler\Llk\Llk;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
-use Lorisleiva\LaravelSearchString\Lexer\Lexer;
 use Lorisleiva\LaravelSearchString\Options\SearchStringOptions;
 use Lorisleiva\LaravelSearchString\Parser\Parser;
 
@@ -21,9 +22,11 @@ class SearchStringManager
         $this->generateOptions($model);
     }
 
-    public function lex($input, $tokenMap = null, $delimiter = null)
+    public function lex($input)
     {
-        return (new Lexer($tokenMap, $delimiter))->lex($input);
+        Llk::parsePP(file_get_contents(__DIR__ . '/Compiler/Grammar.pp'), $tokens, $rules, $pragmas, 'streamName');
+        $lexer = new Lexer($pragmas);
+        return $lexer->lexMe($input, $tokens);
     }
 
     public function parse($input)
@@ -52,7 +55,7 @@ class SearchStringManager
 
                 case 'no-results':
                     return $builder->limit(0);
-                
+
                 default:
                     return $builder;
             }
