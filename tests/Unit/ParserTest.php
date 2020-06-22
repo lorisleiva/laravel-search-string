@@ -20,7 +20,7 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    public function it_parses_comparaisons_as_queries()
+    public function it_parses_comparisons_as_queries()
     {
         $this->assertAstFor('amount>0', 'QUERY(amount > 0)');
         $this->assertAstFor('amount> 0', 'QUERY(amount > 0)');
