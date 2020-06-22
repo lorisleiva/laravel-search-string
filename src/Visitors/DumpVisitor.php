@@ -1,13 +1,13 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Visitor;
+namespace Lorisleiva\LaravelSearchString\Visitors;
 
-use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
-use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
-use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
-use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
-use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
-use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
+use Lorisleiva\LaravelSearchString\AST\AndSymbol;
+use Lorisleiva\LaravelSearchString\AST\NotSymbol;
+use Lorisleiva\LaravelSearchString\AST\NullSymbol;
+use Lorisleiva\LaravelSearchString\AST\OrSymbol;
+use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
+use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
 
 class DumpVisitor extends Visitor
 {

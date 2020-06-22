@@ -1,8 +1,8 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Parser;
+namespace Lorisleiva\LaravelSearchString\AST;
 
-use Lorisleiva\LaravelSearchString\Visitor\Visitor;
+use Lorisleiva\LaravelSearchString\Visitors\Visitor;
 
 class NotSymbol extends Symbol
 {

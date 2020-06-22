@@ -4,7 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Options;
 
 use Illuminate\Support\Arr;
 use Lorisleiva\LaravelSearchString\Options\ColumnRule;
-use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 
 trait SearchStringOptions
 {
@@ -33,7 +33,7 @@ trait SearchStringOptions
 
         $this->options = $this->parseOptions($options, $model);
     }
-    
+
     protected function parseOptions($options, $model)
     {
         return collect([

@@ -2,13 +2,13 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
-use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
-use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
-use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
-use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\AST\AndSymbol;
+use Lorisleiva\LaravelSearchString\AST\NotSymbol;
+use Lorisleiva\LaravelSearchString\AST\OrSymbol;
+use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
-use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\InlineDumpVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\OptimizeAstVisitor;
 
 class OptimizeAstVisitorTest extends TestCase
 {
@@ -33,12 +33,12 @@ class OptimizeAstVisitorTest extends TestCase
     public function it_inlines_and_or_operators_containing_only_one_child()
     {
         $this->assertVisitedAstBecomes(
-            new AndSymbol([new QuerySymbol('foo', '=', 'bar')]), 
+            new AndSymbol([new QuerySymbol('foo', '=', 'bar')]),
             'QUERY(foo = bar)'
         );
 
         $this->assertVisitedAstBecomes(
-            new OrSymbol([new QuerySymbol('foo', '=', 'bar')]), 
+            new OrSymbol([new QuerySymbol('foo', '=', 'bar')]),
             'QUERY(foo = bar)'
         );
     }

@@ -1,9 +1,9 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Visitor;
+namespace Lorisleiva\LaravelSearchString\Visitors;
 
-use Lorisleiva\LaravelSearchString\Parser\NullSymbol;
-use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\AST\NullSymbol;
+use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 
 class RemoveKeywordsVisitor extends Visitor
 {

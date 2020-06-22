@@ -95,8 +95,8 @@ class LexerTest extends TestCase
 
     public function assetTokensFor($input, $expectedTokens)
     {
-        $tokens = $this->lex($input)->map->token;
-        $tokens->pop(); // Ignore EOF token.
-        $this->assertEquals($expectedTokens, $tokens->implode(' '));
+        $tokens = $this->lex($input)->map->token->all();
+        array_pop($tokens); // Ignore EOF token.
+        $this->assertEquals($expectedTokens, implode(' ', $tokens));
     }
 }

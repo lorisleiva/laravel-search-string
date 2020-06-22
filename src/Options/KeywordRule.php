@@ -3,7 +3,7 @@
 namespace Lorisleiva\LaravelSearchString\Options;
 
 use Lorisleiva\LaravelSearchString\Options\Rule;
-use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 
 class KeywordRule extends Rule
 {

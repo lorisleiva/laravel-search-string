@@ -1,12 +1,12 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Visitor;
+namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
-use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 
 class BuildKeywordsVisitor extends Visitor
 {
@@ -24,7 +24,7 @@ class BuildKeywordsVisitor extends Visitor
         if ($rule = $this->manager->getRuleForQuery($query, 'keywords')) {
             $this->buildKeyword($rule->column, $query);
         }
-        
+
         return $query;
     }
 

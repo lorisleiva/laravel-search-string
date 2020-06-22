@@ -4,7 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
-use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\InlineDumpVisitor;
 
 class ParserTest extends TestCase
 {
@@ -104,15 +104,15 @@ class ParserTest extends TestCase
     public function it_parses_complex_queries()
     {
         $this->assertAstFor(
-            'A: 1 or B > 2 and not C or D <= "foo bar"', 
+            'A: 1 or B > 2 and not C or D <= "foo bar"',
             'OR(QUERY(A = 1), AND(QUERY(B > 2), NOT(SOLO(C))), QUERY(D <= foo bar))'
         );
         $this->assertAstFor(
-            'sort:-name,date events > 10 and not started_at <= tomorrow', 
+            'sort:-name,date events > 10 and not started_at <= tomorrow',
             'AND(QUERY(sort = [-name, date]), QUERY(events > 10), NOT(QUERY(started_at <= tomorrow)))'
         );
         $this->assertAstFor(
-            'A (B) not C', 
+            'A (B) not C',
             'AND(SOLO(A), SOLO(B), NOT(SOLO(C)))'
         );
     }

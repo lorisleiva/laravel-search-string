@@ -1,15 +1,15 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Visitor;
+namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Illuminate\Support\Arr;
 use Lorisleiva\LaravelSearchString\Options\ColumnRule;
 use Lorisleiva\LaravelSearchString\Options\Rule;
-use Lorisleiva\LaravelSearchString\Parser\OrSymbol;
-use Lorisleiva\LaravelSearchString\Parser\AndSymbol;
-use Lorisleiva\LaravelSearchString\Parser\NotSymbol;
-use Lorisleiva\LaravelSearchString\Parser\SoloSymbol;
-use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Lorisleiva\LaravelSearchString\AST\OrSymbol;
+use Lorisleiva\LaravelSearchString\AST\AndSymbol;
+use Lorisleiva\LaravelSearchString\AST\NotSymbol;
+use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
+use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
 
 class BuildColumnsVisitor extends Visitor

@@ -5,9 +5,9 @@ namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
-use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\BuildKeywordsVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\InlineDumpVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\RemoveNotSymbolVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\BuildKeywordsVisitor;
 
 class BuildKeywordsVisitorTest extends TestCase
 {
@@ -38,7 +38,7 @@ class BuildKeywordsVisitorTest extends TestCase
         $builder = $this->getBuilderFor('not fields:name');
 
         $this->assertEquals(
-            ['price', 'description', 'paid', 'boolean_variable', 'created_at'], 
+            ['price', 'description', 'paid', 'boolean_variable', 'created_at'],
             $builder->getQuery()->columns
         );
     }
@@ -141,7 +141,7 @@ class BuildKeywordsVisitorTest extends TestCase
     /**
      * Offset
      */
-    
+
     /** @test */
     public function it_sets_the_offset_of_the_builder()
     {
@@ -173,7 +173,7 @@ class BuildKeywordsVisitorTest extends TestCase
     /**
      * Generic
      */
-    
+
     /** @test */
     public function it_does_not_change_the_ast()
     {

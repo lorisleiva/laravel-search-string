@@ -3,8 +3,8 @@
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
-use Lorisleiva\LaravelSearchString\Visitor\InlineDumpVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\RemoveKeywordsVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\InlineDumpVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\RemoveKeywordsVisitor;
 
 class RemoveKeywordsVisitorTest extends TestCase
 {

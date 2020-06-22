@@ -1,6 +1,6 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Parser;
+namespace Lorisleiva\LaravelSearchString\AST;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Lexer\Token;
@@ -60,7 +60,7 @@ class Parser
                 }
 
                 return new NotSymbol($expression);
-            
+
             default:
                 $this->skip('T_SPACE');
                 return $this->parseExpression();
@@ -80,7 +80,7 @@ class Parser
                 $this->next();
                 return new SoloSymbol($content);
 
-            case 'T_LPARENT': 
+            case 'T_LPARENT':
                 $this->next();
                 $expression = $this->parseOr();
                 $this->expect('T_RPARENT');
@@ -89,8 +89,8 @@ class Parser
 
             case 'T_NOT':
                 return $this->parseNot();
-            
-            case 'T_RPARENT': 
+
+            case 'T_RPARENT':
             case 'T_EOL':
             default:
                 return false;
@@ -117,7 +117,7 @@ class Parser
                 $this->expect('T_RPARENT');
                 $this->next();
                 return $expression;
-            
+
             case 'T_LIST_SEPARATOR':
                 throw $this->expectedAnythingBut('T_LIST_SEPARATOR');
 
@@ -137,7 +137,7 @@ class Parser
                 return $this->current()->hasType('T_LIST_SEPARATOR')
                     ? $this->parseArrayQuery($key, $operator, [$value])
                     : new QuerySymbol($key, $operator, $value);
-            
+
             default:
                 throw $this->expected('T_TERM', 'T_STRING');
         }
@@ -158,7 +158,7 @@ class Parser
             case 'T_LIST_SEPARATOR':
                 $this->nextWithout('T_SPACE');
                 return $this->parseArrayQuery($key, $operator, $accumulator);
-                
+
             default:
                 return new QuerySymbol($key, $operator, $accumulator);
         }
@@ -168,7 +168,7 @@ class Parser
     {
         $token = $token ?? $this->current();
         return $token->hasType('T_STRING')
-            ? substr($token->content, 1, -1) 
+            ? substr($token->content, 1, -1)
             : $token->content;
     }
 

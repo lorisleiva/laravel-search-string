@@ -4,11 +4,13 @@ namespace Lorisleiva\LaravelSearchString;
 
 use Hoa\Compiler\Llk\Lexer;
 use Hoa\Compiler\Llk\Llk;
+use Hoa\File\Read;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Lorisleiva\LaravelSearchString\Compiler\CompilerInterface;
+use Lorisleiva\LaravelSearchString\Compiler\HoaCompiler;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Options\SearchStringOptions;
-use Lorisleiva\LaravelSearchString\Parser\Parser;
 
 class SearchStringManager
 {
@@ -22,16 +24,29 @@ class SearchStringManager
         $this->generateOptions($model);
     }
 
+    public function getCompiler(): CompilerInterface
+    {
+        return new HoaCompiler($this);
+    }
+
+    public function getGrammarFile(): string
+    {
+        return __DIR__ . '/Compiler/Grammar.pp';
+    }
+
+    public function getGrammar()
+    {
+        return file_get_contents($this->getGrammarFile());
+    }
+
     public function lex($input)
     {
-        Llk::parsePP(file_get_contents(__DIR__ . '/Compiler/Grammar.pp'), $tokens, $rules, $pragmas, 'streamName');
-        $lexer = new Lexer($pragmas);
-        return $lexer->lexMe($input, $tokens);
+        return $this->getCompiler()->lex($input);
     }
 
     public function parse($input)
     {
-        return (new Parser)->parse($this->lex($input));
+        return $this->getCompiler()->parse($input);
     }
 
     public function build(Builder $builder, $input)
