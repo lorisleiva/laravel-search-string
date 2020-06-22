@@ -123,8 +123,8 @@ class CreateBuilderTest extends TestCase
             "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"
         );
 
-        $tomorrowStart = now()->addDay(1)->startOfDay();
-        $tomorrowEnd = now()->addDay(1)->endOfDay();
+        $tomorrowStart = now()->addDay()->startOfDay();
+        $tomorrowEnd = now()->addDay()->endOfDay();
 
         $this->assertWhereSqlFor('created_at = tomorrow',
             "(created_at >= $tomorrowStart and created_at <= $tomorrowEnd)"
