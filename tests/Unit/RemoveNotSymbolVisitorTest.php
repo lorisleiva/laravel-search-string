@@ -12,7 +12,7 @@ class RemoveNotSymbolVisitorTest extends TestCase
     public function it_negates_the_operator_of_a_query()
     {
         $this->assertAstFor('not foo:bar', 'QUERY(foo != bar)');
-        $this->assertAstFor('not foo:-1,2,3', 'QUERY(foo != [-1, 2, 3])');
+        $this->assertAstFor('not foo:-1,2,3', 'QUERY(foo not in [-1, 2, 3])');
         $this->assertAstFor('not foo="bar"', 'QUERY(foo != bar)');
         $this->assertAstFor('not foo<1', 'QUERY(foo >= 1)');
         $this->assertAstFor('not foo>1', 'QUERY(foo <= 1)');
@@ -43,7 +43,7 @@ class RemoveNotSymbolVisitorTest extends TestCase
     public function it_cancel_the_negation_of_another_not()
     {
         $this->assertAstFor('not not foo:bar', 'QUERY(foo = bar)');
-        $this->assertAstFor('not not foo:-1,2,3', 'QUERY(foo = [-1, 2, 3])');
+        $this->assertAstFor('not not foo:-1,2,3', 'QUERY(foo in [-1, 2, 3])');
         $this->assertAstFor('not not foo="bar"', 'QUERY(foo = bar)');
         $this->assertAstFor('not not foo<1', 'QUERY(foo < 1)');
         $this->assertAstFor('not not foo>1', 'QUERY(foo > 1)');

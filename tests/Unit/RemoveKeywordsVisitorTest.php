@@ -9,22 +9,22 @@ use Lorisleiva\LaravelSearchString\Visitors\RemoveKeywordsVisitor;
 class RemoveKeywordsVisitorTest extends TestCase
 {
     /** @test */
-    public function it_transforms_keyword_queries_into_null_symbols()
+    public function it_transforms_keyword_queries_into_empty_symbols()
     {
         $ast = $this->extractKeywordWithRule('foo:bar', '/^foo$/');
-        $this->assertAstEquals('NULL', $ast);
+        $this->assertAstEquals('EMPTY', $ast);
 
         $ast = $this->extractKeywordWithRule('foo:1', '/f/', '/=/', '/1/');
-        $this->assertAstEquals('NULL', $ast);
+        $this->assertAstEquals('EMPTY', $ast);
 
         $ast = $this->extractKeywordWithRule('foo>40', '/f/', '/^>$/', '/\d+/');
-        $this->assertAstEquals('NULL', $ast);
+        $this->assertAstEquals('EMPTY', $ast);
 
         $ast = $this->extractKeywordWithRule('foo in (1, 2, 3)', '/foo/', '/in/', '/\d+/');
-        $this->assertAstEquals('NULL', $ast);
+        $this->assertAstEquals('EMPTY', $ast);
 
-        $ast = $this->extractKeywordWithRule('foo:apple,banana,mango)', '/foo/', '/=/', '/a/');
-        $this->assertAstEquals('NULL', $ast);
+        $ast = $this->extractKeywordWithRule('foo:apple,banana,mango', '/foo/', '/in/', '/a/');
+        $this->assertAstEquals('EMPTY', $ast);
     }
 
     /** @test */
@@ -42,8 +42,8 @@ class RemoveKeywordsVisitorTest extends TestCase
         $ast = $this->extractKeywordWithRule('foo in (1, 2, bar)', '/foo/', '/in/', '/\d+/');
         $this->assertAstEquals('QUERY(foo in [1, 2, bar])', $ast);
 
-        $ast = $this->extractKeywordWithRule('foo:apple,banana,mango)', '/foo/', '/=/', '/^a/');
-        $this->assertAstEquals('QUERY(foo = [apple, banana, mango])', $ast);
+        $ast = $this->extractKeywordWithRule('foo:apple,banana,mango', '/foo/', '/in/', '/^a/');
+        $this->assertAstEquals('QUERY(foo in [apple, banana, mango])', $ast);
     }
 
     public function assertAstEquals($expectedAst, $ast)

@@ -2,36 +2,33 @@
 
 namespace Lorisleiva\LaravelSearchString\Exceptions;
 
-use Illuminate\Support\Arr;
-use Lorisleiva\LaravelSearchString\Lexer\Token;
-
 class InvalidSearchStringException extends \Exception
 {
     protected $message;
     protected $step;
-    protected $options;
+    protected $token;
 
-    public function __construct($message = null, $step = 'Visitor', $options = [])
+    public function __construct($message = null, $step = 'Visitor', $token = null)
     {
         $this->message = $message;
         $this->step = $step;
-        $this->options = $options;
+        $this->token = $token;
         parent::__construct($this->__toString());
     }
 
-    public static function fromLexer($invalidCharacter, $message = null)
+    public static function fromLexer(?string $message = null, ?string $token = null)
     {
-        return new static($message, 'Lexer', [
-            'token' => new Token('T_ILLEGAL', $invalidCharacter),
-        ]);
+        return new static($message, 'Lexer', $token);
     }
 
-    public static function fromParser($token, $expected, $message = null)
+    public static function fromParser(?string $message = null)
     {
-        return new static($message, 'Parser', [
-            'token' => $token,
-            'expectedTokens' => $expected,
-        ]);
+        return new static($message, 'Parser');
+    }
+
+    public static function fromVisitor(?string $message = null)
+    {
+        return new static($message, 'Visitor');
     }
 
     public function getStep()
@@ -41,29 +38,13 @@ class InvalidSearchStringException extends \Exception
 
     public function getToken()
     {
-        return Arr::get($this->options, 'token');
-    }
-
-    public function getExpectedTokens()
-    {
-        return Arr::get($this->options, 'expectedTokens');
+        return $this->token;
     }
 
     public function __toString()
     {
         if ($this->message) {
             return $this->message;
-        }
-
-        $token = $this->getToken();
-
-        if ($this->step === 'Lexer') {
-            return "Unexpected character \"$token->content\"";
-        }
-
-        if ($this->step === 'Parser') {
-            $expectedAsString = implode('|', $this->getExpectedTokens());
-            return "Expected $expectedAsString, found $token";
         }
 
         return 'Invalid search string';

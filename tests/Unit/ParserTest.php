@@ -119,17 +119,17 @@ class ParserTest extends TestCase
     /** @test */
     public function it_fail_to_parse_unfinished_queries()
     {
-        $this->assertParserFails('not ', 'T_EOL');
-        $this->assertParserFails('foo = ', 'T_EOL');
-        $this->assertParserFails('foo <= ', 'T_EOL');
-        $this->assertParserFails('foo in ', 'T_EOL');
-        $this->assertParserFails('(', 'T_EOL');
+        $this->assertParserFails('not ', 'EOF');
+        $this->assertParserFails('foo = ', 'T_ASSIGNMENT');
+        $this->assertParserFails('foo <= ', 'T_COMPARATOR');
+        $this->assertParserFails('foo in ', 'T_IN');
+        $this->assertParserFails('(', 'EOF');
     }
 
     /** @test */
     public function it_fail_to_parse_strings_as_query_keys()
     {
-        $this->assertParserFails('"string as key":foo', 'T_ASSIGN');
+        $this->assertParserFails('"string as key":foo', 'T_ASSIGNMENT');
         $this->assertParserFails('foo and bar and "string as key" > 3', 'T_COMPARATOR');
         $this->assertParserFails('not "string as key" in (1,2,3)', 'T_IN');
     }
@@ -140,8 +140,8 @@ class ParserTest extends TestCase
         $this->assertParserFails('and', 'T_AND');
         $this->assertParserFails('or', 'T_OR');
         $this->assertParserFails('in', 'T_IN');
-        $this->assertParserFails('=', 'T_ASSIGN');
-        $this->assertParserFails(':', 'T_ASSIGN');
+        $this->assertParserFails('=', 'T_ASSIGNMENT');
+        $this->assertParserFails(':', 'T_ASSIGNMENT');
         $this->assertParserFails('<', 'T_COMPARATOR');
         $this->assertParserFails('<=', 'T_COMPARATOR');
         $this->assertParserFails('>', 'T_COMPARATOR');
@@ -152,13 +152,13 @@ class ParserTest extends TestCase
     public function it_fail_to_parse_weird_operator_combinations()
     {
         $this->assertParserFails('foo<>3', 'T_COMPARATOR');
-        $this->assertParserFails('foo=>3', 'T_COMPARATOR');
-        $this->assertParserFails('foo=<3', 'T_COMPARATOR');
-        $this->assertParserFails('foo < in 3', 'T_IN');
-        $this->assertParserFails('foo in = 1,2,3', 'T_ASSIGN');
-        $this->assertParserFails('foo == 1,2,3', 'T_ASSIGN');
-        $this->assertParserFails('foo := 1,2,3', 'T_ASSIGN');
-        $this->assertParserFails('foo:1:2:3:4', 'T_ASSIGN');
+        $this->assertParserFails('foo=>3', 'T_ASSIGNMENT');
+        $this->assertParserFails('foo=<3', 'T_ASSIGNMENT');
+        $this->assertParserFails('foo < in 3', 'T_COMPARATOR');
+        $this->assertParserFails('foo in = 1,2,3', 'T_IN');
+        $this->assertParserFails('foo == 1,2,3', 'T_ASSIGNMENT');
+        $this->assertParserFails('foo := 1,2,3', 'T_ASSIGNMENT');
+        $this->assertParserFails('foo:1:2:3:4', 'T_ASSIGNMENT');
     }
 
     public function assertAstFor($input, $expectedAst)
@@ -167,14 +167,14 @@ class ParserTest extends TestCase
         $this->assertEquals($expectedAst, $ast);
     }
 
-    public function assertParserFails($input, $problematicType = null)
+    public function assertParserFails($input, $unexpectedToken = null)
     {
         try {
             $ast = $this->parse($input)->accept(new InlineDumpVisitor());
             $this->fail("Expected \"$input\" to fail. Instead got: \"$ast\"");
         } catch (InvalidSearchStringException $e) {
-            if ($problematicType) {
-                $this->assertEquals($problematicType, $e->getToken()->type);
+            if ($unexpectedToken) {
+                $this->assertEquals($unexpectedToken, $e->getToken());
             } else {
                 $this->assertTrue(true);
             }

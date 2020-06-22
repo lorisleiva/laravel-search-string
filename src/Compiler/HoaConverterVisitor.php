@@ -11,6 +11,7 @@ use Lorisleiva\LaravelSearchString\AST\NotSymbol;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
+use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 
 class HoaConverterVisitor implements Visit
 {
@@ -47,7 +48,7 @@ class HoaConverterVisitor implements Visit
     protected function parseQueryNode(TreeNode $element): QuerySymbol
     {
         if (($children = $this->parseChildren($element))->count() < 2) {
-            throw new InvalidSearchStringException('QueryNode expects at least two children.');
+            throw InvalidSearchStringException::fromVisitor('QueryNode expects at least two children.');
         }
 
         return new QuerySymbol(
@@ -60,7 +61,7 @@ class HoaConverterVisitor implements Visit
     protected function parseListNode(TreeNode $element): QuerySymbol
     {
         if (($children = $this->parseChildren($element))->count() !== 2) {
-            throw new InvalidSearchStringException('ListNode expects two children.');
+            throw InvalidSearchStringException::fromVisitor('ListNode expects two children.');
         }
 
         return new QuerySymbol(
@@ -72,11 +73,7 @@ class HoaConverterVisitor implements Visit
 
     protected function parseScalarList(TreeNode $element): array
     {
-        if (($children = $this->parseChildren($element))->count() < 2) {
-            throw new InvalidSearchStringException('Scalar expects at least two children.');
-        }
-
-        return $children->toArray();
+        return $this->parseChildren($element)->toArray();
     }
 
     protected function parseToken(TreeNode $element)

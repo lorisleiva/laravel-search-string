@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Compiler;
 
+use Hoa\Compiler\Exception\UnrecognizedToken;
 use Hoa\Compiler\Llk\Lexer;
 use Hoa\Compiler\Llk\Llk;
 use Hoa\File\Read;
@@ -9,6 +10,7 @@ use Illuminate\Support\Enumerable;
 use Illuminate\Support\LazyCollection;
 use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\Symbol;
+use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\SearchStringManager;
 
 class HoaCompiler implements CompilerInterface
@@ -24,7 +26,12 @@ class HoaCompiler implements CompilerInterface
     {
         Llk::parsePP($this->manager->getGrammar(), $tokens, $rules, $pragmas, 'streamName');
         $lexer = new Lexer($pragmas);
-        $generator = $lexer->lexMe($input, $tokens);
+
+        try {
+            $generator = $lexer->lexMe($input, $tokens);
+        } catch (UnrecognizedToken $exception) {
+            throw InvalidSearchStringException::fromLexer($exception->getMessage(), $exception->getArguments()[1]);
+        }
 
         return LazyCollection::make($generator);
     }
@@ -35,7 +42,11 @@ class HoaCompiler implements CompilerInterface
             return new EmptySymbol();
         }
 
-        $ast = $this->getParser()->parse($input);
+        try {
+            $ast = $this->getParser()->parse($input);
+        } catch (UnrecognizedToken $exception) {
+            throw InvalidSearchStringException::fromLexer($exception->getMessage(), $exception->getArguments()[1]);
+        }
 
        return $ast->accept(new HoaConverterVisitor());
     }

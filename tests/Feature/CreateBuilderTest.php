@@ -23,11 +23,11 @@ class CreateBuilderTest extends TestCase
         $this->assertSqlFor('fields:name,price', 'select name, price from dummy_models');
         $this->assertSqlFor('fields:price,name', 'select name, price from dummy_models');
 
-        $this->assertSqlFor('not fields:name', 
+        $this->assertSqlFor('not fields:name',
             'select price, description, paid, boolean_variable, created_at from dummy_models'
         );
 
-        $this->assertSqlFor('not fields:name, price', 
+        $this->assertSqlFor('not fields:name, price',
             'select description, paid, boolean_variable, created_at from dummy_models'
         );
     }
@@ -111,22 +111,22 @@ class CreateBuilderTest extends TestCase
     {
         $this->assertWhereSqlFor('created_at = "2018-05-17 10:30:00"', "created_at = 2018-05-17 10:30:00");
 
-        $this->assertWhereSqlFor('created_at = 2018-05-17', 
+        $this->assertWhereSqlFor('created_at = 2018-05-17',
             "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"
         );
 
-        $this->assertWhereSqlFor('not created_at = 2018-05-17', 
+        $this->assertWhereSqlFor('not created_at = 2018-05-17',
             "(created_at < 2018-05-17 00:00:00 and created_at > 2018-05-17 23:59:59)"
         );
 
-        $this->assertWhereSqlFor('created_at = "May 17 2018"', 
+        $this->assertWhereSqlFor('created_at = "May 17 2018"',
             "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"
         );
 
         $tomorrowStart = now()->addDay(1)->startOfDay();
         $tomorrowEnd = now()->addDay(1)->endOfDay();
 
-        $this->assertWhereSqlFor('created_at = tomorrow', 
+        $this->assertWhereSqlFor('created_at = tomorrow',
             "(created_at >= $tomorrowStart and created_at <= $tomorrowEnd)"
         );
 
@@ -154,23 +154,20 @@ class CreateBuilderTest extends TestCase
         // Array assignment treated as whereIn
         $this->assertWhereSqlFor('name:John,Jane', "name in ('John', 'Jane')");
         $this->assertWhereSqlFor('not name:John,Jane', "name not in ('John', 'Jane')");
-        
-        // Array comparisons treated as their first item
-        $this->assertWhereSqlFor('name>John,Jane', "name > 'John'");
     }
 
     /** @test */
     public function it_filters_search_terms_and_strings()
     {
-        $this->assertWhereSqlFor('John', 
+        $this->assertWhereSqlFor('John',
             "(name like '%John%' or description like '%John%')"
         );
 
-        $this->assertWhereSqlFor('"John Doe"', 
+        $this->assertWhereSqlFor('"John Doe"',
             "(name like '%John Doe%' or description like '%John Doe%')"
         );
 
-        $this->assertWhereSqlFor('not John', 
+        $this->assertWhereSqlFor('not John',
             "(name not like '%John%' and description not like '%John%')"
         );
     }
@@ -188,7 +185,7 @@ class CreateBuilderTest extends TestCase
     public function it_creates_complex_queries()
     {
         $this->assertSqlFor(
-            'name in (John,Jane) or description=Employee and created_at < 2018-05-18 limit:3 or Banana from:1', 
+            'name in (John,Jane) or description=Employee and created_at < 2018-05-18 limit:3 or Banana from:1',
             "select * from dummy_models "
             . "where (name in ('John', 'Jane') "
             . "or (description = 'Employee' and created_at < 2018-05-18 00:00:00) "
