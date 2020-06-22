@@ -7,6 +7,7 @@ use Hoa\Compiler\Llk\Llk;
 use Hoa\File\Read;
 use Illuminate\Support\Enumerable;
 use Illuminate\Support\LazyCollection;
+use Lorisleiva\LaravelSearchString\AST\Symbol;
 use Lorisleiva\LaravelSearchString\SearchStringManager;
 
 class HoaCompiler implements CompilerInterface
@@ -27,14 +28,11 @@ class HoaCompiler implements CompilerInterface
         return LazyCollection::make($generator);
     }
 
-    public function parse(string $input): Enumerable
+    public function parse(string $input): Symbol
     {
         $ast = $this->getParser()->parse($input);
-        $ast = $ast->accept(new HoaConverterVisitor());
 
-        // dd($ast);
-
-        return $ast;
+       return $ast->accept(new HoaConverterVisitor());
     }
 
     public function updateParser(): void
