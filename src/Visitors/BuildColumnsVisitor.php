@@ -129,10 +129,6 @@ class BuildColumnsVisitor extends Visitor
             return $this->buildInQuery($query, $rule);
         }
 
-        if (in_array($query->operator, ['=', '!=']) && is_array($query->value)) {
-            return $this->buildInQuery($query, $rule);
-        }
-
         return $this->buildBasicQuery($query, $rule);
     }
 
@@ -172,7 +168,7 @@ class BuildColumnsVisitor extends Visitor
 
     protected function buildInQuery(QuerySymbol $query, Rule $rule)
     {
-        $notIn = in_array($query->operator, ['not in', '!=']);
+        $notIn = $query->operator === 'not in';
         $value = Arr::wrap($query->value);
         return $this->builder->whereIn($rule->column, $value, $this->boolean, $notIn);
     }
