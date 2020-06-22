@@ -7,7 +7,6 @@ use Lorisleiva\LaravelSearchString\Options\ColumnRule;
 use Lorisleiva\LaravelSearchString\Options\Rule;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
-use Lorisleiva\LaravelSearchString\AST\NotSymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
@@ -37,13 +36,6 @@ class BuildColumnsVisitor extends Visitor
         $this->createNestedBuilderWith($and->expressions, 'and');
 
         return $and;
-    }
-
-    public function visitNot(NotSymbol $not)
-    {
-        $not->expression->accept($this);
-
-        return $not;
     }
 
     public function visitSolo(SoloSymbol $solo)
@@ -193,16 +185,8 @@ class BuildColumnsVisitor extends Visitor
 
     protected function parseValue($value)
     {
-        if (is_array($value)) {
-            return $this->parseValue(Arr::get($value, 0, ''));
-        }
-
         if (is_numeric($value)) {
             return $value + 0;
-        }
-
-        if ($value === 'NULL') {
-            return null;
         }
 
         return $value;

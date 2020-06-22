@@ -9,5 +9,4 @@ interface CompilerInterface
 {
     public function lex(string $input): Enumerable;
     public function parse(string $input): Symbol;
-    public function updateParser(): void;
 }

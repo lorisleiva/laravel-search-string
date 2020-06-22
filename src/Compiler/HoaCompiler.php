@@ -5,6 +5,7 @@ namespace Lorisleiva\LaravelSearchString\Compiler;
 use Hoa\Compiler\Exception\UnrecognizedToken;
 use Hoa\Compiler\Llk\Lexer;
 use Hoa\Compiler\Llk\Llk;
+use Hoa\Compiler\Llk\Parser;
 use Hoa\File\Read;
 use Illuminate\Support\Enumerable;
 use Illuminate\Support\LazyCollection;
@@ -51,15 +52,26 @@ class HoaCompiler implements CompilerInterface
        return $ast->accept(new HoaConverterVisitor());
     }
 
-    public function updateParser(): void
-    {
-        // TODO: Implement updateParser() method.
-    }
-
     protected function getParser()
     {
-        // TODO: save and use compiled parser.
+        if (class_exists(CompiledParser::class)) {
+            return new CompiledParser();
+        }
 
+        return $this->loadParser();
+    }
+
+    protected function loadParser(): Parser
+    {
         return Llk::load(new Read($this->manager->getGrammarFile()));
+    }
+
+    protected function saveParser(): void
+    {
+        $file = "<?php\n\n";
+        $file .= "namespace Lorisleiva\LaravelSearchString\Compiler;\n\n";
+        $file .= Llk::save($this->loadParser(), 'CompiledParser');
+
+        file_put_contents(__DIR__ . '/CompiledParser.php', $file);
     }
 }
