@@ -39,7 +39,7 @@ class InlineDumpVisitor extends Visitor
 
         if ($this->shortenQuery) {
             $value = is_array($value) ? '[' . implode(', ', $value) . ']' : $value;
-            return $query->key . (is_bool($value) ? '' : "$query->operator $value");
+            return $query->key . (is_bool($value) ? '' : " $query->operator $value");
         }
 
         $value = is_bool($value) ? ($value ? 'true' : 'false') : $value;

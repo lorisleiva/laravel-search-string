@@ -83,25 +83,25 @@ class CreateBuilderTest extends TestCase
     /** @test */
     public function it_filters_basic_queries()
     {
-        // Assignments
+        // Assignments.
         $this->assertWhereSqlFor('name:John', "name = 'John'");
         $this->assertWhereSqlFor('name=John', "name = 'John'");
         $this->assertWhereSqlFor('name="John doe"', "name = 'John doe'");
         $this->assertWhereSqlFor('not name:John', "name != 'John'");
 
-        // Booleans
+        // Booleans.
         $this->assertWhereSqlFor('boolean_variable', "boolean_variable = true");
         $this->assertWhereSqlFor('paid', "paid = true");
         $this->assertWhereSqlFor('not paid', "paid = false");
 
-        // Comparaisons
+        // Comparisons.
         $this->assertWhereSqlFor('price>0', "price > 0");
         $this->assertWhereSqlFor('price>=0', "price >= 0");
         $this->assertWhereSqlFor('price<0', "price < 0");
         $this->assertWhereSqlFor('price<=0', "price <= 0");
         $this->assertWhereSqlFor('price>0.55', "price > 0.55");
 
-        // Null in capital treated as null value
+        // Null in capital treated as null value.
         $this->assertWhereSqlFor('name:NULL', "name is null");
         $this->assertWhereSqlFor('not name:NULL', "name is not null");
     }
