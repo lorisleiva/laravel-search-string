@@ -4,10 +4,10 @@ namespace Lorisleiva\LaravelSearchString\AST;
 
 use Lorisleiva\LaravelSearchString\Visitors\Visitor;
 
-class NullSymbol extends Symbol
+class EmptySymbol extends Symbol
 {
     public function accept(Visitor $visitor)
     {
-        return $visitor->visitNull($this);
+        return $visitor->visitEmpty($this);
     }
 }

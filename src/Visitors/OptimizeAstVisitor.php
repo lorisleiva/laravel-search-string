@@ -4,7 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
 use Lorisleiva\LaravelSearchString\AST\NotSymbol;
-use Lorisleiva\LaravelSearchString\AST\NullSymbol;
+use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 
 class OptimizeAstVisitor extends Visitor
@@ -15,10 +15,10 @@ class OptimizeAstVisitor extends Visitor
             if ($leaf instanceof OrSymbol) {
                 return $leaf->expressions;
             }
-            return $leaf instanceof NullSymbol ? [] : [$leaf];
+            return $leaf instanceof EmptySymbol ? [] : [$leaf];
         });
 
-        if ($leaves->isEmpty()) return new NullSymbol;
+        if ($leaves->isEmpty()) return new EmptySymbol;
         if ($leaves->count() === 1) return $leaves->first();
         return new OrSymbol($leaves);
     }
@@ -29,10 +29,10 @@ class OptimizeAstVisitor extends Visitor
             if ($leaf instanceof AndSymbol) {
                 return $leaf->expressions;
             }
-            return $leaf instanceof NullSymbol ? [] : [$leaf];
+            return $leaf instanceof EmptySymbol ? [] : [$leaf];
         });
 
-        if ($leaves->isEmpty()) return new NullSymbol;
+        if ($leaves->isEmpty()) return new EmptySymbol;
         if ($leaves->count() === 1) return $leaves->first();
         return new AndSymbol($leaves);
     }
@@ -40,6 +40,6 @@ class OptimizeAstVisitor extends Visitor
     public function visitNot(NotSymbol $not)
     {
         $leaf = $not->expression->accept($this);
-        return $leaf instanceof NullSymbol ? new NullSymbol : new NotSymbol($leaf);
+        return $leaf instanceof EmptySymbol ? new EmptySymbol : new NotSymbol($leaf);
     }
 }

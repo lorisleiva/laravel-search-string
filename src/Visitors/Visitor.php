@@ -4,7 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
 use Lorisleiva\LaravelSearchString\AST\NotSymbol;
-use Lorisleiva\LaravelSearchString\AST\NullSymbol;
+use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
@@ -36,7 +36,7 @@ abstract class Visitor
         return $solo;
     }
 
-    public function visitNull(NullSymbol $null)
+    public function visitEmpty(EmptySymbol $null)
     {
         return $null;
     }

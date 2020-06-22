@@ -2,7 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
-use Lorisleiva\LaravelSearchString\AST\NullSymbol;
+use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 
 class RemoveKeywordsVisitor extends Visitor
@@ -17,7 +17,7 @@ class RemoveKeywordsVisitor extends Visitor
     public function visitQuery(QuerySymbol $query)
     {
         return $this->manager->getRuleForQuery($query, 'keywords')
-            ? new NullSymbol
+            ? new EmptySymbol
             : $query;
     }
 }

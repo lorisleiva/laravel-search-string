@@ -7,6 +7,7 @@ use Hoa\Compiler\Llk\Llk;
 use Hoa\File\Read;
 use Illuminate\Support\Enumerable;
 use Illuminate\Support\LazyCollection;
+use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\Symbol;
 use Lorisleiva\LaravelSearchString\SearchStringManager;
 
@@ -30,6 +31,10 @@ class HoaCompiler implements CompilerInterface
 
     public function parse(string $input): Symbol
     {
+        if (! $input) {
+            return new EmptySymbol();
+        }
+
         $ast = $this->getParser()->parse($input);
 
        return $ast->accept(new HoaConverterVisitor());

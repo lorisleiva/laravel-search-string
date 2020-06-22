@@ -2,9 +2,6 @@
 
 namespace Lorisleiva\LaravelSearchString;
 
-use Hoa\Compiler\Llk\Lexer;
-use Hoa\Compiler\Llk\Llk;
-use Hoa\File\Read;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Lorisleiva\LaravelSearchString\Compiler\CompilerInterface;

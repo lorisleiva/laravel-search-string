@@ -27,16 +27,16 @@ OrNode:
 	AndNode() ( ::T_OR:: AndNode() #OrNode )*
 
 AndNode:
-	NotNode() ( ::T_AND::? NotNode() #AndNode )*
-
-NotNode:
-	( ::T_NOT:: #NotNode )? TerminalNode()
+	TerminalNode() ( ::T_AND::? TerminalNode() #AndNode )*
 
 TerminalNode:
-    NestedExpr() | QueryNode() | ListNode() | SoloNode()
+    NestedExpr() | NotNode() | QueryNode() | ListNode() | SoloNode()
 
 NestedExpr:
     ::T_LPARENTHESIS:: Expr() ::T_RPARENTHESIS::
+
+#NotNode:
+	::T_NOT:: TerminalNode()
 
 #QueryNode:
 	<T_TERM> Operator() NullableScalar()

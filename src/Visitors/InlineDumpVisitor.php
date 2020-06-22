@@ -4,7 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
 use Lorisleiva\LaravelSearchString\AST\NotSymbol;
-use Lorisleiva\LaravelSearchString\AST\NullSymbol;
+use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
@@ -58,8 +58,8 @@ class InlineDumpVisitor extends Visitor
             : "SOLO($solo->content)";
     }
 
-    public function visitNull(NullSymbol $null)
+    public function visitEmpty(EmptySymbol $empty)
     {
-        return 'NULL';
+        return 'EMPTY';
     }
 }

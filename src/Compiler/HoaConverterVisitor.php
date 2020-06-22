@@ -24,19 +24,30 @@ class HoaConverterVisitor implements Visit
                 return new AndSymbol($this->parseChildren($element));
             case '#NotNode':
                 return new NotSymbol($this->parseChildren($element)->get(0));
-            case '#QueryNode':
-                return $this->parseQuerySymbol($element);
             case '#SoloNode':
-                return $this->parseSoloSymbol($element);
+                return $this->parseSoloNode($element);
+            case '#QueryNode':
+                return $this->parseQueryNode($element);
+            case '#ListNode':
+                return $this->parseListNode($element);
+            case '#ScalarList':
+                return $this->parseScalarList($element);
             case 'token':
                 return $this->parseToken($element);
         }
     }
 
-    protected function parseQuerySymbol(TreeNode $element): QuerySymbol
+    protected function parseSoloNode(TreeNode $element): SoloSymbol
+    {
+        return new SoloSymbol(
+            $this->parseChildren($element)->get(0, '')
+        );
+    }
+
+    protected function parseQueryNode(TreeNode $element): QuerySymbol
     {
         if (($children = $this->parseChildren($element))->count() < 2) {
-            throw new InvalidSearchStringException('QuerySymbol expects at least two children.');
+            throw new InvalidSearchStringException('QueryNode expects at least two children.');
         }
 
         return new QuerySymbol(
@@ -46,11 +57,26 @@ class HoaConverterVisitor implements Visit
         );
     }
 
-    protected function parseSoloSymbol(TreeNode $element): SoloSymbol
+    protected function parseListNode(TreeNode $element): QuerySymbol
     {
-        return new SoloSymbol(
-            $this->parseChildren($element)->get(0, '')
+        if (($children = $this->parseChildren($element))->count() !== 2) {
+            throw new InvalidSearchStringException('ListNode expects two children.');
+        }
+
+        return new QuerySymbol(
+            $children->get(0),
+            'in',
+            $children->get(1)
         );
+    }
+
+    protected function parseScalarList(TreeNode $element): array
+    {
+        if (($children = $this->parseChildren($element))->count() < 2) {
+            throw new InvalidSearchStringException('Scalar expects at least two children.');
+        }
+
+        return $children->toArray();
     }
 
     protected function parseToken(TreeNode $element)
@@ -58,6 +84,8 @@ class HoaConverterVisitor implements Visit
         switch ($element->getValueToken()) {
             case 'T_ASSIGNMENT':
                 return '=';
+            case 'T_NULL':
+                return null;
             default:
                 return $element->getValueValue();
         }

@@ -75,21 +75,14 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    public function it_ignores_trailing_and_or_operators()
-    {
-        $this->assertAstFor('foo and', 'SOLO(foo)');
-        $this->assertAstFor('foo or', 'SOLO(foo)');
-    }
-
-    /** @test */
     public function it_can_parse_query_values_as_list_of_terms_and_strings()
     {
-        $this->assertAstFor('foo:1,2,3', 'QUERY(foo = [1, 2, 3])');
-        $this->assertAstFor('foo: 1,2,3', 'QUERY(foo = [1, 2, 3])');
-        $this->assertAstFor('foo :1,2,3', 'QUERY(foo = [1, 2, 3])');
-        $this->assertAstFor('foo : 1,2,3', 'QUERY(foo = [1, 2, 3])');
-        $this->assertAstFor('foo : 1 , 2 , 3', 'QUERY(foo = [1, 2, 3])');
-        $this->assertAstFor('foo = "A B C",baz,"bar"', 'QUERY(foo = [A B C, baz, bar])');
+        $this->assertAstFor('foo:1,2,3', 'QUERY(foo in [1, 2, 3])');
+        $this->assertAstFor('foo: 1,2,3', 'QUERY(foo in [1, 2, 3])');
+        $this->assertAstFor('foo :1,2,3', 'QUERY(foo in [1, 2, 3])');
+        $this->assertAstFor('foo : 1,2,3', 'QUERY(foo in [1, 2, 3])');
+        $this->assertAstFor('foo : 1 , 2 , 3', 'QUERY(foo in [1, 2, 3])');
+        $this->assertAstFor('foo = "A B C",baz,"bar"', 'QUERY(foo in [A B C, baz, bar])');
     }
 
     /** @test */
@@ -109,7 +102,7 @@ class ParserTest extends TestCase
         );
         $this->assertAstFor(
             'sort:-name,date events > 10 and not started_at <= tomorrow',
-            'AND(QUERY(sort = [-name, date]), QUERY(events > 10), NOT(QUERY(started_at <= tomorrow)))'
+            'AND(QUERY(sort in [-name, date]), QUERY(events > 10), NOT(QUERY(started_at <= tomorrow)))'
         );
         $this->assertAstFor(
             'A (B) not C',
@@ -118,9 +111,9 @@ class ParserTest extends TestCase
     }
 
     /** @test */
-    public function it_returns_a_null_symbol_if_no_ast_root_could_be_parsed()
+    public function it_returns_an_empty_symbol_if_no_ast_root_could_be_parsed()
     {
-        $this->assertAstFor('', 'NULL');
+        $this->assertAstFor('', 'EMPTY');
     }
 
     /** @test */
