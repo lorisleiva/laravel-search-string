@@ -66,7 +66,7 @@ class SearchStringManager
                     throw $e;
 
                 case 'no-results':
-                    return $builder->limit(0);
+                    return $builder->whereRaw('1 = 0');
 
                 default:
                     return $builder;

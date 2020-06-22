@@ -4,7 +4,6 @@ namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
-use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
 
 class RuleValidatorVisitor extends Visitor
 {
@@ -24,13 +23,13 @@ class RuleValidatorVisitor extends Visitor
         $queryAsString = "$query->key $query->operator $query->value";
 
         if ($this->manager->getRule($query->key, $query->operator)) {
-            throw new InvalidSearchStringException("Invalid value pattern [$queryAsString]");
+            throw InvalidSearchStringException::fromVisitor("Invalid value pattern [$queryAsString]");
         }
 
         if ($this->manager->getRule($query->key)) {
-            throw new InvalidSearchStringException("Invalid operator pattern [$queryAsString]");
+            throw InvalidSearchStringException::fromVisitor("Invalid operator pattern [$queryAsString]");
         }
 
-        throw new InvalidSearchStringException("Invalid key pattern [$queryAsString]");
+        throw InvalidSearchStringException::fromVisitor("Invalid key pattern [$queryAsString]");
     }
 }

@@ -3,7 +3,6 @@
 namespace Lorisleiva\LaravelSearchString\Options;
 
 use Illuminate\Support\Arr;
-use Lorisleiva\LaravelSearchString\Options\ColumnRule;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 
 trait SearchStringOptions

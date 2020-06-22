@@ -2,7 +2,6 @@
 
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;

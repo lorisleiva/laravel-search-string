@@ -74,7 +74,7 @@ class ErrorHandlingStrategiesTest extends TestCase
     public function no_results_strategy_returns_a_query_builder_with_a_limit_of_zero()
     {
         $this->setStrategy('no-results');
-        $this->assertSqlFor('parser error in in', 'select * from dummy_models limit 0');
+        $this->assertSqlFor('parser error in in', 'select * from dummy_models where 1 = 0');
     }
 
     public function setStrategy($strategy)
