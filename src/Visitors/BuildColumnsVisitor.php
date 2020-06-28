@@ -2,7 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
-use Illuminate\Support\Arr;
+use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\Options\ColumnRule;
 use Lorisleiva\LaravelSearchString\Options\Rule;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
@@ -52,6 +52,13 @@ class BuildColumnsVisitor extends Visitor
         $this->buildQuery($query);
 
         return $query;
+    }
+
+    public function visitList(ListSymbol $list)
+    {
+        $this->buildList($list);
+
+        return $list;
     }
 
     protected function createNestedBuilderWith($expressions, $newBoolean)
@@ -114,25 +121,33 @@ class BuildColumnsVisitor extends Visitor
 
     protected function buildQuery(QuerySymbol $query)
     {
-        if (! $rule = $this->manager->getColumnRule($query->key)) {
+        /** @var ColumnRule $rule */
+        if (! $rule = $query->rule) {
             return;
         }
 
-        // Update the query value if the rule defines a mapping.
-        $query = $this->mapQueryValue($query, $rule);
+        $query->value = $this->mapValue($query->value, $rule);
 
         if ($rule->date) {
             return $this->buildDate($query, $rule);
         }
 
-        if (in_array($query->operator, ['in', 'not in'])) {
-            return $this->buildInQuery($query, $rule);
-        }
-
         return $this->buildBasicQuery($query, $rule);
     }
 
-    protected function buildDate(QuerySymbol $query, Rule $rule)
+    protected function buildList(ListSymbol $list)
+    {
+        /** @var ColumnRule $rule */
+        if (! $rule = $list->rule) {
+            return;
+        }
+
+        $list->values = $this->mapValue($list->values, $rule);
+
+        return $this->builder->whereIn($rule->column, $list->values, $this->boolean, $list->negated);
+    }
+
+    protected function buildDate(QuerySymbol $query, ColumnRule $rule)
     {
         $dateWithPrecision = new DateWithPrecision($query->value);
 
@@ -166,34 +181,27 @@ class BuildColumnsVisitor extends Visitor
         ], null, null, $this->boolean);
     }
 
-    protected function buildInQuery(QuerySymbol $query, Rule $rule)
+    protected function buildBasicQuery(QuerySymbol $query, ColumnRule $rule)
     {
-        $notIn = $query->operator === 'not in';
-        $value = Arr::wrap($query->value);
-        return $this->builder->whereIn($rule->column, $value, $this->boolean, $notIn);
+        return $this->builder->where($rule->column, $query->operator, $query->value, $this->boolean);
     }
 
-    protected function buildBasicQuery(QuerySymbol $query, Rule $rule)
+    protected function mapValue($value, ColumnRule $rule)
     {
-        $value = $this->parseValue($query->value);
-        return $this->builder->where($rule->column, $query->operator, $value, $this->boolean);
-    }
-
-    protected function parseValue($value)
-    {
-        if (is_numeric($value)) {
+        if (! $rule->map && is_numeric($value)) {
             return $value + 0;
         }
 
-        return $value;
-    }
-
-    protected function mapQueryValue(QuerySymbol $query, ColumnRule $rule)
-    {
-        if ($rule->map && $rule->map->has($query->value)) {
-            return new QuerySymbol($query->key, $query->operator, $rule->map->get($query->value));
+        if (! $rule->map) {
+            return $value;
         }
 
-        return $query;
+        if (is_array($value)) {
+            return array_map(function ($value) use ($rule) {
+                return $rule->map->has($value) ? $rule->map->get($value) : $value;
+            }, $value);
+        }
+
+        return $rule->map->has($value) ? $rule->map->get($value) : $value;
     }
 }
