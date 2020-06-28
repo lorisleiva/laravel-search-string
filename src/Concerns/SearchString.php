@@ -30,12 +30,12 @@ trait SearchString
     public function getSearchStringVisitors($manager, $builder)
     {
         return [
-            new RemoveNotSymbolVisitor,
             new AttachRulesVisitor($manager),
+            new ValidateRulesVisitor,
+            new RemoveNotSymbolVisitor,
             new BuildKeywordsVisitor($manager, $builder),
             new RemoveKeywordsVisitor,
             new OptimizeAstVisitor,
-            new ValidateRulesVisitor,
             new BuildColumnsVisitor($manager, $builder),
         ];
     }

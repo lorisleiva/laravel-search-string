@@ -49,9 +49,7 @@ trait SearchStringOptions
                 return $this->parseNonAssociativeColumn($rule, $column);
             })
             ->map(function ($rule, $column) use ($model) {
-                $isDate = $this->castAsDate($model, $column);
-                $isBoolean = $this->castAsBoolean($model, $column);
-                return new ColumnRule($column, $rule, $isDate, $isBoolean);
+                return new ColumnRule($model, $column, $rule);
             });
     }
 
@@ -69,17 +67,6 @@ trait SearchStringOptions
     protected function parseNonAssociativeColumn($rule, $column): array
     {
         return is_string($column) ? [$column => $rule] : [$rule => null];
-    }
-
-    protected function castAsDate($model, $column): bool
-    {
-        return $model->hasCast($column, ['date', 'datetime'])
-            || in_array($column, $model->getDates());
-    }
-
-    protected function castAsBoolean($model, $column): bool
-    {
-        return $model->hasCast($column, 'boolean');
     }
 
     public function getOptions(): Collection
