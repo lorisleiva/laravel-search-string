@@ -52,6 +52,12 @@ class DumpVisitor extends Visitor
         return $root . $leaves;
     }
 
+    public function visitSolo(SoloSymbol $solo)
+    {
+        $boolean = $solo->negated ? 'false' : 'true';
+        return $this->dump("SOLO [$boolean] $solo->content");
+    }
+
     public function visitQuery(QuerySymbol $query)
     {
         return $this->dump("$query->key $query->operator $query->value");
@@ -61,12 +67,6 @@ class DumpVisitor extends Visitor
     {
         $operator = $list->negated ? 'not in' : 'in';
         return $this->dump(sprintf('%s %s [%s]', $list->key, $operator, implode(', ', $list->values)));
-    }
-
-    public function visitSolo(SoloSymbol $solo)
-    {
-        $boolean = $solo->negated ? 'false' : 'true';
-        return $this->dump("SOLO [$boolean] $solo->content");
     }
 
     public function visitEmpty(EmptySymbol $empty)

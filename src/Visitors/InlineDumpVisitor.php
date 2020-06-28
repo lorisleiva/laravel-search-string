@@ -34,6 +34,17 @@ class InlineDumpVisitor extends Visitor
         return 'NOT(' . $not->expression->accept($this) . ')';
     }
 
+    public function visitSolo(SoloSymbol $solo)
+    {
+        if ($this->shortenQuery) {
+            return $solo->content;
+        }
+
+        return $solo->negated
+            ? "SOLO_NOT($solo->content)"
+            : "SOLO($solo->content)";
+    }
+
     public function visitQuery(QuerySymbol $query)
     {
         $value = $query->value;
@@ -54,17 +65,6 @@ class InlineDumpVisitor extends Visitor
         $dump = sprintf('%s %s [%s]', $list->key, $operator, implode(', ', $list->values));
 
         return $this->shortenQuery ? $dump : "LIST($dump)";
-    }
-
-    public function visitSolo(SoloSymbol $solo)
-    {
-        if ($this->shortenQuery) {
-            return $solo->content;
-        }
-
-        return $solo->negated
-            ? "SOLO_NOT($solo->content)"
-            : "SOLO($solo->content)";
     }
 
     public function visitEmpty(EmptySymbol $empty)

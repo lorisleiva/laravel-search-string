@@ -38,6 +38,15 @@ class RemoveNotSymbolVisitor extends Visitor
         return $newExpression;
     }
 
+    public function visitSolo(SoloSymbol $solo)
+    {
+        if ($this->negate) {
+            $solo->negate();
+        }
+
+        return $solo;
+    }
+
     public function visitQuery(QuerySymbol $query)
     {
         if ($this->negate) {
@@ -54,14 +63,5 @@ class RemoveNotSymbolVisitor extends Visitor
         }
 
         return $list;
-    }
-
-    public function visitSolo(SoloSymbol $solo)
-    {
-        if ($this->negate) {
-            $solo->negate();
-        }
-
-        return $solo;
     }
 }
