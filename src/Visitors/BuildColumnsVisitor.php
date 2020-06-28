@@ -4,7 +4,6 @@ namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\Options\ColumnRule;
-use Lorisleiva\LaravelSearchString\Options\Rule;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
@@ -156,22 +155,21 @@ class BuildColumnsVisitor extends Visitor
         }
 
         if (in_array($dateWithPrecision->precision, ['micro', 'second'])) {
-            $query = new QuerySymbol($query->key, $query->operator, $dateWithPrecision->carbon);
+            $query->value = $dateWithPrecision->carbon;
             return $this->buildBasicQuery($query, $rule);
         }
 
         list($start, $end) = $dateWithPrecision->getRange();
 
         if (in_array($query->operator, ['>', '<', '>=', '<='])) {
-            $extremity = in_array($query->operator, ['<', '>=']) ? $start : $end;
-            $query = new QuerySymbol($query->key, $query->operator, $extremity);
+            $query->value = in_array($query->operator, ['<', '>=']) ? $start : $end;
             return $this->buildBasicQuery($query, $rule);
         }
 
         return $this->buildDateRange($query, $start, $end, $rule);
     }
 
-    protected function buildDateRange(QuerySymbol $query, $start, $end, Rule $rule)
+    protected function buildDateRange(QuerySymbol $query, $start, $end, ColumnRule $rule)
     {
         $exclude = in_array($query->operator, ['!=', 'not in']);
 
@@ -188,20 +186,20 @@ class BuildColumnsVisitor extends Visitor
 
     protected function mapValue($value, ColumnRule $rule)
     {
-        if (! $rule->map && is_numeric($value)) {
-            return $value + 0;
-        }
-
-        if (! $rule->map) {
-            return $value;
-        }
-
         if (is_array($value)) {
             return array_map(function ($value) use ($rule) {
                 return $rule->map->has($value) ? $rule->map->get($value) : $value;
             }, $value);
         }
 
-        return $rule->map->has($value) ? $rule->map->get($value) : $value;
+        if ($rule->map->has($value)) {
+            return $rule->map->get($value);
+        }
+
+        if (is_numeric($value)) {
+            return $value + 0;
+        }
+
+        return $value;
     }
 }

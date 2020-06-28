@@ -7,10 +7,17 @@ use Illuminate\Support\Collection;
 
 class ColumnRule extends Rule
 {
+    /** @var bool */
     public $searchable = false;
+
+    /** @var bool */
     public $date = false;
+
+    /** @var bool */
     public $boolean = false;
-    public $map = [];
+
+    /** @var Collection */
+    public $map;
 
     public function __construct($column, $rule = null, $isDate = false, $isBoolean = false)
     {
