@@ -31,12 +31,9 @@ abstract class Visitor
 
     public function visitRelationship(RelationshipSymbol $relationship)
     {
-        return new RelationshipSymbol(
-            $relationship->key,
-            $relationship->expression->accept($this),
-            $relationship->expectedOperator,
-            $relationship->expectedCount
-        );
+        $relationship->expression = $relationship->expression->accept($this);
+
+        return $relationship;
     }
 
     public function visitSolo(SoloSymbol $solo)

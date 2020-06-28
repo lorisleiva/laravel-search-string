@@ -29,7 +29,7 @@ class AttachRulesVisitor extends Visitor
         $relationship->attachRule($rule);
 
         $originalManager = $this->manager;
-        $this->manager = $this->manager; // TODO: grab new model manager from relationship
+        $this->manager = $rule->relationshipManager;
         $relationship->expression = $relationship->expression->accept($this);
         $this->manager = $originalManager;
 
