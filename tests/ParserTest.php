@@ -4,12 +4,12 @@ namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Lorisleiva\LaravelSearchString\Visitors\InlineDumpVisitor;
 
-class AstBeforeVisitorsTest extends VisitorTest
+class ParserTest extends VisitorTest
 {
     public function visitors($manager, $builder, $model)
     {
         return [
-            new InlineDumpVisitor()
+            new InlineDumpVisitor(),
         ];
     }
 
@@ -139,7 +139,7 @@ class AstBeforeVisitorsTest extends VisitorTest
      * @param $input
      * @param $expected
      */
-    public function ast_before_visitors_success($input, $expected)
+    public function parser_success($input, $expected)
     {
         $this->assertAstFor($input, $expected);
     }
@@ -150,7 +150,7 @@ class AstBeforeVisitorsTest extends VisitorTest
      * @param $input
      * @param $unexpectedToken
      */
-    public function ast_before_visitors_failure($input, $unexpectedToken)
+    public function parser_failure($input, $unexpectedToken)
     {
         $this->assertAstFails($input, $unexpectedToken);
     }
