@@ -3,6 +3,7 @@
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
+use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\AST\NotSymbol;
 use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
@@ -45,6 +46,14 @@ class InlineDumpVisitor extends Visitor
         $value = is_bool($value) ? ($value ? 'true' : 'false') : $value;
         $value = is_array($value) ? '[' . implode(', ', $value) . ']' : $value;
         return "QUERY($query->key $query->operator $value)";
+    }
+
+    public function visitList(ListSymbol $list)
+    {
+        $operator = $list->negated ? 'not in' : 'in';
+        $dump = sprintf('%s %s [%s]', $list->key, $operator, implode(', ', $list->values));
+
+        return $this->shortenQuery ? $dump : "LIST($dump)";
     }
 
     public function visitSolo(SoloSymbol $solo)

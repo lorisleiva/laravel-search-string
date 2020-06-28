@@ -3,6 +3,7 @@
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
+use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\AST\NotSymbol;
 use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
@@ -54,6 +55,12 @@ class DumpVisitor extends Visitor
     public function visitQuery(QuerySymbol $query)
     {
         return $this->dump("$query->key $query->operator $query->value");
+    }
+
+    public function visitList(ListSymbol $list)
+    {
+        $operator = $list->negated ? 'not in' : 'in';
+        return $this->dump(sprintf('%s %s [%s]', $list->key, $operator, implode(', ', $list->values)));
     }
 
     public function visitSolo(SoloSymbol $solo)

@@ -191,7 +191,7 @@ class BuildKeywordsVisitorTest extends TestCase
             $matches->push($query->accept(new InlineDumpVisitor));
         };
 
-        $ast = $this->buildKeywordWithRule('foo:1 bar:2 faz:3', '/^f/', $callback);
+        $this->buildKeywordWithRule('foo:1 bar:2 faz:3', '/^f/', $callback);
         $this->assertEquals(['QUERY(foo = 1)', 'QUERY(faz = 3)'], $matches->toArray());
     }
 

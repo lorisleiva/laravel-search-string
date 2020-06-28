@@ -7,6 +7,7 @@ use Hoa\Visitor\Element;
 use Hoa\Visitor\Visit;
 use Illuminate\Support\Collection;
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
+use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\AST\NotSymbol;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
@@ -58,15 +59,14 @@ class HoaConverterVisitor implements Visit
         );
     }
 
-    protected function parseListNode(TreeNode $element): QuerySymbol
+    protected function parseListNode(TreeNode $element): ListSymbol
     {
         if (($children = $this->parseChildren($element))->count() !== 2) {
             throw InvalidSearchStringException::fromVisitor('ListNode expects two children.');
         }
 
-        return new QuerySymbol(
+        return new ListSymbol(
             $children->get(0),
-            'in',
             $children->get(1)
         );
     }

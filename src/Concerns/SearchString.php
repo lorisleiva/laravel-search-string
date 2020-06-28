@@ -35,7 +35,7 @@ trait SearchString
             new BuildKeywordsVisitor($manager, $builder),
             new RemoveKeywordsVisitor,
             new OptimizeAstVisitor,
-            new ValidateRulesVisitor($manager),
+            new ValidateRulesVisitor,
             new BuildColumnsVisitor($manager, $builder),
         ];
     }
