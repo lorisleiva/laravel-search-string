@@ -44,11 +44,6 @@ abstract class Visitor
         return $solo;
     }
 
-    public function visitSearch(SearchSymbol $search)
-    {
-        return $search;
-    }
-
     public function visitQuery(QuerySymbol $query)
     {
         return $query;

@@ -87,12 +87,15 @@ class BuildColumnsVisitor extends Visitor
 
     protected function buildSolo(SoloSymbol $solo)
     {
-        if ($solo->rule && $solo->rule->boolean && $solo->rule->date) {
-            return $this->builder->whereNull($solo->rule->column, $this->boolean, ! $solo->negated);
+        /** @var ColumnRule $rule */
+        $rule = $solo->rule;
+
+        if ($rule && $rule->boolean && $rule->date) {
+            return $this->builder->whereNull($rule->column, $this->boolean, ! $solo->negated);
         }
 
-        if ($solo->rule && $solo->rule->boolean) {
-            return $this->builder->where($solo->rule->column, '=', ! $solo->negated, $this->boolean);
+        if ($rule && $rule->boolean) {
+            return $this->builder->where($rule->column, '=', ! $solo->negated, $this->boolean);
         }
 
         return $this->buildSearch($solo);
