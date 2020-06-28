@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Options;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
@@ -22,7 +23,7 @@ trait SearchStringOptions
         ],
     ];
 
-    protected function generateOptions($model)
+    protected function generateOptions(Model $model): void
     {
         $options = array_replace_recursive(
             static::$fallbackOptions,
@@ -34,7 +35,7 @@ trait SearchStringOptions
         $this->options = $this->parseOptions($options, $model);
     }
 
-    protected function parseOptions($options, $model)
+    protected function parseOptions(array $options, Model $model): Collection
     {
         return collect([
             'columns' => $this->parseColumns($options, $model),
@@ -42,11 +43,11 @@ trait SearchStringOptions
         ]);
     }
 
-    protected function parseColumns($options, $model)
+    protected function parseColumns(array $options, Model $model): Collection
     {
         return collect(Arr::get($options, 'columns', []))
             ->mapWithKeys(function ($rule, $column) {
-                return $this->resolveLonelyColumn($rule, $column);
+                return $this->parseNonAssociativeColumn($rule, $column);
             })
             ->map(function ($rule, $column) use ($model) {
                 $isDate = $this->castAsDate($model, $column);
@@ -55,18 +56,18 @@ trait SearchStringOptions
             });
     }
 
-    protected function parseKeywords($options)
+    protected function parseKeywords(array $options): Collection
     {
         return collect(Arr::get($options, 'keywords', []))
             ->mapWithKeys(function ($rule, $keyword) {
-                return $this->resolveLonelyColumn($rule, $keyword);
+                return $this->parseNonAssociativeColumn($rule, $keyword);
             })
             ->map(function ($rule, $keyword) {
                 return new KeywordRule($keyword, $rule);
             });
     }
 
-    protected function resolveLonelyColumn($rule, $column): array
+    protected function parseNonAssociativeColumn($rule, $column): array
     {
         return is_string($column) ? [$column => $rule] : [$rule => null];
     }
@@ -112,7 +113,7 @@ trait SearchStringOptions
         return $this->getOptions('columns')->keys();
     }
 
-    public function getSearchables():Collection
+    public function getSearchables(): Collection
     {
         return $this->getOptions('columns')->filter->searchable->keys();
     }

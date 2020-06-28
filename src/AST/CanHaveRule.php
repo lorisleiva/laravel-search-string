@@ -9,7 +9,7 @@ trait CanHaveRule
     /** @var Rule */
     public $rule;
 
-    public function setRule(Rule $rule)
+    public function attachRule(Rule $rule)
     {
         $this->rule = $rule;
 

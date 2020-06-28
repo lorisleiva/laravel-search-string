@@ -9,15 +9,17 @@ use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
+use Lorisleiva\LaravelSearchString\SearchStringManager;
 use Lorisleiva\LaravelSearchString\Support\DateWithPrecision;
 
 class BuildColumnsVisitor extends Visitor
 {
+    /** @var SearchStringManager */
     protected $manager;
     protected $builder;
     protected $boolean;
 
-    public function __construct($manager, $builder, $boolean = 'and')
+    public function __construct(SearchStringManager $manager, $builder, $boolean = 'and')
     {
         $this->manager = $manager;
         $this->builder = $builder;
