@@ -15,7 +15,7 @@ abstract class VisitorTest extends TestCase
     public function getAst($input, $model = null)
     {
         $manager = $this->getSearchStringManager($model = $model ?? new DummyModel);
-        $ast = $this->parse($input);
+        $ast = is_string($input) ? $this->parse($input) : $input;
 
         foreach ($this->visitors($manager, $model->newQuery(), $model) as $visitor) {
             $ast = $ast->accept($visitor);
