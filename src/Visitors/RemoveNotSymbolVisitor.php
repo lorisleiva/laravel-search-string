@@ -39,37 +39,19 @@ class RemoveNotSymbolVisitor extends Visitor
 
     public function visitQuery(QuerySymbol $query)
     {
-        if (! $this->negate) {
-            return $query;
+        if ($this->negate) {
+            $query->negate();
         }
 
-        if (is_bool($query->value)) {
-            return new QuerySymbol($query->key, $query->operator, ! $query->value);
-        }
-
-        $reverseOperator = $this->reverseOperator($query->operator);
-        return new QuerySymbol($query->key, $reverseOperator, $query->value);
+        return $query;
     }
 
     public function visitSolo(SoloSymbol $solo)
     {
-        return $this->negate
-            ? new SoloSymbol($solo->content, ! $solo->negated)
-            : $solo;
-    }
-
-    private function reverseOperator($operator)
-    {
-        switch ($operator) {
-            case '=': return '!=';
-            case '!=': return '=';
-            case '>': return '<=';
-            case '>=': return '<';
-            case '<': return '>=';
-            case '<=': return '>';
-            case 'in': return 'not in';
-            case 'not in': return 'in';
-            default: return $operator;
+        if ($this->negate) {
+            $solo->negate();
         }
+
+        return $solo;
     }
 }
