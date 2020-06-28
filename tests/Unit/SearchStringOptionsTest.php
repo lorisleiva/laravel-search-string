@@ -176,14 +176,14 @@ class SearchStringOptionsTest extends TestCase
     public function assertColumnsRulesFor($model, $expected)
     {
         $manager = $this->getSearchStringManager($model);
-        $options = $manager->getOption('columns')->map->__toString()->toArray();
+        $options = $manager->getOptions('columns')->map->__toString()->toArray();
         $this->assertEquals($expected, $options);
     }
 
     public function assertKeywordRulesFor($model, $expected)
     {
         $manager = $this->getSearchStringManager($model);
-        $options = $manager->getOption('keywords')->map->__toString()->toArray();
+        $options = $manager->getOptions('keywords')->map->__toString()->toArray();
         $this->assertEquals($expected, $options);
     }
 }

@@ -3,11 +3,15 @@
 namespace Lorisleiva\LaravelSearchString\Options;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 
 trait SearchStringOptions
 {
-    protected $options = [];
+    /** @var Collection */
+    protected $options;
+
+    /** @var array */
     protected static $fallbackOptions = [
         'columns' => [],
         'keywords' => [
@@ -18,9 +22,6 @@ trait SearchStringOptions
         ],
     ];
 
-    /**
-     * @param $model
-     */
     protected function generateOptions($model)
     {
         $options = array_replace_recursive(
@@ -65,55 +66,54 @@ trait SearchStringOptions
             });
     }
 
-    protected function resolveLonelyColumn($rule, $column)
+    protected function resolveLonelyColumn($rule, $column): array
     {
         return is_string($column) ? [$column => $rule] : [$rule => null];
     }
 
-    protected function castAsDate($model, $column)
+    protected function castAsDate($model, $column): bool
     {
         return $model->hasCast($column, ['date', 'datetime'])
             || in_array($column, $model->getDates());
     }
 
-    protected function castAsBoolean($model, $column)
+    protected function castAsBoolean($model, $column): bool
     {
         return $model->hasCast($column, 'boolean');
     }
 
-    /**
+    /*
      * Helpers
      */
 
-    public function getOptions()
+    public function getOptions(?string $type = null): Collection
     {
-        return $this->options;
+        if (! $type) {
+            return $this->options;
+        }
+
+        return $this->options->get($type);
     }
 
-    public function getOption($key, $default = null)
+    public function getRule($key, $operator = null, $value = null, $type = 'columns'): ?Rule
     {
-        return Arr::get($this->getOptions(), $key, $default);
-    }
-
-    public function getRule($key, $operator = null, $value = null, $type = 'columns')
-    {
-        return $this->getOption($type)->first(function ($rule) use ($key, $operator, $value) {
+        return $this->getOptions($type)->first(function ($rule) use ($key, $operator, $value) {
             return $rule->match($key, $operator, $value);
         });
     }
 
-    public function getRuleForQuery(QuerySymbol $query, $type = 'columns')
+    public function getRuleForQuery(QuerySymbol $query, $type = 'columns'): ?Rule
     {
         return $this->getRule($query->key, $query->operator, $query->value, $type);
     }
 
-    public function getColumns()
+    public function getColumns(): Collection
     {
-        return $this->getOption('columns')->keys();
+        return $this->getOptions('columns')->keys();
     }
 
-    public function getSearchables()
+    public function getSearchables():Collection
     {
-        return $this->getOption('columns')->filter->searchable->keys();
+        return $this->getOptions('columns')->filter->searchable->keys();
     }
 }
