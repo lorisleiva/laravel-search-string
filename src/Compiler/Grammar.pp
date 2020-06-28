@@ -44,7 +44,7 @@ NestedExpr:
 
 #RelationshipNode:
     (<T_TERM>|NestedTerms()) ::T_ASSIGNMENT:: ::T_LPARENTHESIS:: Expr() ::T_RPARENTHESIS:: (Operator() <T_INTEGER>)? |
-    NestedTerms() Operator() NullableScalar()
+    NestedTerms() (Operator() NullableScalar())?
 
 #NestedTerms:
     <T_TERM> (::T_DOT:: <T_TERM>)+

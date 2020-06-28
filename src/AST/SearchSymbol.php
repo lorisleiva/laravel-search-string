@@ -4,7 +4,7 @@ namespace Lorisleiva\LaravelSearchString\AST;
 
 use Lorisleiva\LaravelSearchString\Visitors\Visitor;
 
-class SoloSymbol extends Symbol
+class SearchSymbol extends Symbol
 {
     use CanHaveRule;
     use CanBeNegated;
@@ -19,6 +19,6 @@ class SoloSymbol extends Symbol
 
     public function accept(Visitor $visitor)
     {
-        return $visitor->visitSolo($this);
+        return $visitor->visitSearch($this);
     }
 }

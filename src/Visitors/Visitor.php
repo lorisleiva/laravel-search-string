@@ -3,10 +3,13 @@
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
+use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\AST\NotSymbol;
 use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
+use Lorisleiva\LaravelSearchString\AST\RelationshipSymbol;
+use Lorisleiva\LaravelSearchString\AST\SearchSymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
 
 abstract class Visitor
@@ -26,14 +29,34 @@ abstract class Visitor
         return new NotSymbol($not->expression->accept($this));
     }
 
-    public function visitQuery(QuerySymbol $query)
+    public function visitRelationship(RelationshipSymbol $relationship)
     {
-        return $query;
+        return new RelationshipSymbol(
+            $relationship->key,
+            $relationship->expression->accept($this),
+            $relationship->expectedOperator,
+            $relationship->expectedCount
+        );
     }
 
     public function visitSolo(SoloSymbol $solo)
     {
         return $solo;
+    }
+
+    public function visitSearch(SearchSymbol $search)
+    {
+        return $search;
+    }
+
+    public function visitQuery(QuerySymbol $query)
+    {
+        return $query;
+    }
+
+    public function visitList(ListSymbol $list)
+    {
+        return $list;
     }
 
     public function visitEmpty(EmptySymbol $empty)

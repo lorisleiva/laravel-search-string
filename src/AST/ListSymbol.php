@@ -4,21 +4,21 @@ namespace Lorisleiva\LaravelSearchString\AST;
 
 use Lorisleiva\LaravelSearchString\Visitors\Visitor;
 
-class SoloSymbol extends Symbol
+class ListSymbol extends Symbol
 {
     use CanHaveRule;
     use CanBeNegated;
 
-    /** @var string */
-    public $content;
+    /** @var array */
+    public $list;
 
-    function __construct(string $content)
+    public function __construct(array $list)
     {
-        $this->content = $content;
+        $this->list = $list;
     }
 
     public function accept(Visitor $visitor)
     {
-        return $visitor->visitSolo($this);
+        return $visitor->visitList($this);
     }
 }

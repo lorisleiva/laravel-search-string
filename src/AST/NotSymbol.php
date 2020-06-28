@@ -6,9 +6,10 @@ use Lorisleiva\LaravelSearchString\Visitors\Visitor;
 
 class NotSymbol extends Symbol
 {
+    /** @var Symbol */
     public $expression;
 
-    function __construct($expression)
+    function __construct(Symbol $expression)
     {
         $this->expression = $expression;
     }
