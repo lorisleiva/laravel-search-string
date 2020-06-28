@@ -33,7 +33,7 @@ trait SearchString
             new RemoveNotSymbolVisitor,
             new AttachRulesVisitor($manager),
             new BuildKeywordsVisitor($manager, $builder),
-            new RemoveKeywordsVisitor($manager),
+            new RemoveKeywordsVisitor,
             new OptimizeAstVisitor,
             new ValidateRulesVisitor($manager),
             new BuildColumnsVisitor($manager, $builder),

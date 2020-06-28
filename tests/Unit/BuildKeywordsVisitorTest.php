@@ -5,6 +5,7 @@ namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
+use Lorisleiva\LaravelSearchString\Visitors\AttachRulesVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\InlineDumpVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\RemoveNotSymbolVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\BuildKeywordsVisitor;
@@ -17,6 +18,7 @@ class BuildKeywordsVisitorTest extends TestCase
     {
         return [
             new RemoveNotSymbolVisitor(),
+            new AttachRulesVisitor($manager),
             new BuildKeywordsVisitor($manager, $builder),
         ];
     }
@@ -203,21 +205,23 @@ class BuildKeywordsVisitorTest extends TestCase
         $model = $this->getModelWithKeywords(['banana_keyword' => $rule]);
         $manager = $this->getSearchStringManager($model);
 
-        return $this->parse($input)->accept(
-            new class($manager, $callback) extends BuildKeywordsVisitor {
-                protected $callback;
+        $customVisitor = new class($manager, $callback) extends BuildKeywordsVisitor {
+            protected $callback;
 
-                public function __construct($manager, $callback)
-                {
-                    $this->callback = $callback ?? function () {};
-                    parent::__construct($manager, null);
-                }
-
-                public function buildKeyword($keyword, $query)
-                {
-                    ($this->callback)($query);
-                }
+            public function __construct($manager, $callback)
+            {
+                $this->callback = $callback ?? function () {};
+                parent::__construct($manager, null);
             }
-        );
+
+            public function buildKeyword($keyword, $query)
+            {
+                ($this->callback)($query);
+            }
+        };
+
+        return $this->parse($input)
+            ->accept(new AttachRulesVisitor($manager))
+            ->accept($customVisitor);
     }
 }

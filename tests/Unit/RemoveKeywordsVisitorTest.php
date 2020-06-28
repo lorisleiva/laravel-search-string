@@ -3,6 +3,7 @@
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
+use Lorisleiva\LaravelSearchString\Visitors\AttachRulesVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\InlineDumpVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\RemoveKeywordsVisitor;
 
@@ -36,8 +37,10 @@ class RemoveKeywordsVisitorTest extends TestCase
     public function extractKeywordWithRule($input, $key)
     {
         $model = $this->getModelWithKeywords(['banana_keyword' => $key]);
-
         $manager = $this->getSearchStringManager($model);
-        return $this->parse($input)->accept(new RemoveKeywordsVisitor($manager));
+
+        return $this->parse($input)
+            ->accept(new AttachRulesVisitor($manager))
+            ->accept(new RemoveKeywordsVisitor);
     }
 }

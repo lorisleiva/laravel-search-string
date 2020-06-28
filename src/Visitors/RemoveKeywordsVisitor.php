@@ -3,23 +3,19 @@
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
+use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
-use Lorisleiva\LaravelSearchString\SearchStringManager;
+use Lorisleiva\LaravelSearchString\Options\KeywordRule;
 
 class RemoveKeywordsVisitor extends Visitor
 {
-    /** @var SearchStringManager */
-    protected $manager;
-
-    public function __construct(SearchStringManager $manager)
-    {
-        $this->manager = $manager;
-    }
-
     public function visitQuery(QuerySymbol $query)
     {
-        return $this->manager->getKeywordRule($query->key)
-            ? new EmptySymbol
-            : $query;
+        return $query->rule instanceof KeywordRule ? new EmptySymbol : $query;
+    }
+
+    public function visitList(ListSymbol $list)
+    {
+        return $list->rule instanceof KeywordRule ? new EmptySymbol : $list;
     }
 }
