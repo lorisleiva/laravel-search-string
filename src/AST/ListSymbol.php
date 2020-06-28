@@ -9,11 +9,15 @@ class ListSymbol extends Symbol
     use CanHaveRule;
     use CanBeNegated;
 
+    /** @var string */
+    public $key;
+
     /** @var array */
     public $list;
 
-    public function __construct(array $list)
+    public function __construct(string $key, array $list)
     {
+        $this->key = $key;
         $this->list = $list;
     }
 

@@ -22,7 +22,7 @@ class BuildKeywordsVisitor extends Visitor
 
     public function visitQuery(QuerySymbol $query)
     {
-        if ($rule = $this->manager->getRuleForQuery($query, 'keywords')) {
+        if ($rule = $this->manager->getKeywordRule($query->key)) {
             $this->buildKeyword($rule->column, $query);
         }
 

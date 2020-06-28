@@ -2,7 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
-use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
+use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
 use Lorisleiva\LaravelSearchString\SearchStringManager;
@@ -19,8 +19,8 @@ class AttachRulesVisitor extends Visitor
 
     public function visitSolo(SoloSymbol $solo)
     {
-        if ($rule = $this->manager->getRuleForQuery($solo, 'column')) {
-            $solo->attachRule($rule);
+        if ($rule = $this->manager->getColumnRule($solo->content)) {
+            return $solo->attachRule($rule);
         }
 
         return $solo;
@@ -28,14 +28,19 @@ class AttachRulesVisitor extends Visitor
 
     public function visitQuery(QuerySymbol $query)
     {
-        if ($rule = $this->manager->getRuleForQuery($query, 'keywords')) {
-            $query->attachRule($rule);
-        }
-
-        elseif ($rule = $this->manager->getRuleForQuery($query, 'column')) {
-            $query->attachRule($rule);
+        if ($rule = $this->manager->getRule($query->key)) {
+            return $query->attachRule($rule);
         }
 
         return $query;
+    }
+
+    public function visitList(ListSymbol $list)
+    {
+        if ($rule = $this->manager->getRule($list->key)) {
+            return $list->attachRule($rule);
+        }
+
+        return $list;
     }
 }

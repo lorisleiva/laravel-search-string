@@ -5,7 +5,6 @@ namespace Lorisleiva\LaravelSearchString\Options;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 
 trait SearchStringOptions
 {
@@ -83,38 +82,51 @@ trait SearchStringOptions
         return $model->hasCast($column, 'boolean');
     }
 
-    /*
-     * Helpers
-     */
-
-    public function getOptions(?string $type = null): Collection
+    public function getOptions(): Collection
     {
-        if (! $type) {
-            return $this->options;
-        }
-
-        return $this->options->get($type);
+        return $this->options;
     }
 
-    public function getRule($key, $operator = null, $value = null, $type = 'columns'): ?Rule
+    public function getKeywordRules(): Collection
     {
-        return $this->getOptions($type)->first(function ($rule) use ($key, $operator, $value) {
-            return $rule->match($key, $operator, $value);
+        return $this->options->get('keywords');
+    }
+
+    public function getColumnRules(): Collection
+    {
+        return $this->options->get('columns');
+    }
+
+    public function getKeywordRule($key): ?Rule
+    {
+        return $this->getKeywordRules()->first(function ($rule) use ($key) {
+            return $rule->match($key);
         });
     }
 
-    public function getRuleForQuery(QuerySymbol $query, $type = 'columns'): ?Rule
+    public function getColumnRule($key): ?Rule
     {
-        return $this->getRule($query->key, $query->operator, $query->value, $type);
+        return $this->getColumnRules()->first(function ($rule) use ($key) {
+            return $rule->match($key);
+        });
+    }
+
+    public function getRule($key): ?Rule
+    {
+        if ($rule = $this->getKeywordRule($key)) {
+            return $rule;
+        }
+
+        return $this->getColumnRule($key);
     }
 
     public function getColumns(): Collection
     {
-        return $this->getOptions('columns')->keys();
+        return $this->getColumnRules()->keys();
     }
 
     public function getSearchables(): Collection
     {
-        return $this->getOptions('columns')->filter->searchable->keys();
+        return $this->getColumnRules()->filter->searchable->keys();
     }
 }

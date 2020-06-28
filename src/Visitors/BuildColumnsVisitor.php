@@ -81,14 +81,12 @@ class BuildColumnsVisitor extends Visitor
 
     protected function buildSolo(SoloSymbol $solo)
     {
-        $rule = $this->manager->getRule($solo->content);
-
-        if ($rule && $rule->boolean && $rule->date) {
-            return $this->builder->whereNull($rule->column, $this->boolean, ! $solo->negated);
+        if ($solo->rule && $solo->rule->boolean && $solo->rule->date) {
+            return $this->builder->whereNull($solo->rule->column, $this->boolean, ! $solo->negated);
         }
 
-        if ($rule && $rule->boolean) {
-            return $this->builder->where($rule->column, '=', ! $solo->negated, $this->boolean);
+        if ($solo->rule && $solo->rule->boolean) {
+            return $this->builder->where($solo->rule->column, '=', ! $solo->negated, $this->boolean);
         }
 
         return $this->buildSearch($solo);
@@ -116,7 +114,7 @@ class BuildColumnsVisitor extends Visitor
 
     protected function buildQuery(QuerySymbol $query)
     {
-        if (! $rule = $this->manager->getRuleForQuery($query)) {
+        if (! $rule = $this->manager->getColumnRule($query->key)) {
             return;
         }
 

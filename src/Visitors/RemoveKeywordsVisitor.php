@@ -18,7 +18,7 @@ class RemoveKeywordsVisitor extends Visitor
 
     public function visitQuery(QuerySymbol $query)
     {
-        return $this->manager->getRuleForQuery($query, 'keywords')
+        return $this->manager->getKeywordRule($query->key)
             ? new EmptySymbol
             : $query;
     }
