@@ -4,94 +4,72 @@ namespace Lorisleiva\LaravelSearchString\Tests;
 
 class LexerTest extends TestCase
 {
-    /** @test */
-    public function it_lexes_quoted_strings()
+    public function success()
     {
-        $this->assertTokensFor('"Hello world"', 'T_DOUBLE_LQUOTE T_STRING T_DOUBLE_RQUOTE');
-        $this->assertTokensFor("'Hello world'", 'T_SINGLE_LQUOTE T_STRING T_SINGLE_RQUOTE');
+        return [
+            // Strings.
+            ['"Hello world"', 'T_DOUBLE_LQUOTE T_STRING T_DOUBLE_RQUOTE'],
+            ["'Hello world'", 'T_SINGLE_LQUOTE T_STRING T_SINGLE_RQUOTE'],
+
+            // Assignments.
+            ['foo:bar', 'T_TERM T_ASSIGNMENT T_TERM'],
+            ['foo=bar', 'T_TERM T_ASSIGNMENT T_TERM'],
+            ["foo:'bar'", 'T_TERM T_ASSIGNMENT T_SINGLE_LQUOTE T_STRING T_SINGLE_RQUOTE'],
+
+            // Ignores spaces.
+            [' foo = bar ', 'T_TERM T_ASSIGNMENT T_TERM'],
+
+            // Parenthesis.
+            ['(foo:bar)', 'T_LPARENTHESIS T_TERM T_ASSIGNMENT T_TERM T_RPARENTHESIS'],
+
+            // Comparisons.
+            ['foo<bar', 'T_TERM T_COMPARATOR T_TERM'],
+            ['foo<=bar', 'T_TERM T_COMPARATOR T_TERM'],
+            ['foo>bar', 'T_TERM T_COMPARATOR T_TERM'],
+            ['foo>=bar', 'T_TERM T_COMPARATOR T_TERM'],
+            ['foo<"bar"', 'T_TERM T_COMPARATOR T_DOUBLE_LQUOTE T_STRING T_DOUBLE_RQUOTE'],
+
+            // Boolean operators.
+            ['foo and bar', 'T_TERM T_AND T_TERM'],
+            ['foo or bar', 'T_TERM T_OR T_TERM'],
+            ['foo and not bar', 'T_TERM T_AND T_NOT T_TERM'],
+
+            // Lists.
+            ['foo in (a,b,c)', 'T_TERM T_IN T_LPARENTHESIS T_TERM T_COMMA T_TERM T_COMMA T_TERM T_RPARENTHESIS'],
+
+            // Complex examples.
+            [
+                'foo12bar.x.y?z and (foo:1 or bar> 3.5)',
+                'T_TERM T_DOT T_TERM T_DOT T_TERM T_AND T_LPARENTHESIS T_TERM T_ASSIGNMENT T_INTEGER T_OR T_TERM T_COMPARATOR T_DECIMAL T_RPARENTHESIS'
+            ],
+
+            // Greedy on terms.
+            ['and', 'T_AND'],
+            ['andora', 'T_TERM'],
+            ['or', 'T_OR'],
+            ['oracle', 'T_TERM'],
+            ['not', 'T_NOT'],
+            ['notice', 'T_TERM'],
+
+            // Terminating keywords.
+            ['and', 'T_AND'],
+            ['or', 'T_OR'],
+            ['not', 'T_NOT'],
+            ['in', 'T_IN'],
+            ['and)', 'T_AND T_RPARENTHESIS'],
+            ['or)', 'T_OR T_RPARENTHESIS'],
+            ['not)', 'T_NOT T_RPARENTHESIS'],
+            ['in)', 'T_IN T_RPARENTHESIS'],
+        ];
     }
 
-    /** @test */
-    public function it_lexes_assignments()
-    {
-        $this->assertTokensFor('foo:bar', 'T_TERM T_ASSIGNMENT T_TERM');
-        $this->assertTokensFor('foo=bar', 'T_TERM T_ASSIGNMENT T_TERM');
-        $this->assertTokensFor("foo:'bar'", 'T_TERM T_ASSIGNMENT T_SINGLE_LQUOTE T_STRING T_SINGLE_RQUOTE');
-    }
-
-    /** @test */
-    public function it_ignores_spaces()
-    {
-        $this->assertTokensFor(' foo = bar ', 'T_TERM T_ASSIGNMENT T_TERM');
-    }
-
-    /** @test */
-    public function it_lexes_parenthesis()
-    {
-        $this->assertTokensFor('(foo:bar)', 'T_LPARENTHESIS T_TERM T_ASSIGNMENT T_TERM T_RPARENTHESIS');
-    }
-
-    /** @test */
-    public function it_lexes_comparaisons()
-    {
-        $this->assertTokensFor('foo<bar', 'T_TERM T_COMPARATOR T_TERM');
-        $this->assertTokensFor('foo<=bar', 'T_TERM T_COMPARATOR T_TERM');
-        $this->assertTokensFor('foo>bar', 'T_TERM T_COMPARATOR T_TERM');
-        $this->assertTokensFor('foo>=bar', 'T_TERM T_COMPARATOR T_TERM');
-        $this->assertTokensFor('foo<"bar"', 'T_TERM T_COMPARATOR T_DOUBLE_LQUOTE T_STRING T_DOUBLE_RQUOTE');
-    }
-
-    /** @test */
-    public function it_lexes_boolean_operator()
-    {
-        $this->assertTokensFor('foo and bar', 'T_TERM T_AND T_TERM');
-        $this->assertTokensFor('foo or bar', 'T_TERM T_OR T_TERM');
-        $this->assertTokensFor('foo and not bar', 'T_TERM T_AND T_NOT T_TERM');
-    }
-
-    /** @test */
-    public function it_lexes_in_operator_with_commas()
-    {
-        $this->assertTokensFor(
-            'foo in (a,b,c)',
-            'T_TERM T_IN T_LPARENTHESIS T_TERM T_COMMA T_TERM T_COMMA T_TERM T_RPARENTHESIS'
-        );
-    }
-
-    /** @test */
-    public function it_lexes_complex_queries()
-    {
-        $this->assertTokensFor(
-            'foo12bar.x.y?z and (foo:1 or bar> 3.5)',
-            'T_TERM T_DOT T_TERM T_DOT T_TERM T_AND T_LPARENTHESIS T_TERM T_ASSIGNMENT T_INTEGER T_OR T_TERM T_COMPARATOR T_DECIMAL T_RPARENTHESIS'
-        );
-    }
-
-    /** @test */
-    public function it_lexes_greedily_on_terms()
-    {
-        $this->assertTokensFor('and', 'T_AND');
-        $this->assertTokensFor('andora', 'T_TERM');
-        $this->assertTokensFor('or', 'T_OR');
-        $this->assertTokensFor('oracle', 'T_TERM');
-        $this->assertTokensFor('not', 'T_NOT');
-        $this->assertTokensFor('notice', 'T_TERM');
-    }
-
-    /** @test */
-    public function terminating_keywords_operators_stay_keywords()
-    {
-        $this->assertTokensFor('and', 'T_AND');
-        $this->assertTokensFor('or', 'T_OR');
-        $this->assertTokensFor('not', 'T_NOT');
-        $this->assertTokensFor('in', 'T_IN');
-        $this->assertTokensFor('and)', 'T_AND T_RPARENTHESIS');
-        $this->assertTokensFor('or)', 'T_OR T_RPARENTHESIS');
-        $this->assertTokensFor('not)', 'T_NOT T_RPARENTHESIS');
-        $this->assertTokensFor('in)', 'T_IN T_RPARENTHESIS');
-    }
-
-    public function assertTokensFor($input, $expectedTokens)
+    /**
+     * @test
+     * @dataProvider success
+     * @param $input
+     * @param $expectedTokens
+     */
+    public function lexer_success($input, $expectedTokens)
     {
         $tokens = $this->lex($input)->map->token->all();
         array_pop($tokens); // Ignore EOF token.

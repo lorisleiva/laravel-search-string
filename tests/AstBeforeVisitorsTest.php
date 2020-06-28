@@ -13,164 +13,145 @@ class AstBeforeVisitorsTest extends VisitorTest
         ];
     }
 
-    /** @test */
-    public function it_parses_assignments_as_queries()
+    public function success()
     {
-        $this->assertAstFor('foo:bar', 'QUERY(foo = bar)');
-        $this->assertAstFor('foo: bar', 'QUERY(foo = bar)');
-        $this->assertAstFor('foo :bar', 'QUERY(foo = bar)');
-        $this->assertAstFor('foo : bar', 'QUERY(foo = bar)');
-        $this->assertAstFor('foo=10', 'QUERY(foo = 10)');
-        $this->assertAstFor('foo="bar baz"', 'QUERY(foo = bar baz)');
+        return [
+            // Assignments.
+            ['foo:bar', 'QUERY(foo = bar)'],
+            ['foo: bar', 'QUERY(foo = bar)'],
+            ['foo :bar', 'QUERY(foo = bar)'],
+            ['foo : bar', 'QUERY(foo = bar)'],
+            ['foo=10', 'QUERY(foo = 10)'],
+            ['foo="bar baz"', 'QUERY(foo = bar baz)'],
+
+            // Comparisons.
+            ['amount>0', 'QUERY(amount > 0)'],
+            ['amount> 0', 'QUERY(amount > 0)'],
+            ['amount >0', 'QUERY(amount > 0)'],
+            ['amount > 0', 'QUERY(amount > 0)'],
+            ['amount >= 0', 'QUERY(amount >= 0)'],
+            ['amount < 0', 'QUERY(amount < 0)'],
+            ['amount <= 0', 'QUERY(amount <= 0)'],
+            ['users_todos <= 10', 'QUERY(users_todos <= 10)'],
+            ['date > "2018-05-14 00:41:10"', 'QUERY(date > 2018-05-14 00:41:10)'],
+
+            // Solo.
+            ['lonely', 'SOLO(lonely)'],
+            [' lonely ', 'SOLO(lonely)'],
+            ['"lonely"', 'SOLO(lonely)'],
+            [' "lonely" ', 'SOLO(lonely)'],
+            ['"so lonely"', 'SOLO(so lonely)'],
+
+            // Not.
+            ['not A', 'NOT(SOLO(A))'],
+            ['not (not A)', 'NOT(NOT(SOLO(A)))'],
+            ['not not A', 'NOT(NOT(SOLO(A)))'],
+
+            //And.
+            ['A and B and C', 'AND(SOLO(A), SOLO(B), SOLO(C))'],
+            ['(A AND B) and C', 'AND(AND(SOLO(A), SOLO(B)), SOLO(C))'],
+            ['A AND (B AND C)', 'AND(SOLO(A), AND(SOLO(B), SOLO(C)))'],
+
+            // Or.
+            ['A or B or C', 'OR(SOLO(A), SOLO(B), SOLO(C))'],
+            ['(A OR B) or C', 'OR(OR(SOLO(A), SOLO(B)), SOLO(C))'],
+            ['A OR (B OR C)', 'OR(SOLO(A), OR(SOLO(B), SOLO(C)))'],
+
+            // Or precedes And.
+            ['A or B and C or D', 'OR(SOLO(A), AND(SOLO(B), SOLO(C)), SOLO(D))'],
+            ['(A or B) and C', 'AND(OR(SOLO(A), SOLO(B)), SOLO(C))'],
+
+            // Lists.
+            ['foo:1,2,3', 'LIST(foo in [1, 2, 3])'],
+            ['foo: 1,2,3', 'LIST(foo in [1, 2, 3])'],
+            ['foo :1,2,3', 'LIST(foo in [1, 2, 3])'],
+            ['foo : 1,2,3', 'LIST(foo in [1, 2, 3])'],
+            ['foo : 1 , 2 , 3', 'LIST(foo in [1, 2, 3])'],
+            ['foo = "A B C",baz,"bar"', 'LIST(foo in [A B C, baz, bar])'],
+            ['foo in(1,2,3)', 'LIST(foo in [1, 2, 3])'],
+            ['foo in (1,2,3)', 'LIST(foo in [1, 2, 3])'],
+            [' foo in ( 1 , 2 , 3 ) ', 'LIST(foo in [1, 2, 3])'],
+
+            // Complex examples.
+            [
+                'A: 1 or B > 2 and not C or D <= "foo bar"',
+                'OR(QUERY(A = 1), AND(QUERY(B > 2), NOT(SOLO(C))), QUERY(D <= foo bar))'
+            ],
+            [
+                'sort:-name,date events > 10 and not started_at <= tomorrow',
+                'AND(LIST(sort in [-name, date]), QUERY(events > 10), NOT(QUERY(started_at <= tomorrow)))'
+            ],
+            [
+                'A (B) not C',
+                'AND(SOLO(A), SOLO(B), NOT(SOLO(C)))'
+            ],
+
+            // Empty.
+            ['', 'EMPTY'],
+
+            // Relationships.
+            ['comments.author = "John Doe"', 'EXISTS(comments, QUERY(author = John Doe)) > 0'],
+            ['comments.author.tags > 3', 'EXISTS(comments, EXISTS(author, QUERY(tags > 3)) > 0) > 0'],
+        ];
     }
 
-    /** @test */
-    public function it_parses_comparisons_as_queries()
+    public function failure()
     {
-        $this->assertAstFor('amount>0', 'QUERY(amount > 0)');
-        $this->assertAstFor('amount> 0', 'QUERY(amount > 0)');
-        $this->assertAstFor('amount >0', 'QUERY(amount > 0)');
-        $this->assertAstFor('amount > 0', 'QUERY(amount > 0)');
-        $this->assertAstFor('amount >= 0', 'QUERY(amount >= 0)');
-        $this->assertAstFor('amount < 0', 'QUERY(amount < 0)');
-        $this->assertAstFor('amount <= 0', 'QUERY(amount <= 0)');
-        $this->assertAstFor('users_todos <= 10', 'QUERY(users_todos <= 10)');
-        $this->assertAstFor('date > "2018-05-14 00:41:10"', 'QUERY(date > 2018-05-14 00:41:10)');
+        return [
+            // Unfinished.
+            ['not ', 'EOF'],
+            ['foo = ', 'T_ASSIGNMENT'],
+            ['foo <= ', 'T_COMPARATOR'],
+            ['foo in ', 'T_IN'],
+            ['(', 'EOF'],
+
+            // String as key.
+            ['"string as key":foo', 'T_ASSIGNMENT'],
+            ['foo and bar and "string as key" > 3', 'T_COMPARATOR'],
+            ['not "string as key" in (1,2,3)', 'T_IN'],
+
+            // Lonely operators.
+            ['and', 'T_AND'],
+            ['or', 'T_OR'],
+            ['in', 'T_IN'],
+            ['=', 'T_ASSIGNMENT'],
+            [':', 'T_ASSIGNMENT'],
+            ['<', 'T_COMPARATOR'],
+            ['<=', 'T_COMPARATOR'],
+            ['>', 'T_COMPARATOR'],
+            ['>=', 'T_COMPARATOR'],
+
+            // Invalid operators.
+            ['foo<>3', 'T_COMPARATOR'],
+            ['foo=>3', 'T_ASSIGNMENT'],
+            ['foo=<3', 'T_ASSIGNMENT'],
+            ['foo < in 3', 'T_COMPARATOR'],
+            ['foo in = 1,2,3', 'T_IN'],
+            ['foo == 1,2,3', 'T_ASSIGNMENT'],
+            ['foo := 1,2,3', 'T_ASSIGNMENT'],
+            ['foo:1:2:3:4', 'T_ASSIGNMENT'],
+        ];
     }
 
-    /** @test */
-    public function it_parses_lonely_terms_and_strings_as_solo_symbols()
+    /**
+     * @test
+     * @dataProvider success
+     * @param $input
+     * @param $expected
+     */
+    public function ast_before_visitors_success($input, $expected)
     {
-        $this->assertAstFor('lonely', 'SOLO(lonely)');
-        $this->assertAstFor(' lonely ', 'SOLO(lonely)');
-        $this->assertAstFor('"lonely"', 'SOLO(lonely)');
-        $this->assertAstFor(' "lonely" ', 'SOLO(lonely)');
-        $this->assertAstFor('"so lonely"', 'SOLO(so lonely)');
+        $this->assertAstFor($input, $expected);
     }
 
-    /** @test */
-    public function it_parses_not_operators()
+    /**
+     * @test
+     * @dataProvider failure
+     * @param $input
+     * @param $unexpectedToken
+     */
+    public function ast_before_visitors_failure($input, $unexpectedToken)
     {
-        $this->assertAstFor('not A', 'NOT(SOLO(A))');
-        $this->assertAstFor('not (not A)', 'NOT(NOT(SOLO(A)))');
-        $this->assertAstFor('not not A', 'NOT(NOT(SOLO(A)))');
-    }
-
-    /** @test */
-    public function it_parses_and_operators()
-    {
-        $this->assertAstFor('A and B and C', 'AND(SOLO(A), SOLO(B), SOLO(C))');
-        $this->assertAstFor('(A AND B) and C', 'AND(AND(SOLO(A), SOLO(B)), SOLO(C))');
-        $this->assertAstFor('A AND (B AND C)', 'AND(SOLO(A), AND(SOLO(B), SOLO(C)))');
-    }
-
-    /** @test */
-    public function it_parses_or_operators()
-    {
-        $this->assertAstFor('A or B or C', 'OR(SOLO(A), SOLO(B), SOLO(C))');
-        $this->assertAstFor('(A OR B) or C', 'OR(OR(SOLO(A), SOLO(B)), SOLO(C))');
-        $this->assertAstFor('A OR (B OR C)', 'OR(SOLO(A), OR(SOLO(B), SOLO(C)))');
-    }
-
-    /** @test */
-    public function it_prioritizes_or_over_and()
-    {
-        $this->assertAstFor('A or B and C or D', 'OR(SOLO(A), AND(SOLO(B), SOLO(C)), SOLO(D))');
-        $this->assertAstFor('(A or B) and C', 'AND(OR(SOLO(A), SOLO(B)), SOLO(C))');
-    }
-
-    /** @test */
-    public function it_can_parse_query_values_as_list_of_terms_and_strings()
-    {
-        $this->assertAstFor('foo:1,2,3', 'LIST(foo in [1, 2, 3])');
-        $this->assertAstFor('foo: 1,2,3', 'LIST(foo in [1, 2, 3])');
-        $this->assertAstFor('foo :1,2,3', 'LIST(foo in [1, 2, 3])');
-        $this->assertAstFor('foo : 1,2,3', 'LIST(foo in [1, 2, 3])');
-        $this->assertAstFor('foo : 1 , 2 , 3', 'LIST(foo in [1, 2, 3])');
-        $this->assertAstFor('foo = "A B C",baz,"bar"', 'LIST(foo in [A B C, baz, bar])');
-    }
-
-    /** @test */
-    public function it_parses_in_array_operator()
-    {
-        $this->assertAstFor('foo in(1,2,3)', 'LIST(foo in [1, 2, 3])');
-        $this->assertAstFor('foo in (1,2,3)', 'LIST(foo in [1, 2, 3])');
-        $this->assertAstFor(' foo in ( 1 , 2 , 3 ) ', 'LIST(foo in [1, 2, 3])');
-    }
-
-    /** @test */
-    public function it_parses_complex_queries()
-    {
-        $this->assertAstFor(
-            'A: 1 or B > 2 and not C or D <= "foo bar"',
-            'OR(QUERY(A = 1), AND(QUERY(B > 2), NOT(SOLO(C))), QUERY(D <= foo bar))'
-        );
-        $this->assertAstFor(
-            'sort:-name,date events > 10 and not started_at <= tomorrow',
-            'AND(LIST(sort in [-name, date]), QUERY(events > 10), NOT(QUERY(started_at <= tomorrow)))'
-        );
-        $this->assertAstFor(
-            'A (B) not C',
-            'AND(SOLO(A), SOLO(B), NOT(SOLO(C)))'
-        );
-    }
-
-    /** @test */
-    public function it_returns_an_empty_symbol_if_no_ast_root_could_be_parsed()
-    {
-        $this->assertAstFor('', 'EMPTY');
-    }
-
-    /** @test */
-    public function it_parses_relationship_symbols()
-    {
-        $this->assertAstFor('comments.author = "John Doe"', 'EXISTS(comments, QUERY(author = John Doe)) > 0');
-        $this->assertAstFor('comments.author.tags > 3', 'EXISTS(comments, EXISTS(author, QUERY(tags > 3)) > 0) > 0');
-        // TODO: more and make sure previous example becomes EXISTS(comments, EXISTS(author, EXISTS(tags, EMPTY) > 3) > 0) > 0
-    }
-
-    /** @test */
-    public function it_fail_to_parse_unfinished_queries()
-    {
-        $this->assertAstFails('not ', 'EOF');
-        $this->assertAstFails('foo = ', 'T_ASSIGNMENT');
-        $this->assertAstFails('foo <= ', 'T_COMPARATOR');
-        $this->assertAstFails('foo in ', 'T_IN');
-        $this->assertAstFails('(', 'EOF');
-    }
-
-    /** @test */
-    public function it_fail_to_parse_strings_as_query_keys()
-    {
-        $this->assertAstFails('"string as key":foo', 'T_ASSIGNMENT');
-        $this->assertAstFails('foo and bar and "string as key" > 3', 'T_COMPARATOR');
-        $this->assertAstFails('not "string as key" in (1,2,3)', 'T_IN');
-    }
-
-    /** @test */
-    public function it_fails_to_parse_lonely_operators()
-    {
-        $this->assertAstFails('and', 'T_AND');
-        $this->assertAstFails('or', 'T_OR');
-        $this->assertAstFails('in', 'T_IN');
-        $this->assertAstFails('=', 'T_ASSIGNMENT');
-        $this->assertAstFails(':', 'T_ASSIGNMENT');
-        $this->assertAstFails('<', 'T_COMPARATOR');
-        $this->assertAstFails('<=', 'T_COMPARATOR');
-        $this->assertAstFails('>', 'T_COMPARATOR');
-        $this->assertAstFails('>=', 'T_COMPARATOR');
-    }
-
-    /** @test */
-    public function it_fail_to_parse_weird_operator_combinations()
-    {
-        $this->assertAstFails('foo<>3', 'T_COMPARATOR');
-        $this->assertAstFails('foo=>3', 'T_ASSIGNMENT');
-        $this->assertAstFails('foo=<3', 'T_ASSIGNMENT');
-        $this->assertAstFails('foo < in 3', 'T_COMPARATOR');
-        $this->assertAstFails('foo in = 1,2,3', 'T_IN');
-        $this->assertAstFails('foo == 1,2,3', 'T_ASSIGNMENT');
-        $this->assertAstFails('foo := 1,2,3', 'T_ASSIGNMENT');
-        $this->assertAstFails('foo:1:2:3:4', 'T_ASSIGNMENT');
+        $this->assertAstFails($input, $unexpectedToken);
     }
 }
