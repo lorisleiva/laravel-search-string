@@ -2,6 +2,8 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Unit;
 
+use Lorisleiva\LaravelSearchString\AST\ListSymbol;
+use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
@@ -23,7 +25,7 @@ class BuildKeywordsVisitorTest extends TestCase
         ];
     }
 
-    /**
+    /*
      * Select
      */
 
@@ -62,7 +64,7 @@ class BuildKeywordsVisitorTest extends TestCase
         $this->assertEquals(['description'], $builder->getQuery()->columns);
     }
 
-    /**
+    /*
      * OrderBy
      */
 
@@ -108,7 +110,7 @@ class BuildKeywordsVisitorTest extends TestCase
         ], $builder->getQuery()->orders);
     }
 
-    /**
+    /*
      * Limit
      */
 
@@ -140,7 +142,7 @@ class BuildKeywordsVisitorTest extends TestCase
         $this->assertEquals(30, $builder->getQuery()->limit);
     }
 
-    /**
+    /*
      * Offset
      */
 
@@ -172,56 +174,8 @@ class BuildKeywordsVisitorTest extends TestCase
         $this->assertEquals(30, $builder->getQuery()->offset);
     }
 
-    /**
-     * Generic
-     */
-
-    /** @test */
-    public function it_does_not_change_the_ast()
-    {
-        $ast = $this->buildKeywordWithRule('foo:1 bar:2 faz:3', '/^f/');
-        $this->assertAstEquals('AND(QUERY(foo = 1), QUERY(bar = 2), QUERY(faz = 3))', $ast);
-    }
-
-    /** @test */
-    public function it_call_the_use_build_keyword_method_for_every_match()
-    {
-        $matches = collect();
-        $callback = function ($query) use ($matches) {
-            $matches->push($query->accept(new InlineDumpVisitor));
-        };
-
-        $this->buildKeywordWithRule('foo:1 bar:2 faz:3', '/^f/', $callback);
-        $this->assertEquals(['QUERY(foo = 1)', 'QUERY(faz = 3)'], $matches->toArray());
-    }
-
     public function assertAstEquals($expectedAst, $ast)
     {
         $this->assertEquals($expectedAst, $ast->accept(new InlineDumpVisitor));
-    }
-
-    public function buildKeywordWithRule($input, $rule, $callback = null)
-    {
-        $model = $this->getModelWithKeywords(['banana_keyword' => $rule]);
-        $manager = $this->getSearchStringManager($model);
-
-        $customVisitor = new class($manager, $callback) extends BuildKeywordsVisitor {
-            protected $callback;
-
-            public function __construct($manager, $callback)
-            {
-                $this->callback = $callback ?? function () {};
-                parent::__construct($manager, null);
-            }
-
-            public function buildKeyword($keyword, $query)
-            {
-                ($this->callback)($query);
-            }
-        };
-
-        return $this->parse($input)
-            ->accept(new AttachRulesVisitor($manager))
-            ->accept($customVisitor);
     }
 }

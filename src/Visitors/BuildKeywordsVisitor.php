@@ -60,6 +60,10 @@ class BuildKeywordsVisitor extends Visitor
             case 'select':
                 $this->buildSelect($list->values, $list->negated);
                 break;
+            case 'limit':
+                throw InvalidSearchStringException::fromVisitor('The limit must be an integer');
+            case 'offset':
+                throw InvalidSearchStringException::fromVisitor('The offset must be an integer');
         }
 
         return $list;
@@ -90,7 +94,7 @@ class BuildKeywordsVisitor extends Visitor
     protected function buildLimit($value)
     {
         if (! ctype_digit($value)) {
-            throw new InvalidSearchStringException('The limit must be an integer');
+            throw InvalidSearchStringException::fromVisitor('The limit must be an integer');
         }
 
         $this->builder->limit($value);
@@ -99,7 +103,7 @@ class BuildKeywordsVisitor extends Visitor
     protected function buildOffset($value)
     {
         if (! ctype_digit($value)) {
-            throw new InvalidSearchStringException('The offset must be an integer');
+            throw InvalidSearchStringException::fromVisitor('The offset must be an integer');
         }
 
         $this->builder->offset($value);
