@@ -6,6 +6,7 @@ use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\DumpsWhereClauses;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
 use Lorisleiva\LaravelSearchString\Tests\TestCase;
+use Lorisleiva\LaravelSearchString\Visitors\AttachRulesVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\BuildColumnsVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\RemoveNotSymbolVisitor;
 
@@ -18,6 +19,7 @@ class BuildColumnsVisitorTest extends TestCase
     {
         return [
             new RemoveNotSymbolVisitor,
+            new AttachRulesVisitor($manager),
             new BuildColumnsVisitor($manager, $builder),
         ];
     }
