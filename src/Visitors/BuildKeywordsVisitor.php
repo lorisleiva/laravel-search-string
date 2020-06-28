@@ -3,9 +3,12 @@
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
+use Lorisleiva\LaravelSearchString\Options\KeywordRule;
 use Lorisleiva\LaravelSearchString\SearchStringManager;
 
 class BuildKeywordsVisitor extends Visitor
@@ -22,57 +25,83 @@ class BuildKeywordsVisitor extends Visitor
 
     public function visitQuery(QuerySymbol $query)
     {
-        if ($rule = $this->manager->getKeywordRule($query->key)) {
-            $this->buildKeyword($rule->column, $query);
+        if (! $query->rule instanceof KeywordRule) {
+            return $query;
+        }
+
+        switch ($query->rule->column) {
+            case 'order_by':
+                $this->buildOrderBy($query->value);
+                break;
+            case 'select':
+                $this->buildSelect($query->value, $query->operator === '!=');
+                break;
+            case 'limit':
+                $this->buildLimit($query->value);
+                break;
+            case 'offset':
+                $this->buildOffset($query->value);
+                break;
         }
 
         return $query;
     }
 
-    public function buildKeyword($keyword, $query)
+    public function visitList(ListSymbol $list)
     {
-        $methodName = 'build' . Str::title(Str::camel($keyword)) . 'Keyword';
+        if (! $list->rule instanceof KeywordRule) {
+            return $list;
+        }
 
-        return $this->$methodName($query);
+        switch ($list->rule->column) {
+            case 'order_by':
+                $this->buildOrderBy($list->values);
+                break;
+            case 'select':
+                $this->buildSelect($list->values, $list->negated);
+                break;
+        }
+
+        return $list;
     }
 
-    protected function buildOrderByKeyword(QuerySymbol $query)
+    protected function buildOrderBy($values)
     {
         $this->builder->getQuery()->orders = null;
 
-        collect($query->value)->each(function ($value) {
+        Collection::wrap($values)->each(function ($value) {
             $desc = Str::startsWith($value, '-') ? 'desc' : 'asc';
             $column = Str::startsWith($value, '-') ? Str::after($value, '-') : $value;
             $this->builder->orderBy($column, $desc);
         });
     }
 
-    protected function buildSelectKeyword(QuerySymbol $query)
+    protected function buildSelect($values, bool $negated)
     {
-        $columns = Arr::wrap($query->value);
+        $columns = Arr::wrap($values);
 
-        $columns = in_array($query->operator, ['!=', 'not in'])
+        $columns = $negated
             ? $this->manager->getColumns()->diff($columns)
             : $this->manager->getColumns()->intersect($columns);
 
         $this->builder->select($columns->values()->toArray());
     }
 
-    protected function buildLimitKeyword(QuerySymbol $query)
+    protected function buildLimit($value)
     {
-        if (! ctype_digit($query->value)) {
+        if (! ctype_digit($value)) {
             throw new InvalidSearchStringException('The limit must be an integer');
         }
 
-        $this->builder->limit($query->value);
+        $this->builder->limit($value);
     }
 
-    protected function buildOffsetKeyword(QuerySymbol $query)
+    protected function buildOffset($value)
     {
-        if (! ctype_digit($query->value)) {
+        if (! ctype_digit($value)) {
             throw new InvalidSearchStringException('The offset must be an integer');
         }
 
-        $this->builder->offset($query->value);
+        $this->builder->offset($value);
     }
 }

@@ -13,12 +13,12 @@ class ListSymbol extends Symbol
     public $key;
 
     /** @var array */
-    public $list;
+    public $values;
 
-    public function __construct(string $key, array $list)
+    public function __construct(string $key, array $values)
     {
         $this->key = $key;
-        $this->list = $list;
+        $this->values = $values;
     }
 
     public function accept(Visitor $visitor)
