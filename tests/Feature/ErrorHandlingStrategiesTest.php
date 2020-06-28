@@ -24,35 +24,6 @@ class ErrorHandlingStrategiesTest extends TestCase
     }
 
     /** @test */
-    public function exceptions_startegy_throws_on_unmatched_value()
-    {
-        $this->setStrategy('exceptions');
-        $this->expectException(InvalidSearchStringException::class);
-
-        $model = $this->getModelWithColumns(['foo' => [
-            'key' => 'foo',
-            'operator' => '=',
-            'value' => '/^2/',
-        ]]);
-
-        $this->build('foo:1', $model);
-    }
-
-    /** @test */
-    public function exceptions_startegy_throws_on_unmatched_operator()
-    {
-        $this->setStrategy('exceptions');
-        $this->expectException(InvalidSearchStringException::class);
-
-        $model = $this->getModelWithColumns(['foo' => [
-            'key' => 'foo',
-            'operator' => '=',
-        ]]);
-
-        $this->build('foo>1', $model);
-    }
-
-    /** @test */
     public function exceptions_startegy_throws_on_unmatched_key()
     {
         $this->setStrategy('exceptions');

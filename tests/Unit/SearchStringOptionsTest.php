@@ -13,19 +13,19 @@ class SearchStringOptionsTest extends TestCase
     public function it_parses_columns_and_keywords_options_into_rules()
     {
         $this->assertColumnsRulesFor(new DummyModel, [
-            'name' =>               '[/^name$/ /.*/ /.*/][searchable]',
-            'price' =>              '[/^price$/ /.*/ /.*/][]',
-            'description' =>        '[/^description$/ /.*/ /.*/][searchable]',
-            'paid' =>               '[/^paid$/ /.*/ /.*/][boolean]',
-            'boolean_variable' =>   '[/^boolean_variable$/ /.*/ /.*/][boolean]',
-            'created_at' =>         '[/^created_at$/ /.*/ /.*/][boolean][date]',
+            'name' =>               '[/^name$/][searchable]',
+            'price' =>              '[/^price$/][]',
+            'description' =>        '[/^description$/][searchable]',
+            'paid' =>               '[/^paid$/][boolean]',
+            'boolean_variable' =>   '[/^boolean_variable$/][boolean]',
+            'created_at' =>         '[/^created_at$/][boolean][date]',
         ]);
 
         $this->assertKeywordRulesFor(new DummyModel, [
-            'order_by' =>   '[/^sort$/ /.*/ /.*/]',
-            'select' =>     '[/^fields$/ /.*/ /.*/]',
-            'limit' =>      '[/^limit$/ /.*/ /.*/]',
-            'offset' =>     '[/^from$/ /.*/ /.*/]',
+            'order_by' =>   '[/^sort$/]',
+            'select' =>     '[/^fields$/]',
+            'limit' =>      '[/^limit$/]',
+            'offset' =>     '[/^from$/]',
         ]);
     }
 
@@ -35,7 +35,7 @@ class SearchStringOptionsTest extends TestCase
         $model = $this->getModelWithColumns(['name']);
 
         $this->assertColumnsRulesFor($model, [
-            'name' => '[/^name$/ /.*/ /.*/][]',
+            'name' => '[/^name$/][]',
         ]);
     }
 
@@ -45,7 +45,7 @@ class SearchStringOptionsTest extends TestCase
         $model = $this->getModelWithColumns(['name' => 'alias']);
 
         $this->assertColumnsRulesFor($model, [
-            'name' => '[/^alias$/ /.*/ /.*/][]',
+            'name' => '[/^alias$/][]',
         ]);
     }
 
@@ -55,7 +55,7 @@ class SearchStringOptionsTest extends TestCase
         $model = $this->getModelWithColumns(['title' => ['searchable' => true]]);
 
         $this->assertColumnsRulesFor($model, [
-            'title' => '[/^title$/ /.*/ /.*/][searchable]',
+            'title' => '[/^title$/][searchable]',
         ]);
     }
 
@@ -65,7 +65,7 @@ class SearchStringOptionsTest extends TestCase
         $model = $this->getModelWithColumns(['paid' => ['boolean' => true]]);
 
         $this->assertColumnsRulesFor($model, [
-            'paid' => '[/^paid$/ /.*/ /.*/][boolean]',
+            'paid' => '[/^paid$/][boolean]',
         ]);
     }
 
@@ -75,7 +75,7 @@ class SearchStringOptionsTest extends TestCase
         $model = $this->getModelWithColumns(['published_at' => ['date' => true]]);
 
         $this->assertColumnsRulesFor($model, [
-            'published_at' => '[/^published_at$/ /.*/ /.*/][date]',
+            'published_at' => '[/^published_at$/][date]',
         ]);
     }
 
@@ -89,7 +89,7 @@ class SearchStringOptionsTest extends TestCase
         };
 
         $this->assertColumnsRulesFor($model, [
-            'paid' => '[/^paid$/ /.*/ /.*/][boolean]',
+            'paid' => '[/^paid$/][boolean]',
         ]);
     }
 
@@ -103,7 +103,7 @@ class SearchStringOptionsTest extends TestCase
             protected $searchStringColumns = ['published_at'];
         };
         $this->assertColumnsRulesFor($model, [
-            'published_at' => '[/^published_at$/ /.*/ /.*/][boolean][date]',
+            'published_at' => '[/^published_at$/][boolean][date]',
         ]);
 
         // Cast as date
@@ -113,7 +113,7 @@ class SearchStringOptionsTest extends TestCase
             protected $searchStringColumns = ['published_at'];
         };
         $this->assertColumnsRulesFor($model, [
-            'published_at' => '[/^published_at$/ /.*/ /.*/][boolean][date]',
+            'published_at' => '[/^published_at$/][boolean][date]',
         ]);
 
         // Added to dates
@@ -123,7 +123,7 @@ class SearchStringOptionsTest extends TestCase
             protected $searchStringColumns = ['published_at'];
         };
         $this->assertColumnsRulesFor($model, [
-            'published_at' => '[/^published_at$/ /.*/ /.*/][boolean][date]',
+            'published_at' => '[/^published_at$/][boolean][date]',
         ]);
     }
 
@@ -137,7 +137,7 @@ class SearchStringOptionsTest extends TestCase
             protected $searchStringColumns = ['paid' => ['boolean' => false]];
         };
         $this->assertColumnsRulesFor($model, [
-            'paid' => '[/^paid$/ /.*/ /.*/][]',
+            'paid' => '[/^paid$/][]',
         ]);
 
         // Disable boolean and date option.
@@ -150,7 +150,7 @@ class SearchStringOptionsTest extends TestCase
             ]];
         };
         $this->assertColumnsRulesFor($model, [
-            'published_at' => '[/^published_at$/ /.*/ /.*/][]',
+            'published_at' => '[/^published_at$/][]',
         ]);
     }
 
@@ -169,7 +169,7 @@ class SearchStringOptionsTest extends TestCase
         ]);
 
         $this->assertColumnsRulesFor($model, [
-            'support_level_id' => '[/^support_level$/ /.*/ /.*/][][testing=1,community=2,official=3]'
+            'support_level_id' => '[/^support_level$/][][testing=1,community=2,official=3]'
         ]);
     }
 

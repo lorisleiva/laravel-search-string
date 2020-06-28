@@ -3,16 +3,16 @@
 namespace Lorisleiva\LaravelSearchString\Options;
 
 use Illuminate\Support\Arr;
-use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 
 abstract class Rule
 {
+    /** @var string */
     public $column;
-    public $key;
-    public $operator = '/.*/';
-    public $value = '/.*/';
 
-    public function __construct($column, $rule = null)
+    /** @var string */
+    public $key;
+
+    public function __construct(string $column, $rule = null)
     {
         if (is_null($rule)) {
             $rule = [];
@@ -24,24 +24,11 @@ abstract class Rule
 
         $this->column = $column;
         $this->key = $this->getPattern($rule, 'key', $column);
-        $this->operator = $this->getPattern($rule, 'operator');
-        $this->value = $this->getPattern($rule, 'value');
     }
 
-    public function match($key, $operator = null, $values = null)
+    public function match($key)
     {
-        $valueMatch = collect($values)->every(function ($value) {
-            return preg_match($this->value, $value);
-        });
-
-        return preg_match($this->key, $key)
-            && (is_null($operator) || preg_match($this->operator, $operator))
-            && (is_null($values) || $valueMatch);
-    }
-
-    public function matchQuery(QuerySymbol $query)
-    {
-        return $this->match($query->key, $query->operator, $query->value);
+        return preg_match($this->key, $key);
     }
 
     protected function getPattern($rawRule, $key, $default = null)
@@ -49,6 +36,7 @@ abstract class Rule
         $default = $default ?? $this->$key;
         $pattern = Arr::get($rawRule, $key, $default);
         $pattern = is_null($pattern) ? $default : $pattern;
+
         return $this->regexify($pattern);
     }
 
@@ -64,6 +52,6 @@ abstract class Rule
 
     public function __toString()
     {
-        return "[$this->key $this->operator $this->value]";
+        return "[$this->key]";
     }
 }
