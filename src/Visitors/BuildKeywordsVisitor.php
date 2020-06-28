@@ -6,13 +6,15 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
+use Lorisleiva\LaravelSearchString\SearchStringManager;
 
 class BuildKeywordsVisitor extends Visitor
 {
+    /** @var SearchStringManager */
     protected $manager;
     protected $builder;
 
-    public function __construct($manager, $builder)
+    public function __construct(SearchStringManager $manager, $builder)
     {
         $this->manager = $manager;
         $this->builder = $builder;

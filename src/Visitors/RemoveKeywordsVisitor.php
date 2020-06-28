@@ -4,12 +4,14 @@ namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
+use Lorisleiva\LaravelSearchString\SearchStringManager;
 
 class RemoveKeywordsVisitor extends Visitor
 {
+    /** @var SearchStringManager */
     protected $manager;
 
-    public function __construct($manager)
+    public function __construct(SearchStringManager $manager)
     {
         $this->manager = $manager;
     }
