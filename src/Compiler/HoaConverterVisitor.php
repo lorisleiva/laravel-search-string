@@ -11,7 +11,9 @@ use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\AST\NotSymbol;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
+use Lorisleiva\LaravelSearchString\AST\RelationshipSymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
+use Lorisleiva\LaravelSearchString\AST\Symbol;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 
 class HoaConverterVisitor implements Visit
@@ -26,6 +28,8 @@ class HoaConverterVisitor implements Visit
                 return new AndSymbol($this->parseChildren($element));
             case '#NotNode':
                 return new NotSymbol($this->parseChildren($element)->get(0));
+            case '#RelationshipNode':
+                return $this->parseRelationshipNode($element);
             case '#SoloNode':
                 return $this->parseSoloNode($element);
             case '#QueryNode':
@@ -34,9 +38,35 @@ class HoaConverterVisitor implements Visit
                 return $this->parseListNode($element);
             case '#ScalarList':
                 return $this->parseScalarList($element);
+            case '#NestedTerms':
+                return $this->parseChildren($element);
             case 'token':
                 return $this->parseToken($element);
         }
+    }
+
+    protected function parseRelationshipNode(TreeNode $element): RelationshipSymbol
+    {
+        if (($children = $this->parseChildren($element))->count() < 2) {
+            throw InvalidSearchStringException::fromVisitor('RelationshipNode expects at least two children.');
+        }
+
+        if ($children->count() === 3) {
+            return $this->unwrapNestedTerms($children->get(0), $children->get(1), $children->get(2));
+        }
+
+        // TODO
+    }
+
+    protected function unwrapNestedTerms(Collection $terms, $operator, $value): Symbol
+    {
+        $head = $terms->shift();
+
+        if ($terms->isEmpty()) {
+            return new QuerySymbol($head, $operator, $value);
+        }
+
+        return new RelationshipSymbol($head, $this->unwrapNestedTerms($terms, $operator, $value));
     }
 
     protected function parseSoloNode(TreeNode $element): SoloSymbol

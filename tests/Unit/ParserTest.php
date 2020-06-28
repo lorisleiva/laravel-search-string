@@ -117,6 +117,14 @@ class ParserTest extends TestCase
     }
 
     /** @test */
+    public function it_parses_relationship_symbols()
+    {
+        $this->assertAstFor('comments.author = "John Doe"', 'EXISTS(comments, QUERY(author = John Doe)) > 0');
+        $this->assertAstFor('comments.author.tags > 3', 'EXISTS(comments, EXISTS(author, QUERY(tags > 3)) > 0) > 0');
+        // TODO: more and make sure previous example becomes EXISTS(comments, EXISTS(author, EXISTS(tags, EMPTY) > 3) > 0) > 0
+    }
+
+    /** @test */
     public function it_fail_to_parse_unfinished_queries()
     {
         $this->assertParserFails('not ', 'EOF');

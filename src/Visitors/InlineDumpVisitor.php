@@ -8,6 +8,7 @@ use Lorisleiva\LaravelSearchString\AST\NotSymbol;
 use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
+use Lorisleiva\LaravelSearchString\AST\RelationshipSymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
 
 class InlineDumpVisitor extends Visitor
@@ -32,6 +33,20 @@ class InlineDumpVisitor extends Visitor
     public function visitNot(NotSymbol $not)
     {
         return 'NOT(' . $not->expression->accept($this) . ')';
+    }
+
+    public function visitRelationship(RelationshipSymbol $relationship)
+    {
+        $expression = $relationship->expression->accept($this);
+
+        return sprintf(
+            '%s(%s, %s) %s %s',
+            $relationship->negated ? 'NOT_EXISTS' : 'EXISTS',
+            $relationship->key,
+            $expression,
+            $relationship->expectedOperator,
+            $relationship->expectedCount
+        );
     }
 
     public function visitSolo(SoloSymbol $solo)
