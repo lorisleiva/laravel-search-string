@@ -1,8 +1,7 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests\Unit;
+namespace Lorisleiva\LaravelSearchString\Tests;
 
-use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitors\AttachRulesVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\InlineDumpVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\RemoveKeywordsVisitor;

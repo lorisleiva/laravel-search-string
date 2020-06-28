@@ -1,9 +1,8 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests\Feature;
+namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Illuminate\Support\Facades\DB;
-use Lorisleiva\LaravelSearchString\Tests\TestCase;
 
 class UpdateBuilderTest extends TestCase
 {

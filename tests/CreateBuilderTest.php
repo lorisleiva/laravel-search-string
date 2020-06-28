@@ -1,9 +1,8 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests\Feature;
+namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
-use Lorisleiva\LaravelSearchString\Tests\TestCase;
 
 class CreateBuilderTest extends TestCase
 {

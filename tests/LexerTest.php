@@ -1,8 +1,6 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests\Unit;
-
-use Lorisleiva\LaravelSearchString\Tests\TestCase;
+namespace Lorisleiva\LaravelSearchString\Tests;
 
 class LexerTest extends TestCase
 {

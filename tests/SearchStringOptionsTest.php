@@ -1,11 +1,10 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests\Unit;
+namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Illuminate\Database\Eloquent\Model;
 use Lorisleiva\LaravelSearchString\Concerns\SearchString;
 use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModel;
-use Lorisleiva\LaravelSearchString\Tests\TestCase;
 
 class SearchStringOptionsTest extends TestCase
 {

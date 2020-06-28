@@ -1,16 +1,13 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests\Unit;
+namespace Lorisleiva\LaravelSearchString\Tests;
 
-use Lorisleiva\LaravelSearchString\AST\ListSymbol;
-use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\GeneratesEloquentBuilder;
-use Lorisleiva\LaravelSearchString\Tests\TestCase;
 use Lorisleiva\LaravelSearchString\Visitors\AttachRulesVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\BuildKeywordsVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\InlineDumpVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\RemoveNotSymbolVisitor;
-use Lorisleiva\LaravelSearchString\Visitors\BuildKeywordsVisitor;
 
 class BuildKeywordsVisitorTest extends TestCase
 {

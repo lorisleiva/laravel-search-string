@@ -1,9 +1,8 @@
 <?php
 
-namespace Lorisleiva\LaravelSearchString\Tests\Unit;
+namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Lorisleiva\LaravelSearchString\Options\Rule;
-use Lorisleiva\LaravelSearchString\Tests\TestCase;
 
 class RuleTest extends TestCase
 {
