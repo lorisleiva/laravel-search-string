@@ -29,7 +29,7 @@ class ParserTest extends TestCase
         $this->assertAstFor('amount >= 0', 'QUERY(amount >= 0)');
         $this->assertAstFor('amount < 0', 'QUERY(amount < 0)');
         $this->assertAstFor('amount <= 0', 'QUERY(amount <= 0)');
-        $this->assertAstFor('users.todos <= 10', 'QUERY(users.todos <= 10)');
+        $this->assertAstFor('users_todos <= 10', 'QUERY(users_todos <= 10)');
         $this->assertAstFor('date > "2018-05-14 00:41:10"', 'QUERY(date > 2018-05-14 00:41:10)');
     }
 

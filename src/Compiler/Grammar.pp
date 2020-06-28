@@ -8,58 +8,72 @@
 %token  T_IN	       		(in|IN)(?![^\(\)\s])
 %token  T_NULL		    	(NULL)(?![^\(\)\s])
 
-%token  T_SINGLE_LQUOTE         	            '     	-> single_quote_string
+%token  T_SINGLE_LQUOTE                         '     	-> single_quote_string
 %token  T_DOUBLE_LQUOTE   			            "     	-> double_quote_string
 %token  single_quote_string:T_STRING  	        [^']+
 %token  double_quote_string:T_STRING  	        [^"]+
 %token  single_quote_string:T_SINGLE_RQUOTE  	'      	-> default
 %token  double_quote_string:T_DOUBLE_RQUOTE  	"      	-> default
 
-%token  T_LPARENTHESIS 		\(
+%token  T_LPARENTHESIS 	    \(
 %token  T_RPARENTHESIS     	\)
-%token  T_COMMA     		,
-%token  T_TERM     			[^\s:><="\'\(\),]+
+%token  T_DOT               \.
+%token  T_COMMA             ,
+
+%token  T_INTEGER           (\d+)(?![^\(\)\s])
+%token  T_DECIMAL           (\d+\.\d+)(?![^\(\)\s])
+%token  T_TERM              [^\s:><="\'\(\)\.,]+
 
 Expr:
-	OrNode()
+    OrNode()
 
 OrNode:
-	AndNode() ( ::T_OR:: AndNode() #OrNode )*
+    AndNode() ( ::T_OR:: AndNode() #OrNode )*
 
 AndNode:
-	TerminalNode() ( ::T_AND::? TerminalNode() #AndNode )*
+    TerminalNode() ( ::T_AND::? TerminalNode() #AndNode )*
 
 TerminalNode:
-    NestedExpr() | NotNode() | QueryNode() | ListNode() | SoloNode()
+    NestedExpr() | NotNode() | RelationshipNode() | QueryNode() | ListNode() | SoloNode()
 
 NestedExpr:
     ::T_LPARENTHESIS:: Expr() ::T_RPARENTHESIS::
 
 #NotNode:
-	::T_NOT:: TerminalNode()
+    ::T_NOT:: TerminalNode()
+
+#RelationshipNode:
+    (<T_TERM>|NestedTerms()) ::T_ASSIGNMENT:: ::T_LPARENTHESIS:: Expr() ::T_RPARENTHESIS:: (Operator() <T_INTEGER>)? |
+    NestedTerms() Operator() NullableScalar()
+
+#NestedTerms:
+    <T_TERM> (::T_DOT:: <T_TERM>)+
 
 #QueryNode:
-	<T_TERM> Operator() NullableScalar()
+    <T_TERM> Operator() NullableScalar()
 
 #ListNode:
     <T_TERM> ::T_IN:: ::T_LPARENTHESIS:: ScalarList() ::T_RPARENTHESIS:: |
     <T_TERM> ::T_ASSIGNMENT:: ScalarList()
 
 #SoloNode:
-	Scalar()
+    Scalar()
 
 #ScalarList:
-	Scalar() ( ::T_COMMA:: Scalar() )*
+    Scalar() ( ::T_COMMA:: Scalar() )*
 
 Scalar:
-	String() | <T_TERM>
+    String() | Number() |  <T_TERM>
 
 NullableScalar:
-	Scalar() | <T_NULL>
+    Scalar() | <T_NULL>
 
 String:
     ::T_SINGLE_LQUOTE:: <T_STRING>? ::T_SINGLE_RQUOTE:: |
     ::T_DOUBLE_LQUOTE:: <T_STRING>? ::T_DOUBLE_RQUOTE::
 
+Number:
+    <T_INTEGER> |  <T_DECIMAL>
+
 Operator:
-	<T_ASSIGNMENT> | <T_COMPARATOR>
+    <T_ASSIGNMENT> | <T_COMPARATOR>

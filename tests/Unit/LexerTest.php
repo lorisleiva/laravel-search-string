@@ -64,8 +64,8 @@ class LexerTest extends TestCase
     public function it_lexes_complex_queries()
     {
         $this->assertTokensFor(
-            'foo12bar.x.y?z and (foo:1 or bar> 3)',
-            'T_TERM T_AND T_LPARENTHESIS T_TERM T_ASSIGNMENT T_TERM T_OR T_TERM T_COMPARATOR T_TERM T_RPARENTHESIS'
+            'foo12bar.x.y?z and (foo:1 or bar> 3.5)',
+            'T_TERM T_DOT T_TERM T_DOT T_TERM T_AND T_LPARENTHESIS T_TERM T_ASSIGNMENT T_INTEGER T_OR T_TERM T_COMPARATOR T_DECIMAL T_RPARENTHESIS'
         );
     }
 
