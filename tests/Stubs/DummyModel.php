@@ -14,12 +14,13 @@ class DummyModel extends Model
     ];
 
     protected $searchStringColumns = [
-        'name' => [ 'searchable' => true ],
+        'name' => ['searchable' => true],
         'price',
-        'description' => [ 'searchable' => true ],
+        'description' => ['searchable' => true],
         'paid',         // Automatically marked as boolean.
-        'boolean_variable' => [ 'boolean' => true ],
+        'boolean_variable' => ['boolean' => true],
         'created_at',   // Automatically marked as date and boolean.
+        'comments' => ['relationship' => true],
     ];
 
     protected $searchStringKeywords = [
@@ -28,4 +29,9 @@ class DummyModel extends Model
         'limit' => 'limit',
         'offset' => 'from',
     ];
+
+    public function comments()
+    {
+        return $this->hasMany(DummyComment::class);
+    }
 }

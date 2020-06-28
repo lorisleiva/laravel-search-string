@@ -22,17 +22,23 @@ class AttachRulesVisitor extends Visitor
 
     public function visitRelationship(RelationshipSymbol $relationship)
     {
-        return $this->attachRuleFromColumns($relationship, $relationship->key);
+        if (! $rule = $this->manager->getColumnRule($relationship->key)) {
+            return $relationship;
+        }
+
+        $relationship->attachRule($rule);
+
+        $originalManager = $this->manager;
+        $this->manager = $this->manager; // TODO: grab new model manager from relationship
+        $relationship->expression = $relationship->expression->accept($this);
+        $this->manager = $originalManager;
+
+        return $relationship;
     }
 
     public function visitSolo(SoloSymbol $solo)
     {
         return $this->attachRuleFromColumns($solo, $solo->content);
-    }
-
-    public function visitSearch(SearchSymbol $search)
-    {
-        return $this->attachRuleFromColumns($search, $search->content);
     }
 
     public function visitQuery(QuerySymbol $query)

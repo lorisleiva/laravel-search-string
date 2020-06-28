@@ -2,7 +2,6 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests\Concerns;
 
-use Lorisleiva\LaravelSearchString\SearchStringManager;
 use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModel;
 
 trait GeneratesEloquentBuilder

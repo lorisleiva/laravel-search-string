@@ -97,14 +97,14 @@ trait SearchStringOptions
         return $this->options->get('columns');
     }
 
-    public function getKeywordRule($key): ?Rule
+    public function getKeywordRule($key): ?KeywordRule
     {
         return $this->getKeywordRules()->first(function ($rule) use ($key) {
             return $rule->match($key);
         });
     }
 
-    public function getColumnRule($key): ?Rule
+    public function getColumnRule($key): ?ColumnRule
     {
         return $this->getColumnRules()->first(function ($rule) use ($key) {
             return $rule->match($key);
@@ -122,7 +122,7 @@ trait SearchStringOptions
 
     public function getColumns(): Collection
     {
-        return $this->getColumnRules()->keys();
+        return $this->getColumnRules()->reject->relationship->keys();
     }
 
     public function getSearchables(): Collection

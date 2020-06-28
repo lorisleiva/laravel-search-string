@@ -19,6 +19,7 @@ class SearchStringOptionsTest extends TestCase
             'paid' =>               '[/^paid$/][boolean]',
             'boolean_variable' =>   '[/^boolean_variable$/][boolean]',
             'created_at' =>         '[/^created_at$/][boolean][date]',
+            'comments' =>           '[/^comments$/][relationship]',
         ]);
 
         $this->assertKeywordRulesFor(new DummyModel, [

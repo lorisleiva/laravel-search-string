@@ -7,14 +7,18 @@ use Illuminate\Support\Collection;
 
 class ColumnRule extends Rule
 {
-    /** @var bool */
-    public $searchable = false;
 
     /** @var bool */
     public $date = false;
 
     /** @var bool */
     public $boolean = false;
+
+    /** @var bool */
+    public $searchable = false;
+
+    /** @var bool */
+    public $relationship = false;
 
     /** @var Collection */
     public $map;
@@ -23,9 +27,10 @@ class ColumnRule extends Rule
     {
         parent::__construct($column, $rule);
 
-        $this->boolean = Arr::get($rule, 'boolean', $isBoolean || $isDate);
         $this->date = Arr::get($rule, 'date', $isDate);
+        $this->boolean = Arr::get($rule, 'boolean', $isBoolean || $isDate);
         $this->searchable = Arr::get($rule, 'searchable', false);
+        $this->relationship = Arr::get($rule, 'relationship', false);
         $this->map = Collection::wrap(Arr::get($rule, 'map', []));
     }
 
@@ -36,6 +41,7 @@ class ColumnRule extends Rule
             $this->searchable ? 'searchable' : null,
             $this->boolean ? 'boolean' : null,
             $this->date ? 'date' : null,
+            $this->relationship ? 'relationship' : null,
         ])->filter()->implode('][');
 
         $mappings = $this->map->map(function ($value, $key) {
