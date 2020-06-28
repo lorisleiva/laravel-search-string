@@ -2,11 +2,17 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests;
 
-use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Visitors\InlineDumpVisitor;
 
-class ParserTest extends TestCase
+class AstBeforeVisitorsTest extends VisitorTest
 {
+    public function visitors($manager, $builder, $model)
+    {
+        return [
+            new InlineDumpVisitor()
+        ];
+    }
+
     /** @test */
     public function it_parses_assignments_as_queries()
     {
@@ -126,65 +132,45 @@ class ParserTest extends TestCase
     /** @test */
     public function it_fail_to_parse_unfinished_queries()
     {
-        $this->assertParserFails('not ', 'EOF');
-        $this->assertParserFails('foo = ', 'T_ASSIGNMENT');
-        $this->assertParserFails('foo <= ', 'T_COMPARATOR');
-        $this->assertParserFails('foo in ', 'T_IN');
-        $this->assertParserFails('(', 'EOF');
+        $this->assertAstFails('not ', 'EOF');
+        $this->assertAstFails('foo = ', 'T_ASSIGNMENT');
+        $this->assertAstFails('foo <= ', 'T_COMPARATOR');
+        $this->assertAstFails('foo in ', 'T_IN');
+        $this->assertAstFails('(', 'EOF');
     }
 
     /** @test */
     public function it_fail_to_parse_strings_as_query_keys()
     {
-        $this->assertParserFails('"string as key":foo', 'T_ASSIGNMENT');
-        $this->assertParserFails('foo and bar and "string as key" > 3', 'T_COMPARATOR');
-        $this->assertParserFails('not "string as key" in (1,2,3)', 'T_IN');
+        $this->assertAstFails('"string as key":foo', 'T_ASSIGNMENT');
+        $this->assertAstFails('foo and bar and "string as key" > 3', 'T_COMPARATOR');
+        $this->assertAstFails('not "string as key" in (1,2,3)', 'T_IN');
     }
 
     /** @test */
     public function it_fails_to_parse_lonely_operators()
     {
-        $this->assertParserFails('and', 'T_AND');
-        $this->assertParserFails('or', 'T_OR');
-        $this->assertParserFails('in', 'T_IN');
-        $this->assertParserFails('=', 'T_ASSIGNMENT');
-        $this->assertParserFails(':', 'T_ASSIGNMENT');
-        $this->assertParserFails('<', 'T_COMPARATOR');
-        $this->assertParserFails('<=', 'T_COMPARATOR');
-        $this->assertParserFails('>', 'T_COMPARATOR');
-        $this->assertParserFails('>=', 'T_COMPARATOR');
+        $this->assertAstFails('and', 'T_AND');
+        $this->assertAstFails('or', 'T_OR');
+        $this->assertAstFails('in', 'T_IN');
+        $this->assertAstFails('=', 'T_ASSIGNMENT');
+        $this->assertAstFails(':', 'T_ASSIGNMENT');
+        $this->assertAstFails('<', 'T_COMPARATOR');
+        $this->assertAstFails('<=', 'T_COMPARATOR');
+        $this->assertAstFails('>', 'T_COMPARATOR');
+        $this->assertAstFails('>=', 'T_COMPARATOR');
     }
 
     /** @test */
     public function it_fail_to_parse_weird_operator_combinations()
     {
-        $this->assertParserFails('foo<>3', 'T_COMPARATOR');
-        $this->assertParserFails('foo=>3', 'T_ASSIGNMENT');
-        $this->assertParserFails('foo=<3', 'T_ASSIGNMENT');
-        $this->assertParserFails('foo < in 3', 'T_COMPARATOR');
-        $this->assertParserFails('foo in = 1,2,3', 'T_IN');
-        $this->assertParserFails('foo == 1,2,3', 'T_ASSIGNMENT');
-        $this->assertParserFails('foo := 1,2,3', 'T_ASSIGNMENT');
-        $this->assertParserFails('foo:1:2:3:4', 'T_ASSIGNMENT');
-    }
-
-    public function assertAstFor($input, $expectedAst)
-    {
-        $ast = $this->parse($input)->accept(new InlineDumpVisitor());
-        $this->assertEquals($expectedAst, $ast);
-    }
-
-    public function assertParserFails($input, $unexpectedToken = null)
-    {
-        try {
-            $ast = $this->parse($input)->accept(new InlineDumpVisitor());
-            $this->fail("Expected \"$input\" to fail. Instead got: \"$ast\"");
-        } catch (InvalidSearchStringException $e) {
-            if ($unexpectedToken) {
-                $this->assertEquals($unexpectedToken, $e->getToken());
-            } else {
-                $this->assertTrue(true);
-            }
-        }
+        $this->assertAstFails('foo<>3', 'T_COMPARATOR');
+        $this->assertAstFails('foo=>3', 'T_ASSIGNMENT');
+        $this->assertAstFails('foo=<3', 'T_ASSIGNMENT');
+        $this->assertAstFails('foo < in 3', 'T_COMPARATOR');
+        $this->assertAstFails('foo in = 1,2,3', 'T_IN');
+        $this->assertAstFails('foo == 1,2,3', 'T_ASSIGNMENT');
+        $this->assertAstFails('foo := 1,2,3', 'T_ASSIGNMENT');
+        $this->assertAstFails('foo:1:2:3:4', 'T_ASSIGNMENT');
     }
 }
