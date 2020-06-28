@@ -4,7 +4,10 @@ namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
+use Lorisleiva\LaravelSearchString\AST\RelationshipSymbol;
+use Lorisleiva\LaravelSearchString\AST\SearchSymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
+use Lorisleiva\LaravelSearchString\AST\Symbol;
 use Lorisleiva\LaravelSearchString\SearchStringManager;
 
 class AttachRulesVisitor extends Visitor
@@ -17,30 +20,46 @@ class AttachRulesVisitor extends Visitor
         $this->manager = $manager;
     }
 
+    public function visitRelationship(RelationshipSymbol $relationship)
+    {
+        return $this->attachRuleFromColumns($relationship, $relationship->key);
+    }
+
     public function visitSolo(SoloSymbol $solo)
     {
-        if ($rule = $this->manager->getColumnRule($solo->content)) {
-            return $solo->attachRule($rule);
-        }
+        return $this->attachRuleFromColumns($solo, $solo->content);
+    }
 
-        return $solo;
+    public function visitSearch(SearchSymbol $search)
+    {
+        return $this->attachRuleFromColumns($search, $search->content);
     }
 
     public function visitQuery(QuerySymbol $query)
     {
-        if ($rule = $this->manager->getRule($query->key)) {
-            return $query->attachRule($rule);
-        }
-
-        return $query;
+        return $this->attachRuleFromKeywordsOrColumns($query, $query->key);
     }
 
     public function visitList(ListSymbol $list)
     {
-        if ($rule = $this->manager->getRule($list->key)) {
-            return $list->attachRule($rule);
+        return $this->attachRuleFromKeywordsOrColumns($list, $list->key);
+    }
+
+    protected function attachRuleFromKeywordsOrColumns(Symbol $symbol, string $key)
+    {
+        if ($rule = $this->manager->getRule($key)) {
+            return $symbol->attachRule($rule);
         }
 
-        return $list;
+        return $symbol;
+    }
+
+    protected function attachRuleFromColumns(Symbol $symbol, string $key)
+    {
+        if ($rule = $this->manager->getColumnRule($key)) {
+            return $symbol->attachRule($rule);
+        }
+
+        return $symbol;
     }
 }

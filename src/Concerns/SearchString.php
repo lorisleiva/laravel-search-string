@@ -3,6 +3,7 @@
 namespace Lorisleiva\LaravelSearchString\Concerns;
 
 use Lorisleiva\LaravelSearchString\SearchStringManager;
+use Lorisleiva\LaravelSearchString\Visitors\AttachRulesVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\BuildColumnsVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\BuildKeywordsVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\OptimizeAstVisitor;
@@ -30,6 +31,7 @@ trait SearchString
     {
         return [
             new RemoveNotSymbolVisitor,
+            new AttachRulesVisitor($manager),
             new BuildKeywordsVisitor($manager, $builder),
             new RemoveKeywordsVisitor($manager),
             new OptimizeAstVisitor,
