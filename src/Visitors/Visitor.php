@@ -36,8 +36,8 @@ abstract class Visitor
         return $solo;
     }
 
-    public function visitEmpty(EmptySymbol $null)
+    public function visitEmpty(EmptySymbol $empty)
     {
-        return $null;
+        return $empty;
     }
 }

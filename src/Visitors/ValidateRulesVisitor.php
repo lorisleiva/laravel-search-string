@@ -5,7 +5,7 @@ namespace Lorisleiva\LaravelSearchString\Visitors;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 
-class RuleValidatorVisitor extends Visitor
+class ValidateRulesVisitor extends Visitor
 {
     protected $manager;
 
