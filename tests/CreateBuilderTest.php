@@ -9,191 +9,126 @@ class CreateBuilderTest extends TestCase
 {
     use DumpsSql;
 
-    /** @test */
-    public function it_does_not_filter_anything_by_default()
+    public function success()
     {
-        $this->assertSqlEquals('', 'select * from dummy_models');
-        $this->assertSqlEquals('()', 'select * from dummy_models');
-        $this->assertSqlEquals(' () ', 'select * from dummy_models');
-        $this->assertSqlEquals('((()))', 'select * from dummy_models');
+        return [
+            // It does not filter anything by default.
+            ['', 'select * from dummy_models'],
+            ['()', 'select * from dummy_models'],
+            [' () ', 'select * from dummy_models'],
+            ['((()))', 'select * from dummy_models'],
+
+            // Select.
+            ['fields:name', 'select name from dummy_models'],
+            ['fields:name,price', 'select name, price from dummy_models'],
+            ['fields:price,name', 'select name, price from dummy_models'],
+            ['not fields:name', 'select price, description, paid, boolean_variable, created_at from dummy_models'],
+            ['not fields:name, price', 'select description, paid, boolean_variable, created_at from dummy_models'],
+
+            // Order by.
+            ['sort:name', 'select * from dummy_models order by name asc'],
+            ['sort:name,price', 'select * from dummy_models order by name asc, price asc'],
+            ['sort:-price,name', 'select * from dummy_models order by price desc, name asc'],
+            ['sort:-price,-name', 'select * from dummy_models order by price desc, name desc'],
+
+            // Sort
+            ['not sort:name', 'select * from dummy_models order by name asc'],
+            ['not sort:-price,name', 'select * from dummy_models order by price desc, name asc'],
+
+            // Limit and offset.
+            ['limit:10', 'select * from dummy_models limit 10'],
+            ['from:10', 'select * from dummy_models offset 10'],
+            ['limit:10 from:10', 'select * from dummy_models limit 10 offset 10'],
+            ['from:10 limit:10', 'select * from dummy_models limit 10 offset 10'],
+
+            // Not limit/offset has no effects.
+            ['not limit:10', 'select * from dummy_models limit 10'],
+            ['not from:10', 'select * from dummy_models offset 10'],
+
+            // Complex examples.
+            [
+                'name in (John,Jane) or description=Employee and created_at < 2018-05-18 limit:3 or Banana from:1',
+                "select * from dummy_models "
+                . "where (name in ('John', 'Jane') "
+                . "or (description = 'Employee' and created_at < 2018-05-18 00:00:00) "
+                . "or (name like '%Banana%' or description like '%Banana%')) "
+                . "limit 3 offset 1"
+            ],
+        ];
     }
 
-    /** @test */
-    public function it_filters_the_columns_to_select()
+    public function successWhereOnly()
     {
-        $this->assertSqlEquals('fields:name', 'select name from dummy_models');
-        $this->assertSqlEquals('fields:name,price', 'select name, price from dummy_models');
-        $this->assertSqlEquals('fields:price,name', 'select name, price from dummy_models');
-
-        $this->assertSqlEquals('not fields:name',
-            'select price, description, paid, boolean_variable, created_at from dummy_models'
-        );
-
-        $this->assertSqlEquals('not fields:name, price',
-            'select description, paid, boolean_variable, created_at from dummy_models'
-        );
-    }
-
-    /** @test */
-    public function it_orders_the_results()
-    {
-        $this->assertSqlEquals('sort:name', 'select * from dummy_models order by name asc');
-        $this->assertSqlEquals('sort:name,price', 'select * from dummy_models order by name asc, price asc');
-        $this->assertSqlEquals('sort:-price,name', 'select * from dummy_models order by price desc, name asc');
-        $this->assertSqlEquals('sort:-price,-name', 'select * from dummy_models order by price desc, name desc');
-    }
-
-    /** @test */
-    public function not_before_sort_does_not_affect_the_order_of_sort()
-    {
-        $this->assertSqlEquals('not sort:name', 'select * from dummy_models order by name asc');
-        $this->assertSqlEquals('not sort:-price,name', 'select * from dummy_models order by price desc, name asc');
-    }
-
-    /** @test */
-    public function it_limits_and_offsets_the_results()
-    {
-        $this->assertSqlEquals('limit:10', 'select * from dummy_models limit 10');
-        $this->assertSqlEquals('from:10', 'select * from dummy_models offset 10');
-        $this->assertSqlEquals('limit:10 from:10', 'select * from dummy_models limit 10 offset 10');
-        $this->assertSqlEquals('from:10 limit:10', 'select * from dummy_models limit 10 offset 10');
-    }
-
-    /** @test */
-    public function it_throws_an_exception_if_limit_is_not_a_positive_integer()
-    {
-        config()->set('search-string.fail', 'exceptions');
-        $this->expectException(InvalidSearchStringException::class);
-        $this->getSearchStringManager()->createBuilder('limit:-1');
-    }
-
-    /** @test */
-    public function it_throws_an_exception_if_offset_is_not_a_positive_integer()
-    {
-        config()->set('search-string.fail', 'exceptions');
-        $this->expectException(InvalidSearchStringException::class);
-        $this->getSearchStringManager()->createBuilder('from:"foo bar"');
-    }
-
-    /** @test */
-    public function not_before_limit_and_offset_does_not_affect_the_results()
-    {
-        $this->assertSqlEquals('not limit:10', 'select * from dummy_models limit 10');
-        $this->assertSqlEquals('not from:10', 'select * from dummy_models offset 10');
-    }
-
-    /** @test */
-    public function it_filters_basic_queries()
-    {
-        // Assignments.
-        $this->assertWhereSqlEquals('name:John', "name = 'John'");
-        $this->assertWhereSqlEquals('name=John', "name = 'John'");
-        $this->assertWhereSqlEquals('name="John doe"', "name = 'John doe'");
-        $this->assertWhereSqlEquals('not name:John', "name != 'John'");
-
-        // Booleans.
-        $this->assertWhereSqlEquals('boolean_variable', "boolean_variable = true");
-        $this->assertWhereSqlEquals('paid', "paid = true");
-        $this->assertWhereSqlEquals('not paid', "paid = false");
-
-        // Comparisons.
-        $this->assertWhereSqlEquals('price>0', "price > 0");
-        $this->assertWhereSqlEquals('price>=0', "price >= 0");
-        $this->assertWhereSqlEquals('price<0', "price < 0");
-        $this->assertWhereSqlEquals('price<=0', "price <= 0");
-        $this->assertWhereSqlEquals('price>0.55', "price > 0.55");
-
-        // Null in capital treated as null value.
-        $this->assertWhereSqlEquals('name:NULL', "name is null");
-        $this->assertWhereSqlEquals('not name:NULL', "name is not null");
-    }
-
-    /** @test */
-    public function it_parses_date_filters_using_carbon()
-    {
-        $this->assertWhereSqlEquals('created_at = "2018-05-17 10:30:00"', "created_at = 2018-05-17 10:30:00");
-
-        $this->assertWhereSqlEquals('created_at = 2018-05-17',
-            "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"
-        );
-
-        $this->assertWhereSqlEquals('not created_at = 2018-05-17',
-            "(created_at < 2018-05-17 00:00:00 and created_at > 2018-05-17 23:59:59)"
-        );
-
-        $this->assertWhereSqlEquals('created_at = "May 17 2018"',
-            "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"
-        );
-
         $tomorrowStart = now()->addDay()->startOfDay();
         $tomorrowEnd = now()->addDay()->endOfDay();
 
-        $this->assertWhereSqlEquals('created_at = tomorrow',
-            "(created_at >= $tomorrowStart and created_at <= $tomorrowEnd)"
-        );
+        return [
+            // Assignments.
+            ['name:John', "name = 'John'"],
+            ['name=John', "name = 'John'"],
+            ['name="John doe"', "name = 'John doe'"],
+            ['not name:John', "name != 'John'"],
 
-        $this->assertWhereSqlEquals('created_at < tomorrow', "created_at < $tomorrowStart");
-        $this->assertWhereSqlEquals('created_at <= tomorrow', "created_at <= $tomorrowEnd");
-        $this->assertWhereSqlEquals('created_at > tomorrow', "created_at > $tomorrowEnd");
-        $this->assertWhereSqlEquals('created_at >= tomorrow', "created_at >= $tomorrowStart");
+            // Booleans.
+            ['boolean_variable', "boolean_variable = true"],
+            ['paid', "paid = true"],
+            ['not paid', "paid = false"],
+
+            // Comparisons.
+            ['price>0', "price > 0"],
+            ['price>=0', "price >= 0"],
+            ['price<0', "price < 0"],
+            ['price<=0', "price <= 0"],
+            ['price>0.55', "price > 0.55"],
+
+            // Null in capital treated as null value.
+            ['name:NULL', "name is null"],
+            ['not name:NULL', "name is not null"],
+
+            // Dates.
+            ['created_at = "2018-05-17 10:30:00"', "created_at = 2018-05-17 10:30:00"],
+            ['created_at = 2018-05-17', "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"],
+            ['not created_at = 2018-05-17', "(created_at < 2018-05-17 00:00:00 and created_at > 2018-05-17 23:59:59)"],
+            ['created_at = "May 17 2018"', "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"],
+
+            // Relative dates.
+            ['created_at = tomorrow', "(created_at >= $tomorrowStart and created_at <= $tomorrowEnd)"],
+            ['created_at < tomorrow', "created_at < $tomorrowStart"],
+            ['created_at <= tomorrow', "created_at <= $tomorrowEnd"],
+            ['created_at > tomorrow', "created_at > $tomorrowEnd"],
+            ['created_at >= tomorrow', "created_at >= $tomorrowStart"],
+
+            // Dates as booleans.
+            ['created_at', "created_at is not null"],
+            ['not created_at', "created_at is null"],
+
+            // Lists.
+            ['name in (John, Jane)', "name in ('John', 'Jane')"],
+            ['not name in (John, Jane)', "name not in ('John', 'Jane')"],
+            ['name in (John)', "name in ('John')"],
+            ['not name in (John)', "name not in ('John')"],
+            ['name:John,Jane', "name in ('John', 'Jane')"],
+            ['not name:John,Jane', "name not in ('John', 'Jane')"],
+
+            // Search.
+            ['John', "(name like '%John%' or description like '%John%')"],
+            ['"John Doe"', "(name like '%John Doe%' or description like '%John Doe%')"],
+            ['not John', "(name not like '%John%' and description not like '%John%')"],
+
+            // Nested And/Or where clauses.
+            ['name:John and price>0', "(name = 'John' and price > 0)"],
+            ['name:John or name:Jane', "(name = 'John' or name = 'Jane')"],
+            ['name:1 and name:2 or name:3', "((name = 1 and name = 2) or name = 3)"],
+            ['name:1 and (name:2 or name:3)', "(name = 1 and (name = 2 or name = 3))"],
+        ];
     }
 
-    /** @test */
-    public function it_can_use_dates_as_boolean_by_filtering_on_null_values()
+    public function expectInvalidSearchStringException()
     {
-        $this->assertWhereSqlEquals('created_at', "created_at is not null");
-        $this->assertWhereSqlEquals('not created_at', "created_at is null");
-    }
-
-    /** @test */
-    public function it_filters_in_array_queries()
-    {
-        $this->assertWhereSqlEquals('name in (John, Jane)', "name in ('John', 'Jane')");
-        $this->assertWhereSqlEquals('not name in (John, Jane)', "name not in ('John', 'Jane')");
-        $this->assertWhereSqlEquals('name in (John)', "name in ('John')");
-        $this->assertWhereSqlEquals('not name in (John)', "name not in ('John')");
-
-        // Array assignment treated as whereIn
-        $this->assertWhereSqlEquals('name:John,Jane', "name in ('John', 'Jane')");
-        $this->assertWhereSqlEquals('not name:John,Jane', "name not in ('John', 'Jane')");
-    }
-
-    /** @test */
-    public function it_filters_search_terms_and_strings()
-    {
-        $this->assertWhereSqlEquals('John',
-            "(name like '%John%' or description like '%John%')"
-        );
-
-        $this->assertWhereSqlEquals('"John Doe"',
-            "(name like '%John Doe%' or description like '%John Doe%')"
-        );
-
-        $this->assertWhereSqlEquals('not John',
-            "(name not like '%John%' and description not like '%John%')"
-        );
-    }
-
-    /** @test */
-    public function it_creates_nested_where_clauses_using_or_and_operators()
-    {
-        $this->assertWhereSqlEquals('name:John and price>0', "(name = 'John' and price > 0)");
-        $this->assertWhereSqlEquals('name:John or name:Jane', "(name = 'John' or name = 'Jane')");
-        $this->assertWhereSqlEquals('name:1 and name:2 or name:3', "((name = 1 and name = 2) or name = 3)");
-        $this->assertWhereSqlEquals('name:1 and (name:2 or name:3)', "(name = 1 and (name = 2 or name = 3))");
-    }
-
-    /** @test */
-    public function it_creates_complex_queries()
-    {
-        $this->assertSqlEquals(
-            'name in (John,Jane) or description=Employee and created_at < 2018-05-18 limit:3 or Banana from:1',
-            "select * from dummy_models "
-            . "where (name in ('John', 'Jane') "
-            . "or (description = 'Employee' and created_at < 2018-05-18 00:00:00) "
-            . "or (name like '%Banana%' or description like '%Banana%')) "
-            . "limit 3 offset 1"
-        );
+        return [
+            'Limit should be a positive integer' => ['limit:-1'],
+            'Offset should be a positive integer' => ['from:"foo bar"'],
+        ];
     }
 
     /** @test */
@@ -213,5 +148,39 @@ class CreateBuilderTest extends TestCase
         $this->assertWhereSqlEquals('not created', "created_at is null", $model);
         $this->assertWhereSqlEquals('active', "activated = true", $model);
         $this->assertWhereSqlEquals('not active', "activated = false", $model);
+    }
+
+    /**
+     * @test
+     * @dataProvider success
+     * @param string $input
+     * @param string $expected
+     */
+    public function create_builder_success(string $input, string $expected)
+    {
+        $this->assertSqlEquals($input, $expected);
+    }
+
+    /**
+     * @test
+     * @dataProvider successWhereOnly
+     * @param string $input
+     * @param string $expected
+     */
+    public function create_builder_success_where_only(string $input, string $expected)
+    {
+        $this->assertWhereSqlEquals($input, $expected);
+    }
+
+    /**
+     * @test
+     * @dataProvider expectInvalidSearchStringException
+     * @param string $input
+     */
+    public function create_builder_expect_exception(string $input)
+    {
+        config()->set('search-string.fail', 'exceptions');
+        $this->expectException(InvalidSearchStringException::class);
+        $this->build($input);
     }
 }
