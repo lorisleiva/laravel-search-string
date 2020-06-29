@@ -8,12 +8,11 @@ use Lorisleiva\LaravelSearchString\Visitors\AttachRulesVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\BuildColumnsVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\RemoveNotSymbolVisitor;
 
-class BuildColumnsVisitorTest extends TestCase
+class VisitorBuildColumnsTest extends VisitorTest
 {
     use DumpsWhereClauses;
-    use GeneratesEloquentBuilder;
 
-    public function visitors($manager, $builder)
+    public function visitors($manager, $builder, $model)
     {
         return [
             new RemoveNotSymbolVisitor,
@@ -226,5 +225,11 @@ class BuildColumnsVisitorTest extends TestCase
         ]);
 
         $this->assertWhereClauses('support_level:missing_value', ['Basic[and][0]' => 'support_level_id = missing_value'], $model);
+    }
+
+    public function assertWhereClauses($input, $expected, $model = null)
+    {
+        $wheres = $this->dumpWhereClauses($this->getBuilder($input, $model));
+        $this->assertEquals($expected, $wheres);
     }
 }

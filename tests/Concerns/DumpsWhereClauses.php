@@ -7,29 +7,22 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 
 trait DumpsWhereClauses
 {
-    public function assertWhereClauses($input, $expected, $model = null)
+    /**
+     * @param EloquentBuilder|QueryBuilder $query
+     * @return array
+     */
+    public function dumpWhereClauses($query)
     {
-        if (! method_exists($this, 'getBuilderFor')) {
-            return;
+        if ($query instanceof EloquentBuilder) {
+            $query = $query->getQuery();
         }
 
-        $wheres = $this->dumpWhereClauses($this->getBuilderFor($input, $model));
-        $this->assertEquals($expected, $wheres);
-    }
-
-    public function dumpWhereClauses(EloquentBuilder $builder)
-    {
-        return $this->dumpWhereClausesForQuery($builder->getQuery());
-    }
-
-    public function dumpWhereClausesForQuery(QueryBuilder $query)
-    {
         return collect($query->wheres)->mapWithKeys(function ($where, $i){
             $where = (object) $where;
             $key = "$where->type[{$where->boolean}][$i]";
 
             if (isset($where->query)) {
-                $children = $this->dumpWhereClausesForQuery($where->query);
+                $children = $this->dumpWhereClauses($where->query);
                 return [$key => $children];
             }
 
