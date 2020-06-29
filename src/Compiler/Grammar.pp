@@ -34,7 +34,7 @@ AndNode:
     TerminalNode() ( ::T_AND::? TerminalNode() #AndNode )*
 
 TerminalNode:
-    NestedExpr() | NotNode() | RelationshipNode() | QueryNode() | ListNode() | SoloNode()
+    NestedExpr() | NotNode() | RelationshipNode() | NestedRelationshipNode() | QueryNode() | ListNode() | SoloNode()
 
 NestedExpr:
     ::T_LPARENTHESIS:: Expr() ::T_RPARENTHESIS::
@@ -42,8 +42,10 @@ NestedExpr:
 #NotNode:
     ::T_NOT:: TerminalNode()
 
+#NestedRelationshipNode:
+    (<T_TERM>|NestedTerms()) ::T_ASSIGNMENT:: ::T_LPARENTHESIS:: Expr() ::T_RPARENTHESIS:: (Operator() <T_INTEGER>)?
+
 #RelationshipNode:
-    (<T_TERM>|NestedTerms()) ::T_ASSIGNMENT:: ::T_LPARENTHESIS:: Expr() ::T_RPARENTHESIS:: (Operator() <T_INTEGER>)? |
     NestedTerms() (Operator() NullableScalar())?
 
 #NestedTerms:

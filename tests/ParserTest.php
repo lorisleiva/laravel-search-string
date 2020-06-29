@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests;
 
+use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Visitors\InlineDumpVisitor;
 
 class ParserTest extends VisitorTest
@@ -92,6 +93,7 @@ class ParserTest extends VisitorTest
             // Relationships.
             ['comments.author = "John Doe"', 'EXISTS(comments, QUERY(author = John Doe)) > 0'],
             ['comments.author.tags > 3', 'EXISTS(comments, EXISTS(author, QUERY(tags > 3)) > 0) > 0'],
+            ['comments.author.tags', 'EXISTS(comments, EXISTS(author, SOLO(tags)) > 0) > 0'],
         ];
     }
 
@@ -152,6 +154,15 @@ class ParserTest extends VisitorTest
      */
     public function parser_failure($input, $unexpectedToken)
     {
-        $this->assertAstFails($input, $unexpectedToken);
+        try {
+            $ast = $this->visit($input);
+            $this->fail("Expected \"$input\" to fail. Instead got: \"$ast\"");
+        } catch (InvalidSearchStringException $e) {
+            if ($unexpectedToken) {
+                $this->assertEquals($unexpectedToken, $e->getToken());
+            } else {
+                $this->assertTrue(true);
+            }
+        }
     }
 }

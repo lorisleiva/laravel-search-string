@@ -28,6 +28,8 @@ class HoaConverterVisitor implements Visit
                 return new AndSymbol($this->parseChildren($element));
             case '#NotNode':
                 return new NotSymbol($this->parseChildren($element)->get(0));
+            case '#NestedRelationshipNode':
+                return $this->parseNestedRelationshipNode($element);
             case '#RelationshipNode':
                 return $this->parseRelationshipNode($element);
             case '#SoloNode':
@@ -45,28 +47,41 @@ class HoaConverterVisitor implements Visit
         }
     }
 
-    protected function parseRelationshipNode(TreeNode $element): RelationshipSymbol
+    protected function parseNestedRelationshipNode(TreeNode $element): RelationshipSymbol
     {
-        if (($children = $this->parseChildren($element))->count() < 2) {
-            throw InvalidSearchStringException::fromVisitor('RelationshipNode expects at least two children.');
-        }
-
-        if ($children->count() === 3) {
-            return $this->unwrapNestedTerms($children->get(0), $children->get(1), $children->get(2));
-        }
-
         // TODO
     }
 
-    protected function unwrapNestedTerms(Collection $terms, $operator, $value): Symbol
+    protected function parseRelationshipNode(TreeNode $element): RelationshipSymbol
     {
+        $children = $this->parseChildren($element);
+        $terms = Collection::wrap($children->get(0));
         $head = $terms->shift();
+        $expression = $this->parseRelationshipExpression([$terms, $children->get(1), $children->get(2)]);
 
-        if ($terms->isEmpty()) {
-            return new QuerySymbol($head, $operator, $value);
+        return new RelationshipSymbol($head, $expression);
+    }
+
+    protected function parseRelationshipExpression($expression): Symbol
+    {
+        if ($expression instanceof Symbol) {
+            return $expression;
         }
 
-        return new RelationshipSymbol($head, $this->unwrapNestedTerms($terms, $operator, $value));
+        $expression = Collection::wrap($expression);
+        $terms = Collection::wrap($expression->get(0));
+        $operator = $expression->get(1);
+        $value = $expression->get(2);
+
+        if ($terms->count() > 1) {
+            $head = $terms->shift();
+            $expression = $this->parseRelationshipExpression([$terms, $operator, $value]);
+            return new RelationshipSymbol($head, $expression);
+        }
+
+        return $operator
+            ? new QuerySymbol($terms->first(), $operator, $value)
+            : new SoloSymbol($terms->first());
     }
 
     protected function parseSoloNode(TreeNode $element): SoloSymbol

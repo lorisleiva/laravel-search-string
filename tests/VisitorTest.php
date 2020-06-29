@@ -2,7 +2,6 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests;
 
-use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModel;
 
 abstract class VisitorTest extends TestCase
@@ -42,19 +41,5 @@ abstract class VisitorTest extends TestCase
     public function assertAstEquals($input, $expectedAst, $model = null)
     {
         $this->assertEquals($expectedAst, $this->visit($input, null, $model));
-    }
-
-    public function assertAstFails($input, $unexpectedToken = null, $model = null)
-    {
-        try {
-            $ast = $this->visit($input, null, $model);
-            $this->fail("Expected \"$input\" to fail. Instead got: \"$ast\"");
-        } catch (InvalidSearchStringException $e) {
-            if ($unexpectedToken) {
-                $this->assertEquals($unexpectedToken, $e->getToken());
-            } else {
-                $this->assertTrue(true);
-            }
-        }
     }
 }
