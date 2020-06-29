@@ -226,10 +226,4 @@ class VisitorBuildColumnsTest extends VisitorTest
 
         $this->assertWhereClauses('support_level:missing_value', ['Basic[and][0]' => 'support_level_id = missing_value'], $model);
     }
-
-    public function assertWhereClauses($input, $expected, $model = null)
-    {
-        $wheres = $this->dumpWhereClauses($this->getBuilder($input, $model));
-        $this->assertEquals($expected, $wheres);
-    }
 }

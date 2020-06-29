@@ -3,9 +3,12 @@
 namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Illuminate\Support\Facades\DB;
+use Lorisleiva\LaravelSearchString\Tests\Concerns\DumpsSql;
 
 class UpdateBuilderTest extends TestCase
 {
+    use DumpsSql;
+
     /** @test */
     public function it_can_override_the_builders_limit()
     {

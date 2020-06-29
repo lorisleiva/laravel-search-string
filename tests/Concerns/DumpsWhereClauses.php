@@ -11,7 +11,7 @@ trait DumpsWhereClauses
      * @param EloquentBuilder|QueryBuilder $query
      * @return array
      */
-    public function dumpWhereClauses($query)
+    public function dumpWhereClauses($query): array
     {
         if ($query instanceof EloquentBuilder) {
             $query = $query->getQuery();
@@ -32,5 +32,16 @@ trait DumpsWhereClauses
             $value = isset($where->operator) ? "$where->operator $value" : $value;
             return [$key => is_null($value) ? $where->column : "$where->column $value"];
         })->toArray();
+    }
+
+    /**
+     * @param $input
+     * @param array $expected
+     * @param null $model
+     */
+    public function assertWhereClauses($input, array $expected, $model = null)
+    {
+        $wheres = $this->dumpWhereClauses($this->getBuilder($input, $model));
+        $this->assertEquals($expected, $wheres);
     }
 }
