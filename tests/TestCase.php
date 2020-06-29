@@ -65,6 +65,17 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return $this->getSearchStringManager($model)->parse($input);
     }
 
+    public function visit($input, $visitors, $model = null)
+    {
+        $ast = is_string($input) ? $this->parse($input, $model) : $input;
+
+        foreach ($visitors as $visitor) {
+            $ast = $ast->accept($visitor);
+        }
+
+        return $ast;
+    }
+
     public function build($input, $model = null)
     {
         return $this->getSearchStringManager($model)->createBuilder($input);

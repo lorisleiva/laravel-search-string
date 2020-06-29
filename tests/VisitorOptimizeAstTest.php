@@ -60,6 +60,6 @@ class VisitorOptimizeAstTest extends VisitorTest
      */
     public function visitor_optimize_ast_success($input, $expected)
     {
-        return $this->assertAstFor($input, $expected);
+        $this->assertAstEquals($input, $expected);
     }
 }

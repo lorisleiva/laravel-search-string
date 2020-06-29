@@ -12,27 +12,42 @@ abstract class VisitorTest extends TestCase
         return [];
     }
 
-    public function getAst($input, $model = null)
+    public function visit($input, $visitors = null, $model = null)
     {
-        $manager = $this->getSearchStringManager($model = $model ?? new DummyModel);
-        $ast = is_string($input) ? $this->parse($input) : $input;
-
-        foreach ($this->visitors($manager, $model->newQuery(), $model) as $visitor) {
-            $ast = $ast->accept($visitor);
-        }
-
-        return $ast;
+        return parent::visit($input, $visitors ?? $this->getVisitors($model));
     }
 
-    public function assertAstFor($input, $expectedAst, $model = null)
+    public function getVisitors($model = null)
     {
-        $this->assertEquals($expectedAst, $this->getAst($input, $model));
+        $arguments = $this->getManagerBuilderAndModel($model);
+
+        return $this->visitors(...$arguments);
+    }
+
+    public function getBuilder($input, $model = null)
+    {
+        list($manager, $builder, $model) = $this->getManagerBuilderAndModel($model);
+        $this->visit($this->parse($input), $this->visitors($manager, $builder, $model));
+
+        return $builder;
+    }
+
+    public function getManagerBuilderAndModel($model = null)
+    {
+        $manager = $this->getSearchStringManager($model = $model ?? new DummyModel);
+
+        return [$manager, $model->newQuery(), $model];
+    }
+
+    public function assertAstEquals($input, $expectedAst, $model = null)
+    {
+        $this->assertEquals($expectedAst, $this->visit($input, null, $model));
     }
 
     public function assertAstFails($input, $unexpectedToken = null, $model = null)
     {
         try {
-            $ast = $this->getAst($input, $model);
+            $ast = $this->visit($input, null, $model);
             $this->fail("Expected \"$input\" to fail. Instead got: \"$ast\"");
         } catch (InvalidSearchStringException $e) {
             if ($unexpectedToken) {

@@ -67,6 +67,6 @@ class VisitorRemoveNotSymbolTest extends VisitorTest
      */
     public function visitor_remove_not_symbol_success($input, $expected)
     {
-        $this->assertAstFor($input, $expected);
+        $this->assertAstEquals($input, $expected);
     }
 }

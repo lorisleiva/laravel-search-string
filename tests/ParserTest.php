@@ -141,7 +141,7 @@ class ParserTest extends VisitorTest
      */
     public function parser_success($input, $expected)
     {
-        $this->assertAstFor($input, $expected);
+        $this->assertAstEquals($input, $expected);
     }
 
     /**

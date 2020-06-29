@@ -43,6 +43,6 @@ class VisitorRemoveKeywordsTest extends VisitorTest
     public function visitor_remove_keywords_success($input, $rule, $expected)
     {
         $model = $this->getModelWithKeywords(['banana_keyword' => $rule]);
-        $this->assertAstFor($input, $expected, $model);
+        $this->assertAstEquals($input, $expected, $model);
     }
 }
