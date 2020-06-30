@@ -6,6 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Lorisleiva\LaravelSearchString\AST\ListSymbol;
+use Lorisleiva\LaravelSearchString\AST\RelationshipSymbol;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 use Lorisleiva\LaravelSearchString\Options\KeywordRule;
@@ -21,6 +22,12 @@ class BuildKeywordsVisitor extends Visitor
     {
         $this->manager = $manager;
         $this->builder = $builder;
+    }
+
+    public function visitRelationship(RelationshipSymbol $relationship)
+    {
+        // Keywords are not allowed within relationships.
+        return $relationship;
     }
 
     public function visitQuery(QuerySymbol $query)
