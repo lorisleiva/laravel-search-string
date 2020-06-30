@@ -49,7 +49,13 @@ class HoaConverterVisitor implements Visit
 
     protected function parseNestedRelationshipNode(TreeNode $element): RelationshipSymbol
     {
-        // TODO
+        $children = $this->parseChildren($element);
+        $terms = Collection::wrap($children->get(0));
+        $head = $terms->shift();
+        $expression = $this->parseRelationshipExpression($terms, $children->get(1));
+        $expectedArgs = $children->has(2) ? [$children->get(2), $children->get(3)]: [];
+
+        return new RelationshipSymbol($head, $expression, ...$expectedArgs);
     }
 
     protected function parseRelationshipNode(TreeNode $element): RelationshipSymbol
@@ -57,31 +63,26 @@ class HoaConverterVisitor implements Visit
         $children = $this->parseChildren($element);
         $terms = Collection::wrap($children->get(0));
         $head = $terms->shift();
-        $expression = $this->parseRelationshipExpression([$terms, $children->get(1), $children->get(2)]);
+        $expression = $this->parseRelationshipExpression($terms, [$children->get(1), $children->get(2)]);
 
         return new RelationshipSymbol($head, $expression);
     }
 
-    protected function parseRelationshipExpression($expression): Symbol
+    protected function parseRelationshipExpression(Collection $terms, $expression): Symbol
     {
-        if ($expression instanceof Symbol) {
+        if ($expression instanceof Symbol && $terms->isEmpty()) {
             return $expression;
         }
 
-        $expression = Collection::wrap($expression);
-        $terms = Collection::wrap($expression->get(0));
-        $operator = $expression->get(1);
-        $value = $expression->get(2);
-
-        if ($terms->count() > 1) {
-            $head = $terms->shift();
-            $expression = $this->parseRelationshipExpression([$terms, $operator, $value]);
-            return new RelationshipSymbol($head, $expression);
+        if (is_array($expression) && $terms->count() === 1) {
+            return $expression[0]
+                ? new QuerySymbol($terms->first(), $expression[0], $expression[1])
+                : new SoloSymbol($terms->first());
         }
 
-        return $operator
-            ? new QuerySymbol($terms->first(), $operator, $value)
-            : new SoloSymbol($terms->first());
+        $head = $terms->shift();
+        $expression = $this->parseRelationshipExpression($terms, $expression);
+        return new RelationshipSymbol($head, $expression);
     }
 
     protected function parseSoloNode(TreeNode $element): SoloSymbol
