@@ -106,6 +106,7 @@ class ParserTest extends VisitorTest
             ['comments.author: (name: "John Doe" age > 18) > 3', 'EXISTS(comments, EXISTS(author, AND(QUERY(name = John Doe), QUERY(age > 18))) > 0) > 3'],
             ['comments: (achievements: (Laravel) >= 2) > 10', 'EXISTS(comments, EXISTS(achievements, SOLO(Laravel)) >= 2) > 10'],
             ['comments: (not achievements: (Laravel))', 'EXISTS(comments, NOT(EXISTS(achievements, SOLO(Laravel)) > 0)) > 0'],
+            ['not comments: (achievements: (Laravel))', 'NOT(EXISTS(comments, EXISTS(achievements, SOLO(Laravel)) > 0) > 0)'],
         ];
     }
 
