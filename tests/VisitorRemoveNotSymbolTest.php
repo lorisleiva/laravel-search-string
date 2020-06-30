@@ -44,6 +44,9 @@ class VisitorRemoveNotSymbolTest extends VisitorTest
             ['not (A or not B)', 'AND(SOLO_NOT(A), SOLO(B))'],
             ['not (A or (B and C))', 'AND(SOLO_NOT(A), OR(SOLO_NOT(B), SOLO_NOT(C)))'],
             ['not (A and (B or C))', 'OR(SOLO_NOT(A), AND(SOLO_NOT(B), SOLO_NOT(C)))'],
+            ['not (A and not B and not C and D)', 'OR(SOLO_NOT(A), SOLO(B), SOLO(C), SOLO_NOT(D))'],
+            ['not (A or not B or not C or D)', 'AND(SOLO_NOT(A), SOLO(B), SOLO(C), SOLO_NOT(D))'],
+            ['not ((A or not B) and not (not C and D))', 'OR(AND(SOLO_NOT(A), SOLO(B)), AND(SOLO_NOT(C), SOLO(D)))'],
 
             // Cancel the negation of another not.
             ['not not foo:bar', 'QUERY(foo = bar)'],

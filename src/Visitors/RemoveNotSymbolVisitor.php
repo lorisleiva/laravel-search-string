@@ -16,18 +16,28 @@ class RemoveNotSymbolVisitor extends Visitor
 
     public function visitOr(OrSymbol $or)
     {
-        $leaves = $this->spreadNegationState(function () use ($or) {
-            return $or->expressions->map->accept($this);
+        $originalNegate = $this->negate;
+
+        $leaves = $or->expressions->map(function ($expression) use ($originalNegate) {
+            $this->negate = $originalNegate;
+            return $expression->accept($this);
         });
+
+        $this->negate = $originalNegate;
 
         return $this->negate ? new AndSymbol($leaves) : new OrSymbol($leaves);
     }
 
     public function visitAnd(AndSymbol $and)
     {
-        $leaves = $this->spreadNegationState(function () use ($and) {
-            return $and->expressions->map->accept($this);
+        $originalNegate = $this->negate;
+
+        $leaves = $and->expressions->map(function ($expression) use ($originalNegate) {
+            $this->negate = $originalNegate;
+            return $expression->accept($this);
         });
+
+        $this->negate = $originalNegate;
 
         return $this->negate ? new OrSymbol($leaves) : new AndSymbol($leaves);
     }
@@ -43,9 +53,10 @@ class RemoveNotSymbolVisitor extends Visitor
 
     public function visitRelationship(RelationshipSymbol $relationship)
     {
-        $relationship->expression = $this->resetNegationState(function () use ($relationship) {
-            return $relationship->expression->accept($this);
-        });
+        $originalNegate = $this->negate;
+        $this->negate = false;
+        $relationship->expression = $relationship->expression->accept($this);
+        $this->negate = $originalNegate;
 
         if ($this->negate) {
             $relationship->negate();
@@ -79,25 +90,5 @@ class RemoveNotSymbolVisitor extends Visitor
         }
 
         return $list;
-    }
-
-    protected function localNegationState(bool $value, callable $callback)
-    {
-        $originalNegate = $this->negate;
-        $this->negate = $value;
-        $result = $callback();
-        $this->negate = $originalNegate;
-
-        return $result;
-    }
-
-    public function resetNegationState(callable $callback)
-    {
-        return $this->localNegationState(false, $callback);
-    }
-
-    public function spreadNegationState(callable $callback)
-    {
-        return $this->localNegationState($this->negate, $callback);
     }
 }
