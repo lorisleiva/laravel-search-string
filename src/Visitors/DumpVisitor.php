@@ -12,6 +12,8 @@ use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
 
 class DumpVisitor extends Visitor
 {
+    // TODO: visitRelationship
+
     protected $indent = 0;
 
     public function indent()
