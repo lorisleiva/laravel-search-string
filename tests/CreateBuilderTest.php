@@ -160,15 +160,18 @@ class CreateBuilderTest extends TestCase
             // Nested relationships.
             ['comments: (title: Hi)', "exists (select * from comments where products.id = comments.product_id and title = 'Hi')"],
             ['comments: (not author)', "exists (select * from comments where products.id = comments.product_id and not exists (select * from users where comments.user_id = users.id))"],
-            ['comments: (author.name: John or favourites > 5)', "exists (select * from comments where products.id = comments.product_id and (exists (select * from users where comments.user_id = users.id or (name = 'John')) or (select count(*) from comment_user where comments.id = comment_user.comment_id) > 5))"],
+            ['comments: (author.name: John or favourites > 5)', "exists (select * from comments where products.id = comments.product_id and (exists (select * from users where comments.user_id = users.id and name = 'John') or (select count(*) from comment_user where comments.id = comment_user.comment_id) > 5))"],
             ['comments: (favourites > 10) > 3', "(select count(*) from comments where products.id = comments.product_id and (select count(*) from comment_user where comments.id = comment_user.comment_id) > 10) > 3"],
             ['comments: ("This is great")', "exists (select * from comments where products.id = comments.product_id and (name like '%This is great%' or description like '%This is great%'))"],
             ['comments: (author: (name: "John Doe" age > 18)) > 3', "(select count(*) from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and (name = 'John Doe' and age > 18))) > 3"],
 
             // Relationships & And/Or.
+            ['name:A or comments: (title:B and title:C)', "(name = 'A' or exists (select * from comments where products.id = comments.product_id and (title = 'B' and title = 'C')))"],
+            ['name:A or comments: (title:B or title:C)', "(name = 'A' or exists (select * from comments where products.id = comments.product_id and (title = 'B' or title = 'C')))"],
+            ['name:A and not comments: (title:B or title:C)', "(name = 'A' and not exists (select * from comments where products.id = comments.product_id and (title = 'B' or title = 'C')))"],
             ['name:A (name:B or comments) or name:C and name:D', "((name = 'A' and (name = 'B' or exists (select * from comments where products.id = comments.product_id))) or (name = 'C' and name = 'D'))"],
             ['name:A not (name:B or comments) or name:C and name:D', "((name = 'A' and name != 'B' and not exists (select * from comments where products.id = comments.product_id)) or (name = 'C' and name = 'D'))"],
-            // ['name:A (name:B or not comments: (title:X and title:Y or not (author and not title:Z)))', "(name = 'A' and (name = 'B' or not exists (select * from comments where products.id = comments.product_id and (((title = 'X' and title = 'Y') or not exists (select * from users where comments.user_id = users.id) or title = 'Z')))))"],
+            ['name:A (name:B or not comments: (title:X and title:Y or not (author and not title:Z)))', "(name = 'A' and (name = 'B' or not exists (select * from comments where products.id = comments.product_id and ((title = 'X' and title = 'Y') or not exists (select * from users where comments.user_id = users.id) or title = 'Z'))))"],
         ];
     }
 

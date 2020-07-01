@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
+use Illuminate\Support\Collection;
 use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\AST\RelationshipSymbol;
@@ -29,14 +30,16 @@ class BuildColumnsVisitor extends Visitor
 
     public function visitOr(OrSymbol $or)
     {
-        $this->createNestedBuilderWith($or->expressions, 'or');
+        $callback = $this->getNestedCallback($or->expressions, 'or');
+        $this->builder->where($callback, null, null, $this->boolean);
 
         return $or;
     }
 
     public function visitAnd(AndSymbol $and)
     {
-        $this->createNestedBuilderWith($and->expressions, 'and');
+        $callback = $this->getNestedCallback($and->expressions, 'and');
+        $this->builder->where($callback, null, null, $this->boolean);
 
         return $and;
     }
@@ -69,29 +72,24 @@ class BuildColumnsVisitor extends Visitor
         return $list;
     }
 
-    protected function createNestedBuilderWith($expressions, $newBoolean)
+    protected function getNestedCallback(Collection $expressions, string $newBoolean = 'and')
     {
-        // Save and update the new boolean.
-        $originalBoolean = $this->boolean;
-        $this->boolean = $newBoolean;
+        return function ($nestedBuilder) use ($expressions, $newBoolean) {
 
-        // Create nested builder that follows the original boolean.
-        $this->builder->where(function ($nestedBuilder) use ($expressions) {
-
-            // Save and update the new builder.
+            // Save and update the new builder and boolean.
             $originalBuilder = $this->builder;
+            $originalBoolean = $this->boolean;
             $this->builder = $nestedBuilder;
+            $this->boolean = $newBoolean;
 
             // Recursively generate the nested builder.
             $expressions->each->accept($this);
 
-            // Restore the original builder.
+            // Restore the original builder and boolean.
             $this->builder = $originalBuilder;
+            $this->boolean = $originalBoolean;
 
-        }, null, null, $originalBoolean);
-
-        // Restore the original boolean.
-        $this->boolean = $originalBoolean;
+        };
     }
 
     protected function buildRelationship(RelationshipSymbol $relationship)
@@ -101,16 +99,10 @@ class BuildColumnsVisitor extends Visitor
             return;
         }
 
-        $callback = $relationship->expression instanceof EmptySymbol
-            ? null
-            : function ($nestedBuilder) use ($relationship) {
-                $originalBuilder = $this->builder;
-                $this->builder = $nestedBuilder;
-                $relationship->expression->accept($this);
-                $this->builder = $originalBuilder;
-            };
-
+        $callback = $this->getNestedCallback(collect([$relationship->expression]));
+        $callback = $relationship->expression instanceof EmptySymbol ? null : $callback;
         list($operator, $count) = $relationship->getNormalizedExpectedOperation();
+
         return $this->builder->has($rule->column, $operator, $count, $this->boolean, $callback);
     }
 
