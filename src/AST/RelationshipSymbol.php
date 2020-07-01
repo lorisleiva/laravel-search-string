@@ -41,14 +41,35 @@ class RelationshipSymbol extends Symbol
         return $this;
     }
 
-    public function expectedOperation(): string
+    public function getNormalizedExpectedOperation()
     {
-        return sprintf('%s %s', $this->expectedOperator, $this->expectedCount);
+        switch (true) {
+            case $this->expectedOperator === '>':
+                return ['>=', $this->expectedCount + 1];
+            case $this->expectedOperator === '<=':
+                return ['<', $this->expectedCount + 1];
+            default:
+                return [$this->expectedOperator, $this->expectedCount];
+        }
+    }
+
+    public function getNormalizedExpectedOperationAsString(): string
+    {
+        list($operator, $count) = $this->getNormalizedExpectedOperation();
+
+        return sprintf('%s %s', $operator, $count);
+    }
+
+    public function isCheckingExistance(): bool
+    {
+        return $this->getNormalizedExpectedOperationAsString() === '>= 1';
     }
 
     public function isCheckingInexistance(): bool
     {
-        return in_array($this->expectedOperation(), ['<= 0', '= 0', '< 1']);
+        $operation = $this->getNormalizedExpectedOperationAsString();
+
+        return $operation === '< 1' || $operation === '= 0';
     }
 
     protected function getReverseOperator()

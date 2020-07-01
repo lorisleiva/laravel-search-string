@@ -91,22 +91,22 @@ class ParserTest extends VisitorTest
             ['', 'EMPTY'],
 
             // Relationships.
-            ['comments.author = "John Doe"', 'EXISTS(comments, QUERY(author = John Doe)) > 0'],
-            ['comments.author.tags > 3', 'EXISTS(comments, EXISTS(author, QUERY(tags > 3)) > 0) > 0'],
-            ['comments.author', 'EXISTS(comments, SOLO(author)) > 0'],
-            ['comments.author.tags', 'EXISTS(comments, EXISTS(author, SOLO(tags)) > 0) > 0'],
-            ['not comments.author', 'NOT(EXISTS(comments, SOLO(author)) > 0)'],
-            ['not comments.author = "John Doe"', 'NOT(EXISTS(comments, QUERY(author = John Doe)) > 0)'],
+            ['comments.author = "John Doe"', 'EXISTS(comments, QUERY(author = John Doe))'],
+            ['comments.author.tags > 3', 'EXISTS(comments, EXISTS(author, QUERY(tags > 3)))'],
+            ['comments.author', 'EXISTS(comments, SOLO(author))'],
+            ['comments.author.tags', 'EXISTS(comments, EXISTS(author, SOLO(tags)))'],
+            ['not comments.author', 'NOT(EXISTS(comments, SOLO(author)))'],
+            ['not comments.author = "John Doe"', 'NOT(EXISTS(comments, QUERY(author = John Doe)))'],
 
             // Nested relationships.
-            ['comments: (author: John or votes > 10)', 'EXISTS(comments, OR(QUERY(author = John), QUERY(votes > 10))) > 0'],
+            ['comments: (author: John or votes > 10)', 'EXISTS(comments, OR(QUERY(author = John), QUERY(votes > 10)))'],
             ['comments: (author: John) = 20', 'EXISTS(comments, QUERY(author = John)) = 20'],
-            ['comments: (author: John) <= 10', 'EXISTS(comments, QUERY(author = John)) <= 10'],
-            ['comments: ("This is great")', 'EXISTS(comments, SOLO(This is great)) > 0'],
-            ['comments.author: (name: "John Doe" age > 18) > 3', 'EXISTS(comments, EXISTS(author, AND(QUERY(name = John Doe), QUERY(age > 18))) > 0) > 3'],
-            ['comments: (achievements: (Laravel) >= 2) > 10', 'EXISTS(comments, EXISTS(achievements, SOLO(Laravel)) >= 2) > 10'],
-            ['comments: (not achievements: (Laravel))', 'EXISTS(comments, NOT(EXISTS(achievements, SOLO(Laravel)) > 0)) > 0'],
-            ['not comments: (achievements: (Laravel))', 'NOT(EXISTS(comments, EXISTS(achievements, SOLO(Laravel)) > 0) > 0)'],
+            ['comments: (author: John) <= 10', 'EXISTS(comments, QUERY(author = John)) < 11'],
+            ['comments: ("This is great")', 'EXISTS(comments, SOLO(This is great))'],
+            ['comments.author: (name: "John Doe" age > 18) > 3', 'EXISTS(comments, EXISTS(author, AND(QUERY(name = John Doe), QUERY(age > 18)))) >= 4'],
+            ['comments: (achievements: (Laravel) >= 2) > 10', 'EXISTS(comments, EXISTS(achievements, SOLO(Laravel)) >= 2) >= 11'],
+            ['comments: (not achievements: (Laravel))', 'EXISTS(comments, NOT(EXISTS(achievements, SOLO(Laravel))))'],
+            ['not comments: (achievements: (Laravel))', 'NOT(EXISTS(comments, EXISTS(achievements, SOLO(Laravel))))'],
         ];
     }
 

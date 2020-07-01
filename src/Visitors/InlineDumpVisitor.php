@@ -38,13 +38,14 @@ class InlineDumpVisitor extends Visitor
     public function visitRelationship(RelationshipSymbol $relationship)
     {
         $expression = $relationship->expression->accept($this);
+        $explicitOperation = ! $relationship->isCheckingExistance() && ! $relationship->isCheckingInexistance();
 
         return sprintf(
             '%s(%s, %s)%s',
             $relationship->isCheckingInexistance() ? 'NOT_EXISTS' : 'EXISTS',
             $relationship->key,
             $expression,
-            $relationship->isCheckingInexistance() ? '' : (' ' . $relationship->expectedOperation()),
+            $explicitOperation ? (' ' . $relationship->getNormalizedExpectedOperationAsString()) : '',
         );
     }
 

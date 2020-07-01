@@ -32,8 +32,8 @@ class VisitorRemoveKeywordsTest extends VisitorTest
             ['foo:"Hello world"', 'f', 'QUERY(foo = Hello world)'],
 
             // It does not fetch keywords inside relationship symbols.
-            ['comment: (limit:10)', 'limit', 'EXISTS(comment, QUERY(limit = 10)) > 0'],
-            ['comment: (limit:10) limit:10', 'limit', 'AND(EXISTS(comment, QUERY(limit = 10)) > 0, EMPTY)'],
+            ['comment: (limit:10)', 'limit', 'EXISTS(comment, QUERY(limit = 10))'],
+            ['comment: (limit:10) limit:10', 'limit', 'AND(EXISTS(comment, QUERY(limit = 10)), EMPTY)'],
         ];
     }
 

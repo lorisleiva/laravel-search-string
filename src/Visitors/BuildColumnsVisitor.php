@@ -101,22 +101,17 @@ class BuildColumnsVisitor extends Visitor
             return;
         }
 
-        if ($relationship->expression instanceof EmptySymbol) {
-            return $relationship->isCheckingInexistance()
-                ? $this->builder->doesntHave($rule->column)
-                : $this->builder->has($rule->column, $relationship->expectedOperator, $relationship->expectedCount);
-        }
+        $callback = $relationship->expression instanceof EmptySymbol
+            ? null
+            : function ($nestedBuilder) use ($relationship) {
+                $originalBuilder = $this->builder;
+                $this->builder = $nestedBuilder;
+                $relationship->expression->accept($this);
+                $this->builder = $originalBuilder;
+            };
 
-        $subQuery = function ($nestedBuilder) use ($relationship) {
-            $originalBuilder = $this->builder;
-            $this->builder = $nestedBuilder;
-            $relationship->expression->accept($this);
-            $this->builder = $originalBuilder;
-        };
-
-        return $relationship->isCheckingInexistance()
-            ? $this->builder->whereDoesntHave($rule->column, $subQuery)
-            : $this->builder->whereHas($rule->column, $subQuery, $relationship->expectedOperator, $relationship->expectedCount);
+        list($operator, $count) = $relationship->getNormalizedExpectedOperation();
+        return $this->builder->has($rule->column, $operator, $count, $this->boolean, $callback);
     }
 
     protected function buildSolo(SoloSymbol $solo)
