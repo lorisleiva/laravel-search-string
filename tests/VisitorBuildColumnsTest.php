@@ -15,7 +15,7 @@ class VisitorBuildColumnsTest extends VisitorTest
     public function visitors($manager, $builder, $model)
     {
         return [
-            new RemoveNotSymbolVisitor,
+            new RemoveNotSymbolVisitor(),
             new AttachRulesVisitor($manager),
             new BuildColumnsVisitor($manager, $builder),
         ];

@@ -3,6 +3,7 @@
 namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
+use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\NotSymbol;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
@@ -41,14 +42,17 @@ class VisitorOptimizeAstTest extends VisitorTest
             // Remove Or with no children.
             [new OrSymbol, 'EMPTY'],
             [new OrSymbol([new AndSymbol, new AndSymbol]), 'EMPTY'],
+            [new OrSymbol([new EmptySymbol]), 'EMPTY'],
 
             // Remove And with no children.
             [new AndSymbol, 'EMPTY'],
             [new AndSymbol([new OrSymbol, new OrSymbol]), 'EMPTY'],
+            [new AndSymbol([new EmptySymbol]), 'EMPTY'],
 
             // Remove Not with no children.
             [new NotSymbol(new OrSymbol), 'EMPTY'],
             [new NotSymbol(new NotSymbol(new AndSymbol)), 'EMPTY'],
+            [new NotSymbol(new EmptySymbol), 'EMPTY'],
         ];
     }
 
