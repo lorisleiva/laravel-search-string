@@ -2,12 +2,12 @@
 
 namespace Lorisleiva\LaravelSearchString\AST;
 
+use Illuminate\Support\Arr;
 use Lorisleiva\LaravelSearchString\Visitors\Visitor;
 
 class RelationshipSymbol extends Symbol
 {
     use CanHaveRule;
-    use CanBeNegated;
 
     /** @var string */
     public $key;
@@ -32,5 +32,34 @@ class RelationshipSymbol extends Symbol
     public function accept(Visitor $visitor)
     {
         return $visitor->visitRelationship($this);
+    }
+
+    public function negate()
+    {
+        $this->expectedOperator = $this->getReverseOperator();
+
+        return $this;
+    }
+
+    public function expectedOperation(): string
+    {
+        return sprintf('%s %s', $this->expectedOperator, $this->expectedCount);
+    }
+
+    public function isCheckingInexistance(): bool
+    {
+        return in_array($this->expectedOperation(), ['<= 0', '= 0', '< 1']);
+    }
+
+    protected function getReverseOperator()
+    {
+        return Arr::get([
+            '=' => '!=',
+            '!=' => '=',
+            '>' => '<=',
+            '>=' => '<',
+            '<' => '>=',
+            '<=' => '>',
+        ], $this->expectedOperator, $this->expectedOperator);
     }
 }

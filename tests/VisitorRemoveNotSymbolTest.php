@@ -65,12 +65,12 @@ class VisitorRemoveNotSymbolTest extends VisitorTest
             ['not not not not "John Doe"', 'SOLO(John Doe)'],
 
             // Relationships.
-            ['not comments.author', 'NOT_EXISTS(comments, SOLO(author)) > 0'],
-            ['not comments.author = "John Doe"', 'NOT_EXISTS(comments, QUERY(author = John Doe)) > 0'],
-            ['not comments.author.tags', 'NOT_EXISTS(comments, EXISTS(author, SOLO(tags)) > 0) > 0'],
-            ['comments: (not achievements: (Laravel))', 'EXISTS(comments, NOT_EXISTS(achievements, SOLO(Laravel)) > 0) > 0'],
-            ['not comments: (achievements: (Laravel))', 'NOT_EXISTS(comments, EXISTS(achievements, SOLO(Laravel)) > 0) > 0'],
-            ['not comments: (not (A or not B) or not D)', 'NOT_EXISTS(comments, OR(AND(SOLO_NOT(A), SOLO(B)), SOLO_NOT(D))) > 0'],
+            ['not comments.author', 'NOT_EXISTS(comments, SOLO(author))'],
+            ['not comments.author = "John Doe"', 'NOT_EXISTS(comments, QUERY(author = John Doe))'],
+            ['not comments.author.tags', 'NOT_EXISTS(comments, EXISTS(author, SOLO(tags)) > 0)'],
+            ['comments: (not achievements: (Laravel))', 'EXISTS(comments, NOT_EXISTS(achievements, SOLO(Laravel))) > 0'],
+            ['not comments: (achievements: (Laravel))', 'NOT_EXISTS(comments, EXISTS(achievements, SOLO(Laravel)) > 0)'],
+            ['not comments: (not (A or not B) or not D)', 'NOT_EXISTS(comments, OR(AND(SOLO_NOT(A), SOLO(B)), SOLO_NOT(D)))'],
         ];
     }
 

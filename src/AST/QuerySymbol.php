@@ -50,8 +50,6 @@ class QuerySymbol extends Symbol
             '>=' => '<',
             '<' => '>=',
             '<=' => '>',
-            'in' => 'not in',
-            'not in' => 'in',
         ], $this->operator, $this->operator);
     }
 }

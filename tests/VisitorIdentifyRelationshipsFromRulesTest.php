@@ -24,8 +24,14 @@ class VisitorIdentifyRelationshipsFromRulesTest extends VisitorTest
         return [
             // It recognises solo symbols.
             ['comments', 'EXISTS(comments, EMPTY) > 0'],
+            ['not comments', 'NOT_EXISTS(comments, EMPTY)'],
+
+            // It recognises query symbols.
             ['comments = 3', 'EXISTS(comments, EMPTY) = 3'],
-            ['not comments', 'NOT_EXISTS(comments, EMPTY) > 0'],
+            ['comments <= 1', 'EXISTS(comments, EMPTY) <= 1'],
+            ['not comments = 3', 'EXISTS(comments, EMPTY) != 3'],
+            ['not comments > 1', 'EXISTS(comments, EMPTY) <= 1'],
+            ['not comments > 0', 'NOT_EXISTS(comments, EMPTY)'],
 
             // It does not affect non-relationship symbols.
             ['title', 'SOLO(title)'],

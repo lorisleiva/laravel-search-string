@@ -40,12 +40,11 @@ class InlineDumpVisitor extends Visitor
         $expression = $relationship->expression->accept($this);
 
         return sprintf(
-            '%s(%s, %s) %s %s',
-            $relationship->negated ? 'NOT_EXISTS' : 'EXISTS',
+            '%s(%s, %s)%s',
+            $relationship->isCheckingInexistance() ? 'NOT_EXISTS' : 'EXISTS',
             $relationship->key,
             $expression,
-            $relationship->expectedOperator,
-            $relationship->expectedCount
+            $relationship->isCheckingInexistance() ? '' : (' ' . $relationship->expectedOperation()),
         );
     }
 
