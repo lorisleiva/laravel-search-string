@@ -4,6 +4,8 @@ namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Tests\Concerns\DumpsSql;
+use Lorisleiva\LaravelSearchString\Tests\Stubs\Product;
+use Lorisleiva\LaravelSearchString\Tests\Stubs\User;
 
 class CreateBuilderTest extends TestCase
 {
@@ -147,22 +149,26 @@ class CreateBuilderTest extends TestCase
             ['comments.favouritors > 10', "exists (select * from comments where products.id = comments.product_id and (select count(*) from users inner join comment_user on users.id = comment_user.user_id where comments.id = comment_user.comment_id) > 10)"],
             ['comments.favourites > 10', "exists (select * from comments where products.id = comments.product_id and (select count(*) from comment_user where comments.id = comment_user.comment_id) > 10)"],
 
-            // Relationshiops nested terms negated.
+            // Relationships nested terms negated.
             ['not comments.author', "not exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id))"],
             ['not comments.title = "My comment"', "not exists (select * from comments where products.id = comments.product_id and title = 'My comment')"],
             ['not comments.author.name = John', "not exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and name = 'John'))"],
-
-
+            ['not comments.author.writtenComments', "not exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and exists (select * from comments where users.id = comments.user_id)))"],
+            ['not comments.favouritors > 10', "not exists (select * from comments where products.id = comments.product_id and (select count(*) from users inner join comment_user on users.id = comment_user.user_id where comments.id = comment_user.comment_id) > 10)"],
+            ['not comments.favourites > 10', "not exists (select * from comments where products.id = comments.product_id and (select count(*) from comment_user where comments.id = comment_user.comment_id) > 10)"],
 
             // Nested relationships.
-            // ['comments: (author: John or votes > 10)', "TODO"],
-            // ['comments: (author: John) = 20', "TODO"],
-            // ['comments: (author: John) <= 10', "TODO"],
-            // ['comments: ("This is great")', "TODO"],
-            // ['comments.author: (name: "John Doe" age > 18) > 3', "TODO"],
-            // ['comments: (achievements: (Laravel) >= 2) > 10', "TODO"],
-            // ['comments: (not achievements: (Laravel))', "TODO"],
-            // ['not comments: (achievements: (Laravel))', "TODO"],
+            ['comments: (title: Hi)', "exists (select * from comments where products.id = comments.product_id and title = 'Hi')"],
+            ['comments: (not author)', "exists (select * from comments where products.id = comments.product_id and not exists (select * from users where comments.user_id = users.id))"],
+            ['comments: (author.name: John or favourites > 5)', "exists (select * from comments where products.id = comments.product_id and (exists (select * from users where comments.user_id = users.id or (name = 'John')) or (select count(*) from comment_user where comments.id = comment_user.comment_id) > 5))"],
+            ['comments: (favourites > 10) > 3', "(select count(*) from comments where products.id = comments.product_id and (select count(*) from comment_user where comments.id = comment_user.comment_id) > 10) > 3"],
+            ['comments: ("This is great")', "exists (select * from comments where products.id = comments.product_id and (name like '%This is great%' or description like '%This is great%'))"],
+            ['comments: (author: (name: "John Doe" age > 18)) > 3', "(select count(*) from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and (name = 'John Doe' and age > 18))) > 3"],
+
+            // Relationships & And/Or.
+            ['name:A (name:B or comments) or name:C and name:D', "((name = 'A' and (name = 'B' or exists (select * from comments where products.id = comments.product_id))) or (name = 'C' and name = 'D'))"],
+            ['name:A not (name:B or comments) or name:C and name:D', "((name = 'A' and name != 'B' and not exists (select * from comments where products.id = comments.product_id)) or (name = 'C' and name = 'D'))"],
+            // ['name:A (name:B or not comments: (title:X and title:Y or not (author and not title:Z)))', "(name = 'A' and (name = 'B' or not exists (select * from comments where products.id = comments.product_id and (((title = 'X' and title = 'Y') or not exists (select * from users where comments.user_id = users.id) or title = 'Z')))))"],
         ];
     }
 
@@ -173,8 +179,9 @@ class CreateBuilderTest extends TestCase
             'Offset should be a positive integer' => ['from:"foo bar"'],
 
             // TODO: Handle failure:
-            // 'Relationship query values should be positive integers' => ['comments = foo'],
-            // 'Query values in nested relationship terms should be positive integers' => ['comments.author = bar'],
+            // 'Relationship expected count should be a positive integer' => ['comments = foo'],
+            // 'Relationship expected count (from nested terms) should be a positive integer' => ['comments.author = bar'],
+            // 'Relationship expected count (from nested relationship) should be a positive integer' => ['comments: (author: baz)'],
         ];
     }
 

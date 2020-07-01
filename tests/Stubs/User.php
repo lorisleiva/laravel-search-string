@@ -12,6 +12,7 @@ class User extends Model
     protected $searchStringColumns = [
         'name' => ['searchable' => true],
         'email' => ['searchable' => true],
+        'age',
         'comments' => [
             'key' => '/^comments|writtenComments$/',
             'relationship' => true,
