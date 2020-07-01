@@ -129,14 +129,30 @@ class CreateBuilderTest extends TestCase
 
             // Relationships inexistance.
             ['not comments', "not exists (select * from comments where products.id = comments.product_id)"],
+            ['not comments > 0', "not exists (select * from comments where products.id = comments.product_id)"],
+            ['not comments >= 1', "not exists (select * from comments where products.id = comments.product_id)"],
+            ['comments = 0', "not exists (select * from comments where products.id = comments.product_id)"],
 
+            // Relationships count.
+            ['comments = 10', "(select count(*) from comments where products.id = comments.product_id) = 10"],
+            ['comments > 5', "(select count(*) from comments where products.id = comments.product_id) > 5"],
+            ['not comments = 1', "(select count(*) from comments where products.id = comments.product_id) != 1"],
+            ['not comments < 2', "(select count(*) from comments where products.id = comments.product_id) >= 2"],
 
-            ['comments.title = "My comment"', "exists (select * from comments where products.id = comments.product_id and title = 'My comment')"],
+            // Relationships nested terms.
             ['comments.author', "exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id))"],
+            ['comments.title = "My comment"', "exists (select * from comments where products.id = comments.product_id and title = 'My comment')"],
             ['comments.author.name = John', "exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and name = 'John'))"],
-            // ['comments.author.tags', "TODO"],
-            // ['not comments.author', "TODO"],
-            // ['not comments.author = "John Doe"', "TODO"],
+            ['comments.author.writtenComments', "exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and exists (select * from comments where users.id = comments.user_id)))"],
+            ['comments.favouritors > 10', "exists (select * from comments where products.id = comments.product_id and (select count(*) from users inner join comment_user on users.id = comment_user.user_id where comments.id = comment_user.comment_id) > 10)"],
+            ['comments.favourites > 10', "exists (select * from comments where products.id = comments.product_id and (select count(*) from comment_user where comments.id = comment_user.comment_id) > 10)"],
+
+            // Relationshiops nested terms negated.
+            ['not comments.author', "not exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id))"],
+            ['not comments.title = "My comment"', "not exists (select * from comments where products.id = comments.product_id and title = 'My comment')"],
+            ['not comments.author.name = John', "not exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and name = 'John'))"],
+
+
 
             // Nested relationships.
             // ['comments: (author: John or votes > 10)', "TODO"],
@@ -155,6 +171,10 @@ class CreateBuilderTest extends TestCase
         return [
             'Limit should be a positive integer' => ['limit:-1'],
             'Offset should be a positive integer' => ['from:"foo bar"'],
+
+            // TODO: Handle failure:
+            // 'Relationship query values should be positive integers' => ['comments = foo'],
+            // 'Query values in nested relationship terms should be positive integers' => ['comments.author = bar'],
         ];
     }
 
