@@ -122,7 +122,7 @@ class CreateBuilderTest extends TestCase
             ['name:1 and (name:2 or name:3)', "(name = 1 and (name = 2 or name = 3))"],
 
             // Relationships.
-            // ['comments.title = "My comment"', 'TODO'],
+            // ['comments.title = "My comment"', '(select count(*) from dummy_comments where dummy_models.id = dummy_comments.dummy_model_id and title = \'My comment\') > 0'],
             // ['comments.author.tags > 3', 'TODO'],
             // ['comments.author', 'TODO'],
             // ['comments.author.tags', 'TODO'],

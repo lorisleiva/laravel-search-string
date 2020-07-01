@@ -2,7 +2,9 @@
 
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
+use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\ListSymbol;
+use Lorisleiva\LaravelSearchString\AST\RelationshipSymbol;
 use Lorisleiva\LaravelSearchString\Options\ColumnRule;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
@@ -37,6 +39,13 @@ class BuildColumnsVisitor extends Visitor
         $this->createNestedBuilderWith($and->expressions, 'and');
 
         return $and;
+    }
+
+    public function visitRelationship(RelationshipSymbol $relationship)
+    {
+        $this->buildRelationship($relationship);
+
+        return $relationship;
     }
 
     public function visitSolo(SoloSymbol $solo)
@@ -83,6 +92,31 @@ class BuildColumnsVisitor extends Visitor
 
         // Restore the original boolean.
         $this->boolean = $originalBoolean;
+    }
+
+    protected function buildRelationship(RelationshipSymbol $relationship)
+    {
+        /** @var ColumnRule $rule */
+        if (! $rule = $relationship->rule) {
+            return;
+        }
+
+        if ($relationship->expression instanceof EmptySymbol) {
+            return $relationship->isCheckingInexistance()
+                ? $this->builder->doesntHave($rule->column)
+                : $this->builder->has($rule->column, $relationship->expectedOperator, $relationship->expectedCount);
+        }
+
+        $subQuery = function ($nestedBuilder) use ($relationship) {
+            $originalBuilder = $this->builder;
+            $this->builder = $nestedBuilder;
+            $relationship->expression->accept($this);
+            $this->builder = $originalBuilder;
+        };
+
+        return $relationship->isCheckingInexistance()
+            ? $this->builder->whereDoesntHave($rule->column, $subQuery)
+            : $this->builder->whereHas($rule->column, $subQuery, $relationship->expectedOperator, $relationship->expectedCount);
     }
 
     protected function buildSolo(SoloSymbol $solo)

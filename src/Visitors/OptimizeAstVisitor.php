@@ -9,6 +9,8 @@ use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 
 class OptimizeAstVisitor extends Visitor
 {
+    // TODO: Optimize relationships by grouping them together when applicable.
+
     public function visitOr(OrSymbol $or)
     {
         $leaves = $or->expressions->map->accept($this)->flatMap(function ($leaf) {
