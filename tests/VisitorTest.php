@@ -2,7 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Tests;
 
-use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModel;
+use Lorisleiva\LaravelSearchString\Tests\Stubs\Product;
 
 abstract class VisitorTest extends TestCase
 {
@@ -33,7 +33,7 @@ abstract class VisitorTest extends TestCase
 
     public function getManagerBuilderAndModel($model = null)
     {
-        $manager = $this->getSearchStringManager($model = $model ?? new DummyModel);
+        $manager = $this->getSearchStringManager($model = $model ?? new Product);
 
         return [$manager, $model->newQuery(), $model];
     }

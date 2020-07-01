@@ -5,7 +5,7 @@ namespace Lorisleiva\LaravelSearchString\Tests\Stubs;
 use Illuminate\Database\Eloquent\Model;
 use Lorisleiva\LaravelSearchString\Concerns\SearchString;
 
-class DummyModel extends Model
+class Product extends Model
 {
     use SearchString;
 
@@ -32,6 +32,6 @@ class DummyModel extends Model
 
     public function comments()
     {
-        return $this->hasMany(DummyComment::class);
+        return $this->hasMany(Comment::class);
     }
 }

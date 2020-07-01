@@ -13,42 +13,42 @@ class CreateBuilderTest extends TestCase
     {
         return [
             // It does not filter anything by default.
-            ['', 'select * from dummy_models'],
-            ['()', 'select * from dummy_models'],
-            [' () ', 'select * from dummy_models'],
-            ['((()))', 'select * from dummy_models'],
+            ['', 'select * from products'],
+            ['()', 'select * from products'],
+            [' () ', 'select * from products'],
+            ['((()))', 'select * from products'],
 
             // Select.
-            ['fields:name', 'select name from dummy_models'],
-            ['fields:name,price', 'select name, price from dummy_models'],
-            ['fields:price,name', 'select name, price from dummy_models'],
-            ['not fields:name', 'select price, description, paid, boolean_variable, created_at from dummy_models'],
-            ['not fields:name, price', 'select description, paid, boolean_variable, created_at from dummy_models'],
+            ['fields:name', 'select name from products'],
+            ['fields:name,price', 'select name, price from products'],
+            ['fields:price,name', 'select name, price from products'],
+            ['not fields:name', 'select price, description, paid, boolean_variable, created_at from products'],
+            ['not fields:name, price', 'select description, paid, boolean_variable, created_at from products'],
 
             // Order by.
-            ['sort:name', 'select * from dummy_models order by name asc'],
-            ['sort:name,price', 'select * from dummy_models order by name asc, price asc'],
-            ['sort:-price,name', 'select * from dummy_models order by price desc, name asc'],
-            ['sort:-price,-name', 'select * from dummy_models order by price desc, name desc'],
+            ['sort:name', 'select * from products order by name asc'],
+            ['sort:name,price', 'select * from products order by name asc, price asc'],
+            ['sort:-price,name', 'select * from products order by price desc, name asc'],
+            ['sort:-price,-name', 'select * from products order by price desc, name desc'],
 
             // Sort
-            ['not sort:name', 'select * from dummy_models order by name asc'],
-            ['not sort:-price,name', 'select * from dummy_models order by price desc, name asc'],
+            ['not sort:name', 'select * from products order by name asc'],
+            ['not sort:-price,name', 'select * from products order by price desc, name asc'],
 
             // Limit and offset.
-            ['limit:10', 'select * from dummy_models limit 10'],
-            ['from:10', 'select * from dummy_models offset 10'],
-            ['limit:10 from:10', 'select * from dummy_models limit 10 offset 10'],
-            ['from:10 limit:10', 'select * from dummy_models limit 10 offset 10'],
+            ['limit:10', 'select * from products limit 10'],
+            ['from:10', 'select * from products offset 10'],
+            ['limit:10 from:10', 'select * from products limit 10 offset 10'],
+            ['from:10 limit:10', 'select * from products limit 10 offset 10'],
 
             // Not limit/offset has no effects.
-            ['not limit:10', 'select * from dummy_models limit 10'],
-            ['not from:10', 'select * from dummy_models offset 10'],
+            ['not limit:10', 'select * from products limit 10'],
+            ['not from:10', 'select * from products offset 10'],
 
             // Complex examples.
             [
                 'name in (John,Jane) or description=Employee and created_at < 2018-05-18 limit:3 or Banana from:1',
-                "select * from dummy_models "
+                "select * from products "
                 . "where (name in ('John', 'Jane') "
                 . "or (description = 'Employee' and created_at < 2018-05-18 00:00:00) "
                 . "or (name like '%Banana%' or description like '%Banana%')) "
@@ -122,7 +122,7 @@ class CreateBuilderTest extends TestCase
             ['name:1 and (name:2 or name:3)', "(name = 1 and (name = 2 or name = 3))"],
 
             // Relationships.
-            // ['comments.title = "My comment"', '(select count(*) from dummy_comments where dummy_models.id = dummy_comments.dummy_model_id and title = \'My comment\') > 0'],
+            // ['comments.title = "My comment"', '(select count(*) from dummy_comments where products.id = dummy_comments.dummy_model_id and title = \'My comment\') > 0'],
             // ['comments.author.tags > 3', 'TODO'],
             // ['comments.author', 'TODO'],
             // ['comments.author.tags', 'TODO'],

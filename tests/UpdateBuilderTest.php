@@ -14,7 +14,7 @@ class UpdateBuilderTest extends TestCase
     {
         $builder = $this->build('limit:1')->limit(2);
 
-        $this->assertEquals('select * from dummy_models limit 2', $this->dumpSql($builder));
+        $this->assertEquals('select * from products limit 2', $this->dumpSql($builder));
     }
 
     /** @test */
@@ -24,6 +24,6 @@ class UpdateBuilderTest extends TestCase
             $this->build('')->first();
         });
 
-        $this->assertEquals('select * from `dummy_models` limit 1', $queryLog[0]['query']);
+        $this->assertEquals('select * from `products` limit 1', $queryLog[0]['query']);
     }
 }

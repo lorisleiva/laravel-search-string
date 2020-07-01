@@ -5,7 +5,7 @@ namespace Lorisleiva\LaravelSearchString\Tests\Stubs;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Lorisleiva\LaravelSearchString\Concerns\SearchString;
 
-class DummyCommentUser extends Pivot
+class CommentUser extends Pivot
 {
     use SearchString;
 
@@ -17,11 +17,11 @@ class DummyCommentUser extends Pivot
 
     public function comment()
     {
-        return $this->belongsTo(DummyComment::class);
+        return $this->belongsTo(Comment::class);
     }
 
     public function user()
     {
-        return $this->belongsTo(DummyUser::class);
+        return $this->belongsTo(User::class);
     }
 }

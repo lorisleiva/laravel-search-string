@@ -4,14 +4,14 @@ namespace Lorisleiva\LaravelSearchString\Tests;
 
 use Illuminate\Database\Eloquent\Model;
 use Lorisleiva\LaravelSearchString\Concerns\SearchString;
-use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModel;
+use Lorisleiva\LaravelSearchString\Tests\Stubs\Product;
 
 class SearchStringOptionsTest extends TestCase
 {
     /** @test */
     public function it_parses_columns_and_keywords_options_into_rules()
     {
-        $this->assertColumnsRulesFor(new DummyModel, [
+        $this->assertColumnsRulesFor(new Product, [
             'name' =>               '[/^name$/][searchable]',
             'price' =>              '[/^price$/][]',
             'description' =>        '[/^description$/][searchable]',
@@ -21,7 +21,7 @@ class SearchStringOptionsTest extends TestCase
             'comments' =>           '[/^comments$/][relationship]',
         ]);
 
-        $this->assertKeywordRulesFor(new DummyModel, [
+        $this->assertKeywordRulesFor(new Product, [
             'order_by' =>   '[/^sort$/]',
             'select' =>     '[/^fields$/]',
             'limit' =>      '[/^limit$/]',
