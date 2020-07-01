@@ -27,9 +27,6 @@ class ColumnRule extends Rule
     /** @var Model|null */
     public $relationshipModel = null;
 
-    /** @var SearchStringManager|null */
-    public $relationshipManager = null;
-
     /** @var Collection */
     public $map;
 
@@ -47,7 +44,7 @@ class ColumnRule extends Rule
         $this->map = Collection::wrap(Arr::get($rule, 'map', []));
 
         if ($this->relationship) {
-            $this->setRelationshipModelAndManager($model);
+            $this->setRelationshipModel($model);
         }
     }
 
@@ -62,11 +59,10 @@ class ColumnRule extends Rule
         return $model->hasCast($column, 'boolean');
     }
 
-    protected function setRelationshipModelAndManager(Model $model)
+    protected function setRelationshipModel(Model $model)
     {
         $relation = $this->getRelation($model);
         $related = $relation->getRelated();
-        $this->relationshipModel = $related;
 
         if (! in_array(SearchString::class, class_uses_recursive($related))) {
             throw new LogicException(sprintf(
@@ -74,7 +70,7 @@ class ColumnRule extends Rule
             ));
         }
 
-        $this->relationshipManager = $related->getSearchStringManager();
+        $this->relationshipModel = $related;
     }
 
     public function getRelation(Model $model): Relation

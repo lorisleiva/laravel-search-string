@@ -16,7 +16,7 @@ class DummyComment extends Model
             'key' => 'author',
             'relationship' => true,
         ],
-        // 'favourites' => ['relationship' => true], // TODO: Uncomment to deal with circular relationships. Maybe just delay manager creation until we actually need it.
+        'favourites' => ['relationship' => true],
         'favouriteUsers' => ['relationship' => true],
         'created_at' => 'date',
     ];
