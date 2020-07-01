@@ -45,7 +45,7 @@ class InlineDumpVisitor extends Visitor
             $relationship->isCheckingInexistance() ? 'NOT_EXISTS' : 'EXISTS',
             $relationship->key,
             $expression,
-            $explicitOperation ? (' ' . $relationship->getNormalizedExpectedOperationAsString()) : '',
+            $explicitOperation ? (' ' . $relationship->getExpectedOperation()) : '',
         );
     }
 

@@ -101,10 +101,10 @@ class ParserTest extends VisitorTest
             // Nested relationships.
             ['comments: (author: John or votes > 10)', 'EXISTS(comments, OR(QUERY(author = John), QUERY(votes > 10)))'],
             ['comments: (author: John) = 20', 'EXISTS(comments, QUERY(author = John)) = 20'],
-            ['comments: (author: John) <= 10', 'EXISTS(comments, QUERY(author = John)) < 11'],
+            ['comments: (author: John) <= 10', 'EXISTS(comments, QUERY(author = John)) <= 10'],
             ['comments: ("This is great")', 'EXISTS(comments, SOLO(This is great))'],
-            ['comments.author: (name: "John Doe" age > 18) > 3', 'EXISTS(comments, EXISTS(author, AND(QUERY(name = John Doe), QUERY(age > 18)))) >= 4'],
-            ['comments: (achievements: (Laravel) >= 2) > 10', 'EXISTS(comments, EXISTS(achievements, SOLO(Laravel)) >= 2) >= 11'],
+            ['comments.author: (name: "John Doe" age > 18) > 3', 'EXISTS(comments, EXISTS(author, AND(QUERY(name = John Doe), QUERY(age > 18)))) > 3'],
+            ['comments: (achievements: (Laravel) >= 2) > 10', 'EXISTS(comments, EXISTS(achievements, SOLO(Laravel)) >= 2) > 10'],
             ['comments: (not achievements: (Laravel))', 'EXISTS(comments, NOT(EXISTS(achievements, SOLO(Laravel))))'],
             ['not comments: (achievements: (Laravel))', 'NOT(EXISTS(comments, EXISTS(achievements, SOLO(Laravel))))'],
         ];

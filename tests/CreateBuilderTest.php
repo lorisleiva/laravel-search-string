@@ -121,10 +121,19 @@ class CreateBuilderTest extends TestCase
             ['name:1 and name:2 or name:3', "((name = 1 and name = 2) or name = 3)"],
             ['name:1 and (name:2 or name:3)', "(name = 1 and (name = 2 or name = 3))"],
 
-            // Relationships.
+            // Relationships existance.
+            ['comments', "exists (select * from comments where products.id = comments.product_id)"],
+            ['comments > 0', "exists (select * from comments where products.id = comments.product_id)"],
+            ['comments >= 1', "exists (select * from comments where products.id = comments.product_id)"],
+            ['not comments = 0', "exists (select * from comments where products.id = comments.product_id)"],
+
+            // Relationships inexistance.
+            ['not comments', "not exists (select * from comments where products.id = comments.product_id)"],
+
+
             ['comments.title = "My comment"', "exists (select * from comments where products.id = comments.product_id and title = 'My comment')"],
+            ['comments.author', "exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id))"],
             ['comments.author.name = John', "exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and name = 'John'))"],
-            // ['comments.author', "TODO"],
             // ['comments.author.tags', "TODO"],
             // ['not comments.author', "TODO"],
             // ['not comments.author = "John Doe"', "TODO"],

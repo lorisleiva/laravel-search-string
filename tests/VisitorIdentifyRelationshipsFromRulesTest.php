@@ -28,9 +28,9 @@ class VisitorIdentifyRelationshipsFromRulesTest extends VisitorTest
 
             // It recognises query symbols.
             ['comments = 3', 'EXISTS(comments, EMPTY) = 3'],
-            ['comments <= 1', 'EXISTS(comments, EMPTY) < 2'],
+            ['comments <= 1', 'EXISTS(comments, EMPTY) <= 1'],
             ['not comments = 3', 'EXISTS(comments, EMPTY) != 3'],
-            ['not comments > 1', 'EXISTS(comments, EMPTY) < 2'],
+            ['not comments > 1', 'EXISTS(comments, EMPTY) <= 1'],
             ['not comments > 0', 'NOT_EXISTS(comments, EMPTY)'],
 
             // It recognises solo symbols inside relationships.
@@ -45,7 +45,7 @@ class VisitorIdentifyRelationshipsFromRulesTest extends VisitorTest
 
             // It recognise symbols inside nested terms.
             ['comments.author', 'EXISTS(comments, EXISTS(author, EMPTY))'],
-            ['comments.author > 5', 'EXISTS(comments, EXISTS(author, EMPTY) >= 6)'],
+            ['comments.author > 5', 'EXISTS(comments, EXISTS(author, EMPTY) > 5)'],
             ['comments.favouritors', 'EXISTS(comments, EXISTS(favouritors, EMPTY))'],
             ['not comments.favouritors', 'NOT_EXISTS(comments, EXISTS(favouritors, EMPTY))'],
             ['comments.favouritors.name = John', 'EXISTS(comments, EXISTS(favouritors, QUERY(name = John)))'],
@@ -62,7 +62,7 @@ class VisitorIdentifyRelationshipsFromRulesTest extends VisitorTest
             ['comments.favourites.comment = 0', 'EXISTS(comments, EXISTS(favourites, NOT_EXISTS(comment, EMPTY)))'],
             ['comments.favouritors.comments', 'EXISTS(comments, EXISTS(favouritors, EXISTS(comments, EMPTY)))'],
             ['comments.favouritors.writtenComments', 'EXISTS(comments, EXISTS(favouritors, EXISTS(writtenComments, EMPTY)))'],
-            ['comments.author.comments > 10', 'EXISTS(comments, EXISTS(author, EXISTS(comments, EMPTY) >= 11))'],
+            ['comments.author.comments > 10', 'EXISTS(comments, EXISTS(author, EXISTS(comments, EMPTY) > 10))'],
         ];
     }
 

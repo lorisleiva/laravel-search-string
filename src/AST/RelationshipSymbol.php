@@ -44,32 +44,28 @@ class RelationshipSymbol extends Symbol
     public function getNormalizedExpectedOperation()
     {
         switch (true) {
-            case $this->expectedOperator === '>':
-                return ['>=', $this->expectedCount + 1];
-            case $this->expectedOperator === '<=':
-                return ['<', $this->expectedCount + 1];
+            case $this->isCheckingExistance():
+                return ['>=', 1];
+            case $this->isCheckingInexistance():
+                return ['<', 1];
             default:
                 return [$this->expectedOperator, $this->expectedCount];
         }
     }
 
-    public function getNormalizedExpectedOperationAsString(): string
+    public function getExpectedOperation(): string
     {
-        list($operator, $count) = $this->getNormalizedExpectedOperation();
-
-        return sprintf('%s %s', $operator, $count);
+        return sprintf('%s %s', $this->expectedOperator, $this->expectedCount);
     }
 
     public function isCheckingExistance(): bool
     {
-        return $this->getNormalizedExpectedOperationAsString() === '>= 1';
+        return in_array($this->getExpectedOperation(), ['> 0', '!= 0', '>= 1']);
     }
 
     public function isCheckingInexistance(): bool
     {
-        $operation = $this->getNormalizedExpectedOperationAsString();
-
-        return $operation === '< 1' || $operation === '= 0';
+        return in_array($this->getExpectedOperation(), ['<= 0', '= 0', '< 1']);
     }
 
     protected function getReverseOperator()
