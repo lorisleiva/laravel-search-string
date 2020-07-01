@@ -6,6 +6,7 @@ use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
 use Lorisleiva\LaravelSearchString\AST\RelationshipSymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
+use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Options\ColumnRule;
 use Lorisleiva\LaravelSearchString\Options\Rule;
 
@@ -25,6 +26,10 @@ class IdentifyRelationshipsFromRulesVisitor extends Visitor
     {
         if (! $this->isRelationship($query->rule)) {
             return $query;
+        }
+
+        if (! ctype_digit($query->value)) {
+            throw InvalidSearchStringException::fromVisitor('The expected relationship count must be an integer');
         }
 
         return (new RelationshipSymbol($query->key, new EmptySymbol(), $query->operator, $query->value))

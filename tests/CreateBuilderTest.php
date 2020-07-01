@@ -180,11 +180,9 @@ class CreateBuilderTest extends TestCase
         return [
             'Limit should be a positive integer' => ['limit:-1'],
             'Offset should be a positive integer' => ['from:"foo bar"'],
-
-            // TODO: Handle failure:
-            // 'Relationship expected count should be a positive integer' => ['comments = foo'],
-            // 'Relationship expected count (from nested terms) should be a positive integer' => ['comments.author = bar'],
-            // 'Relationship expected count (from nested relationship) should be a positive integer' => ['comments: (author: baz)'],
+            'Relationship expected count should be a positive integer' => ['comments = foo'],
+            'Relationship expected count (from nested terms) should be a positive integer' => ['comments.author = bar'],
+            'Relationship expected count (from nested relationship) should be a positive integer' => ['comments: (author: baz)'],
         ];
     }
 
