@@ -17,7 +17,7 @@ class DummyComment extends Model
             'relationship' => true,
         ],
         'favourites' => ['relationship' => true],
-        'favouriteUsers' => ['relationship' => true],
+        'favouritors' => ['relationship' => true],
         'created_at' => 'date',
     ];
 
@@ -28,10 +28,10 @@ class DummyComment extends Model
 
     public function favourites()
     {
-        return $this->belongsToMany(DummyCommentUser::class);
+        return $this->hasMany(DummyCommentUser::class);
     }
 
-    public function favouriteUsers()
+    public function favouritors()
     {
         return $this->belongsToMany(DummyUser::class);
     }
