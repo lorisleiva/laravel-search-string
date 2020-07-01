@@ -151,7 +151,7 @@ class BuildColumnsVisitor extends Visitor
 
     protected function buildDate(QuerySymbol $query, ColumnRule $rule)
     {
-        $dateWithPrecision = new DateWithPrecision((string) $query->value);
+        $dateWithPrecision = new DateWithPrecision($query->value);
 
         if (! $dateWithPrecision->carbon) {
             return $this->buildBasicQuery($query, $rule);

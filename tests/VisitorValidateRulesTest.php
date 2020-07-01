@@ -5,7 +5,6 @@ namespace Lorisleiva\LaravelSearchString\Tests;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
 use Lorisleiva\LaravelSearchString\Visitors\AttachRulesVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\IdentifyRelationshipsFromRulesVisitor;
-use Lorisleiva\LaravelSearchString\Visitors\RemoveKeywordsVisitor;
 use Lorisleiva\LaravelSearchString\Visitors\ValidateRulesVisitor;
 
 class VisitorValidateRulesTest extends VisitorTest

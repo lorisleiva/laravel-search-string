@@ -119,17 +119,17 @@ class VisitorBuildColumnsTest extends VisitorTest
     /** @test */
     public function it_wraps_basic_queries_in_nested_and_or_where_clauses()
     {
-        $this->assertWhereClauses('name:1 and created_at>1', [
+        $this->assertWhereClauses('name:1 and price>1', [
             'Nested[and][0]' => [
                 'Basic[and][0]' => 'name = 1',
-                'Basic[and][1]' => 'created_at > 1',
+                'Basic[and][1]' => 'price > 1',
             ]
         ]);
 
-        $this->assertWhereClauses('name:1 or created_at>1', [
+        $this->assertWhereClauses('name:1 or price>1', [
             'Nested[and][0]' => [
                 'Basic[or][0]' => 'name = 1',
-                'Basic[or][1]' => 'created_at > 1',
+                'Basic[or][1]' => 'price > 1',
             ]
         ]);
     }
@@ -180,7 +180,7 @@ class VisitorBuildColumnsTest extends VisitorTest
     /** @test */
     public function it_wraps_complex_and_or_operators_in_nested_where_clauses()
     {
-        $this->assertWhereClauses('name:4 or (name:1 or name:2) and created_at>1 or name:3', [
+        $this->assertWhereClauses('name:4 or (name:1 or name:2) and price>1 or name:3', [
             'Nested[and][0]' => [
                 'Basic[or][0]' => 'name = 4',
                 'Nested[or][1]' => [
@@ -188,7 +188,7 @@ class VisitorBuildColumnsTest extends VisitorTest
                         'Basic[or][0]' => 'name = 1',
                         'Basic[or][1]' => 'name = 2',
                     ],
-                    'Basic[and][1]' => 'created_at > 1',
+                    'Basic[and][1]' => 'price > 1',
                 ],
                 'Basic[or][2]' => 'name = 3',
             ]
