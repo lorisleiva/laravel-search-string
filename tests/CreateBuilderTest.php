@@ -120,6 +120,24 @@ class CreateBuilderTest extends TestCase
             ['name:John or name:Jane', "(name = 'John' or name = 'Jane')"],
             ['name:1 and name:2 or name:3', "((name = 1 and name = 2) or name = 3)"],
             ['name:1 and (name:2 or name:3)', "(name = 1 and (name = 2 or name = 3))"],
+
+            // Relationships.
+            // ['comments.title = "My comment"', 'TODO'],
+            // ['comments.author.tags > 3', 'TODO'],
+            // ['comments.author', 'TODO'],
+            // ['comments.author.tags', 'TODO'],
+            // ['not comments.author', 'TODO'],
+            // ['not comments.author = "John Doe"', 'TODO'],
+
+            // Nested relationships.
+            // ['comments: (author: John or votes > 10)', 'TODO'],
+            // ['comments: (author: John) = 20', 'TODO'],
+            // ['comments: (author: John) <= 10', 'TODO'],
+            // ['comments: ("This is great")', 'TODO'],
+            // ['comments.author: (name: "John Doe" age > 18) > 3', 'TODO'],
+            // ['comments: (achievements: (Laravel) >= 2) > 10', 'TODO'],
+            // ['comments: (not achievements: (Laravel))', 'TODO'],
+            // ['not comments: (achievements: (Laravel))', 'TODO'],
         ];
     }
 
