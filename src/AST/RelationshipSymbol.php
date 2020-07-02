@@ -71,7 +71,7 @@ class RelationshipSymbol extends Symbol
         }
 
         $thisOperation = $this->getNormalizedExpectedOperation(true);
-        $thatOperation = $this->getNormalizedExpectedOperation(true);
+        $thatOperation = $that->getNormalizedExpectedOperation(true);
 
         return $this->rule && $that->rule
             && $this->rule->column === $that->rule->column
