@@ -8,12 +8,11 @@ use Lorisleiva\LaravelSearchString\AST\NotSymbol;
 use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\OrSymbol;
 use Lorisleiva\LaravelSearchString\AST\QuerySymbol;
+use Lorisleiva\LaravelSearchString\AST\RelationshipSymbol;
 use Lorisleiva\LaravelSearchString\AST\SoloSymbol;
 
 class DumpVisitor extends Visitor
 {
-    // TODO: visitRelationship
-
     protected $indent = 0;
 
     public function indent()
@@ -50,6 +49,23 @@ class DumpVisitor extends Visitor
         $root = $this->dump('NOT');
         $this->indent++;
         $leaves = $not->expression->accept($this);
+        $this->indent--;
+        return $root . $leaves;
+    }
+
+    public function visitRelationship(RelationshipSymbol $relationship)
+    {
+        $explicitOperation = ! $relationship->isCheckingExistance() && ! $relationship->isCheckingInexistance();
+
+        $root = $this->dump(sprintf(
+            '%s(%s)%s',
+            $relationship->isCheckingInexistance() ? 'NOT_EXISTS' : 'EXISTS',
+            $relationship->key,
+            $explicitOperation ? (' ' . $relationship->getExpectedOperation()) : '',å
+        ));
+
+        $this->indent++;
+        $leaves = $relationship->expression->accept($this);
         $this->indent--;
         return $root . $leaves;
     }
