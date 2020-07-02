@@ -33,13 +33,17 @@ class RelationshipSymbol extends Symbol
         return $visitor->visitRelationship($this);
     }
 
-    public function getNormalizedExpectedOperation()
+    public function getNormalizedExpectedOperation($normalizeComparisons = false)
     {
         switch (true) {
             case $this->isCheckingExistance():
                 return ['>=', 1];
             case $this->isCheckingInexistance():
                 return ['<', 1];
+            case $normalizeComparisons && $this->expectedOperator === '>':
+                return ['>=', $this->expectedCount + 1];
+            case $normalizeComparisons && $this->expectedOperator === '<=':
+                return ['<', $this->expectedCount + 1];
             default:
                 return [$this->expectedOperator, $this->expectedCount];
         }
@@ -58,5 +62,19 @@ class RelationshipSymbol extends Symbol
     public function isCheckingInexistance(): bool
     {
         return in_array($this->getExpectedOperation(), ['<= 0', '= 0', '< 1']);
+    }
+
+    public function match(Symbol $that): bool
+    {
+        if (! $that instanceof RelationshipSymbol) {
+            return false;
+        }
+
+        $thisOperation = $this->getNormalizedExpectedOperation(true);
+        $thatOperation = $this->getNormalizedExpectedOperation(true);
+
+        return $this->rule && $that->rule
+            && $this->rule->column === $that->rule->column
+            && $thisOperation === $thatOperation;
     }
 }
