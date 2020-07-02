@@ -58,7 +58,7 @@ class DumpVisitor extends Visitor
         $explicitOperation = ! $relationship->isCheckingExistance() && ! $relationship->isCheckingInexistance();
 
         $root = $this->dump(sprintf(
-            '%s(%s)%s',
+            '%s [%s]%s',
             $relationship->isCheckingInexistance() ? 'NOT_EXISTS' : 'EXISTS',
             $relationship->key,
             $explicitOperation ? (' ' . $relationship->getExpectedOperation()) : '',
