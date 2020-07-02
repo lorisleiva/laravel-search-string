@@ -28,9 +28,38 @@ class DumpCommandsTest extends TestCase
         );
     }
 
+    /** @test */
+    public function it_dumps_the_sql_query()
+    {
+        $this->assertEquals(
+            'select * from `products` where (`name` = A and `price` > 10)',
+            $this->sql('name: A price > 10')
+        );
+
+        $this->assertEquals(
+            'select * from `products` where exists (select * from `comments` where `products`.`id` = `comments`.`product_id` and exists (select * from `users` where `comments`.`user_id` = `users`.`id` and `name` = John))',
+            $this->sql('comments.author.name = John')
+        );
+
+        $this->assertEquals(
+            'select * from `products` where ((`name` like %A% or `description` like %A%) or (`name` like %B% or `description` like %B%))',
+            $this->sql('A or B')
+        );
+    }
+
     public function ast(string $query)
     {
         return $this->query('ast', $query);
+    }
+
+    public function sql(string $query)
+    {
+        return $this->query('sql', $query);
+    }
+
+    public function result(string $query)
+    {
+        return $this->query('get', $query);
     }
 
     public function query(string $type, string $query)
