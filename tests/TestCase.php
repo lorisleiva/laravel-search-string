@@ -5,7 +5,7 @@ namespace Lorisleiva\LaravelSearchString\Tests;
 use Illuminate\Database\Eloquent\Model;
 use Lorisleiva\LaravelSearchString\Concerns\SearchString;
 use Lorisleiva\LaravelSearchString\SearchStringManager;
-use Lorisleiva\LaravelSearchString\Tests\Stubs\DummyModel;
+use Lorisleiva\LaravelSearchString\Tests\Stubs\Product;
 
 abstract class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -24,10 +24,12 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return new class($options) extends Model {
             use SearchString;
 
-            protected $table = 'dummy_models';
+            protected $table = 'anonymous_models';
+            protected $options = [];
 
             public function __construct($options)
             {
+                parent::__construct();
                 $this->options = $options;
             }
 
@@ -50,12 +52,12 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 
     public function getSearchStringManager($model = null)
     {
-        return new SearchStringManager($model ?? new DummyModel);
+        return new SearchStringManager($model ?? new Product);
     }
 
     public function lex($input, $model = null)
     {
-        return $this->getSearchStringManager($model)->lex($input);
+        return $this->getSearchStringManager($model)->getCompiler()->lex($input);
     }
 
     public function parse($input, $model = null)
@@ -63,34 +65,19 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return $this->getSearchStringManager($model)->parse($input);
     }
 
+    public function visit($input, $visitors, $model = null)
+    {
+        $ast = is_string($input) ? $this->parse($input, $model) : $input;
+
+        foreach ($visitors as $visitor) {
+            $ast = $ast->accept($visitor);
+        }
+
+        return $ast;
+    }
+
     public function build($input, $model = null)
     {
         return $this->getSearchStringManager($model)->createBuilder($input);
-    }
-
-    public function assertWhereSqlFor($input, $expectedSql, $model = null)
-    {
-        $actualSql = $this->dumpSql($this->build($input, $model));
-        $actualSql = preg_replace('/select \* from [\w\.]+ where (.*)/', '$1', $actualSql);
-        $this->assertEquals($expectedSql, $actualSql);
-    }
-
-    public function assertSqlFor($input, $expectedSql, $model = null)
-    {
-        $actualSql = $this->dumpSql($this->build($input, $model));
-        $this->assertEquals($expectedSql, $actualSql);
-    }
-
-    public function dumpSql($builder)
-    {
-        $query = str_replace('?', '%s', $builder->toSql());
-
-        $bindings = collect($builder->getBindings())->map(function ($binding) {
-            if (is_string($binding)) return "'$binding'";
-            if (is_bool($binding)) return $binding ? 'true' : 'false';
-            return $binding;
-        })->toArray();
-
-        return str_replace('`', '', vsprintf($query, $bindings));
     }
 }

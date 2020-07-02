@@ -3,12 +3,14 @@
 namespace Lorisleiva\LaravelSearchString\Concerns;
 
 use Lorisleiva\LaravelSearchString\SearchStringManager;
-use Lorisleiva\LaravelSearchString\Visitor\BuildColumnsVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\BuildKeywordsVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\OptimizeAstVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\RemoveKeywordsVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\RemoveNotSymbolVisitor;
-use Lorisleiva\LaravelSearchString\Visitor\RuleValidatorVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\AttachRulesVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\BuildColumnsVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\BuildKeywordsVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\IdentifyRelationshipsFromRulesVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\OptimizeAstVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\RemoveKeywordsVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\RemoveNotSymbolVisitor;
+use Lorisleiva\LaravelSearchString\Visitors\ValidateRulesVisitor;
 
 trait SearchString
 {
@@ -25,15 +27,17 @@ trait SearchString
             'keywords' => $this->searchStringKeywords ?? [],
         ];
     }
-    
+
     public function getSearchStringVisitors($manager, $builder)
     {
         return [
-            new RemoveNotSymbolVisitor,
+            new AttachRulesVisitor($manager),
+            new IdentifyRelationshipsFromRulesVisitor(),
+            new ValidateRulesVisitor(),
+            new RemoveNotSymbolVisitor(),
             new BuildKeywordsVisitor($manager, $builder),
-            new RemoveKeywordsVisitor($manager),
-            new OptimizeAstVisitor,
-            new RuleValidatorVisitor($manager),
+            new RemoveKeywordsVisitor(),
+            new OptimizeAstVisitor(),
             new BuildColumnsVisitor($manager, $builder),
         ];
     }

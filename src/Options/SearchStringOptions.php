@@ -2,13 +2,16 @@
 
 namespace Lorisleiva\LaravelSearchString\Options;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
-use Lorisleiva\LaravelSearchString\Options\ColumnRule;
-use Lorisleiva\LaravelSearchString\Parser\QuerySymbol;
+use Illuminate\Support\Collection;
 
 trait SearchStringOptions
 {
-    protected $options = [];
+    /** @var Collection */
+    protected $options;
+
+    /** @var array */
     protected static $fallbackOptions = [
         'columns' => [],
         'keywords' => [
@@ -19,10 +22,7 @@ trait SearchStringOptions
         ],
     ];
 
-    /**
-     * @param $model
-     */
-    protected function generateOptions($model)
+    protected function generateOptions(Model $model): void
     {
         $options = array_replace_recursive(
             static::$fallbackOptions,
@@ -33,8 +33,8 @@ trait SearchStringOptions
 
         $this->options = $this->parseOptions($options, $model);
     }
-    
-    protected function parseOptions($options, $model)
+
+    protected function parseOptions(array $options, Model $model): Collection
     {
         return collect([
             'columns' => $this->parseColumns($options, $model),
@@ -42,79 +42,78 @@ trait SearchStringOptions
         ]);
     }
 
-    protected function parseColumns($options, $model)
+    protected function parseColumns(array $options, Model $model): Collection
     {
         return collect(Arr::get($options, 'columns', []))
             ->mapWithKeys(function ($rule, $column) {
-                return $this->resolveLonelyColumn($rule, $column);
+                return $this->parseNonAssociativeColumn($rule, $column);
             })
             ->map(function ($rule, $column) use ($model) {
-                $isDate = $this->castAsDate($model, $column);
-                $isBoolean = $this->castAsBoolean($model, $column);
-                return new ColumnRule($column, $rule, $isDate, $isBoolean);
+                return new ColumnRule($model, $column, $rule);
             });
     }
 
-    protected function parseKeywords($options)
+    protected function parseKeywords(array $options): Collection
     {
         return collect(Arr::get($options, 'keywords', []))
             ->mapWithKeys(function ($rule, $keyword) {
-                return $this->resolveLonelyColumn($rule, $keyword);
+                return $this->parseNonAssociativeColumn($rule, $keyword);
             })
             ->map(function ($rule, $keyword) {
                 return new KeywordRule($keyword, $rule);
             });
     }
 
-    protected function resolveLonelyColumn($rule, $column)
+    protected function parseNonAssociativeColumn($rule, $column): array
     {
         return is_string($column) ? [$column => $rule] : [$rule => null];
     }
 
-    protected function castAsDate($model, $column)
-    {
-        return $model->hasCast($column, ['date', 'datetime'])
-            || in_array($column, $model->getDates());
-    }
-
-    protected function castAsBoolean($model, $column)
-    {
-        return $model->hasCast($column, 'boolean');
-    }
-
-    /**
-     * Helpers
-     */
-
-    public function getOptions()
+    public function getOptions(): Collection
     {
         return $this->options;
     }
 
-    public function getOption($key, $default = null)
+    public function getKeywordRules(): Collection
     {
-        return Arr::get($this->getOptions(), $key, $default);
+        return $this->options->get('keywords');
     }
 
-    public function getRule($key, $operator = null, $value = null, $type = 'columns')
+    public function getColumnRules(): Collection
     {
-        return $this->getOption($type)->first(function ($rule) use ($key, $operator, $value) {
-            return $rule->match($key, $operator, $value);
+        return $this->options->get('columns');
+    }
+
+    public function getKeywordRule($key): ?KeywordRule
+    {
+        return $this->getKeywordRules()->first(function ($rule) use ($key) {
+            return $rule->match($key);
         });
     }
 
-    public function getRuleForQuery(QuerySymbol $query, $type = 'columns')
+    public function getColumnRule($key): ?ColumnRule
     {
-        return $this->getRule($query->key, $query->operator, $query->value, $type);
+        return $this->getColumnRules()->first(function ($rule) use ($key) {
+            return $rule->match($key);
+        });
     }
 
-    public function getColumns()
+    public function getRule($key): ?Rule
     {
-        return $this->getOption('columns')->keys();
+        if ($rule = $this->getKeywordRule($key)) {
+            return $rule;
+        }
+
+        return $this->getColumnRule($key);
     }
 
-    public function getSearchables()
+    public function getColumns(): Collection
     {
-        return $this->getOption('columns')->filter->searchable->keys();
+        return $this->getColumnRules()->reject->relationship->keys();
+    }
+
+    public function getSearchables(): Collection
+    {
+        return $this->getColumnRules()->filter->searchable->keys();
     }
 }

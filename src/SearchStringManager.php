@@ -4,10 +4,10 @@ namespace Lorisleiva\LaravelSearchString;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Lorisleiva\LaravelSearchString\Compiler\CompilerInterface;
+use Lorisleiva\LaravelSearchString\Compiler\HoaCompiler;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
-use Lorisleiva\LaravelSearchString\Lexer\Lexer;
 use Lorisleiva\LaravelSearchString\Options\SearchStringOptions;
-use Lorisleiva\LaravelSearchString\Parser\Parser;
 
 class SearchStringManager
 {
@@ -21,14 +21,41 @@ class SearchStringManager
         $this->generateOptions($model);
     }
 
-    public function lex($input, $tokenMap = null, $delimiter = null)
+    public function getCompiler(): CompilerInterface
     {
-        return (new Lexer($tokenMap, $delimiter))->lex($input);
+        return new HoaCompiler($this);
+    }
+
+    public function getGrammarFile(): string
+    {
+        return __DIR__ . '/Compiler/Grammar.pp';
+    }
+
+    public function getGrammar()
+    {
+        return file_get_contents($this->getGrammarFile());
+    }
+
+    public function lex($input)
+    {
+        return $this->getCompiler()->lex($input);
     }
 
     public function parse($input)
     {
-        return (new Parser)->parse($this->lex($input));
+        return $this->getCompiler()->parse($input);
+    }
+
+    public function visit($input)
+    {
+        $ast = $this->parse($input);
+        $visitors = $this->model->getSearchStringVisitors($this, $this->model->newQuery());
+
+        foreach ($visitors as $visitor) {
+            $ast = $ast->accept($visitor);
+        }
+
+        return $ast;
     }
 
     public function build(Builder $builder, $input)
@@ -39,6 +66,8 @@ class SearchStringManager
         foreach ($visitors as $visitor) {
             $ast = $ast->accept($visitor);
         }
+
+        return $ast;
     }
 
     public function updateBuilder(Builder $builder, $input)
@@ -51,8 +80,8 @@ class SearchStringManager
                     throw $e;
 
                 case 'no-results':
-                    return $builder->limit(0);
-                
+                    return $builder->whereRaw('1 = 0');
+
                 default:
                     return $builder;
             }
