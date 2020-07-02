@@ -18,7 +18,7 @@ class DumpVisitor extends Visitor
     public function indent()
     {
         if ($this->indent === 0) return '';
-        return str_repeat(' > ', $this->indent) . ' ';
+        return str_repeat('>   ', $this->indent);
     }
 
     public function dump($value)
@@ -61,7 +61,7 @@ class DumpVisitor extends Visitor
             '%s(%s)%s',
             $relationship->isCheckingInexistance() ? 'NOT_EXISTS' : 'EXISTS',
             $relationship->key,
-            $explicitOperation ? (' ' . $relationship->getExpectedOperation()) : '',å
+            $explicitOperation ? (' ' . $relationship->getExpectedOperation()) : '',
         ));
 
         $this->indent++;
@@ -72,8 +72,11 @@ class DumpVisitor extends Visitor
 
     public function visitSolo(SoloSymbol $solo)
     {
-        $boolean = $solo->negated ? 'false' : 'true';
-        return $this->dump("SOLO [$boolean] $solo->content");
+        return $this->dump(sprintf(
+            '%s %s',
+            $solo->negated ? 'NOT_SOLO' : 'SOLO',
+            $solo->content
+        ));
     }
 
     public function visitQuery(QuerySymbol $query)

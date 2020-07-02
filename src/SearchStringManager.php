@@ -46,6 +46,18 @@ class SearchStringManager
         return $this->getCompiler()->parse($input);
     }
 
+    public function visit($input)
+    {
+        $ast = $this->parse($input);
+        $visitors = $this->model->getSearchStringVisitors($this, $this->model->newQuery());
+
+        foreach ($visitors as $visitor) {
+            $ast = $ast->accept($visitor);
+        }
+
+        return $ast;
+    }
+
     public function build(Builder $builder, $input)
     {
         $ast = $this->parse($input);
@@ -54,6 +66,8 @@ class SearchStringManager
         foreach ($visitors as $visitor) {
             $ast = $ast->accept($visitor);
         }
+
+        return $ast;
     }
 
     public function updateBuilder(Builder $builder, $input)
