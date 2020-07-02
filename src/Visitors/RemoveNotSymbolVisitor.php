@@ -2,6 +2,7 @@
 
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
+use Illuminate\Support\Arr;
 use Lorisleiva\LaravelSearchString\AST\AndSymbol;
 use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\AST\NotSymbol;
@@ -59,7 +60,7 @@ class RemoveNotSymbolVisitor extends Visitor
         $this->negate = $originalNegate;
 
         if ($this->negate) {
-            $relationship->negate();
+            $relationship->expectedOperator = $this->reverseOperator($relationship->expectedOperator);
         }
 
         return $relationship;
@@ -76,10 +77,16 @@ class RemoveNotSymbolVisitor extends Visitor
 
     public function visitQuery(QuerySymbol $query)
     {
-        if ($this->negate) {
-            $query->negate();
+        if (! $this->negate) {
+            return $query;
         }
 
+        if (is_bool($query->value)) {
+            $query->value = ! $query->value;
+            return $query;
+        }
+
+        $query->operator = $this->reverseOperator($query->operator);
         return $query;
     }
 
@@ -90,5 +97,17 @@ class RemoveNotSymbolVisitor extends Visitor
         }
 
         return $list;
+    }
+
+    protected function reverseOperator($operator)
+    {
+        return Arr::get([
+            '=' => '!=',
+            '!=' => '=',
+            '>' => '<=',
+            '>=' => '<',
+            '<' => '>=',
+            '<=' => '>',
+        ], $operator, $operator);
     }
 }

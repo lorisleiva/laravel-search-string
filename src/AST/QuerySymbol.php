@@ -2,7 +2,6 @@
 
 namespace Lorisleiva\LaravelSearchString\AST;
 
-use Illuminate\Support\Arr;
 use Lorisleiva\LaravelSearchString\Visitors\Visitor;
 
 class QuerySymbol extends Symbol
@@ -28,28 +27,5 @@ class QuerySymbol extends Symbol
     public function accept(Visitor $visitor)
     {
         return $visitor->visitQuery($this);
-    }
-
-    public function negate()
-    {
-        if (is_bool($this->value)) {
-            $this->value = ! $this->value;
-        } else {
-            $this->operator = $this->getReverseOperator();
-        }
-
-        return $this;
-    }
-
-    protected function getReverseOperator()
-    {
-        return Arr::get([
-            '=' => '!=',
-            '!=' => '=',
-            '>' => '<=',
-            '>=' => '<',
-            '<' => '>=',
-            '<=' => '>',
-        ], $this->operator, $this->operator);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace Lorisleiva\LaravelSearchString\AST;
 
-use Illuminate\Support\Arr;
 use Lorisleiva\LaravelSearchString\Visitors\Visitor;
 
 class RelationshipSymbol extends Symbol
@@ -34,13 +33,6 @@ class RelationshipSymbol extends Symbol
         return $visitor->visitRelationship($this);
     }
 
-    public function negate()
-    {
-        $this->expectedOperator = $this->getReverseOperator();
-
-        return $this;
-    }
-
     public function getNormalizedExpectedOperation()
     {
         switch (true) {
@@ -66,17 +58,5 @@ class RelationshipSymbol extends Symbol
     public function isCheckingInexistance(): bool
     {
         return in_array($this->getExpectedOperation(), ['<= 0', '= 0', '< 1']);
-    }
-
-    protected function getReverseOperator()
-    {
-        return Arr::get([
-            '=' => '!=',
-            '!=' => '=',
-            '>' => '<=',
-            '>=' => '<',
-            '<' => '>=',
-            '<=' => '>',
-        ], $this->expectedOperator, $this->expectedOperator);
     }
 }
