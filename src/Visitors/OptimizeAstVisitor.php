@@ -14,38 +14,54 @@ class OptimizeAstVisitor extends Visitor
 {
     public function visitOr(OrSymbol $or)
     {
-        $leaves = $or->expressions->map->accept($this)
-            ->flatMap(function ($leaf) {
-                return $leaf instanceof OrSymbol ? $leaf->expressions : [$leaf];
-            })
-            ->filter(function ($leaf) {
-                return ! $leaf instanceof EmptySymbol;
-            });
-
+        $leaves = $or->expressions->map->accept($this);
+        $leaves = $this->flattenNestedLeaves($leaves, OrSymbol::class);
         $leaves = $this->mergeEquivalentRelationshipSymbols($leaves, OrSymbol::class);
 
-        return $this->flattenNestedExpressions($leaves, OrSymbol::class);
+        return $this->getAppropriateSymbolForNestedLeaves($leaves, OrSymbol::class);
     }
 
     public function visitAnd(AndSymbol $and)
     {
-        $leaves = $and->expressions->map->accept($this)
-            ->flatMap(function ($leaf) {
-                return $leaf instanceof AndSymbol ? $leaf->expressions : [$leaf];
-            })
-            ->filter(function ($leaf) {
-                return ! $leaf instanceof EmptySymbol;
-            });
-
+        $leaves = $and->expressions->map->accept($this);
+        $leaves = $this->flattenNestedLeaves($leaves, AndSymbol::class);
         $leaves = $this->mergeEquivalentRelationshipSymbols($leaves, AndSymbol::class);
 
-        return $this->flattenNestedExpressions($leaves, AndSymbol::class);
+        return $this->getAppropriateSymbolForNestedLeaves($leaves, AndSymbol::class);
     }
 
     public function visitNot(NotSymbol $not)
     {
         $leaf = $not->expression->accept($this);
         return $leaf instanceof EmptySymbol ? new EmptySymbol : new NotSymbol($leaf);
+    }
+
+    public function flattenNestedLeaves(Collection $leaves, string $symbolClass)
+    {
+        return $leaves
+            ->flatMap(function ($leaf) use ($symbolClass) {
+                return $leaf instanceof $symbolClass ? $leaf->expressions : [$leaf];
+            })
+            ->filter(function ($leaf) {
+                return ! $leaf instanceof EmptySymbol;
+            });
+    }
+
+    public function getAppropriateSymbolForNestedLeaves(Collection $leaves, string $symbolClass): Symbol
+    {
+        $leaves = $leaves->filter(function ($leaf) {
+            return ! $leaf instanceof EmptySymbol;
+        });
+
+        if ($leaves->isEmpty()) {
+            return new EmptySymbol();
+        }
+
+        if ($leaves->count() === 1) {
+            return $leaves->first();
+        }
+
+        return new $symbolClass($leaves);
     }
 
     public function mergeEquivalentRelationshipSymbols(Collection $leaves, string $symbolClass): Collection
@@ -82,25 +98,8 @@ class OptimizeAstVisitor extends Visitor
     {
         $relationshipSymbol = $relationshipGroup->first();
         $expressions = $relationshipGroup->map->expression;
-        $relationshipSymbol->expression = $this->flattenNestedExpressions($expressions, $symbolClass);
+        $relationshipSymbol->expression = (new $symbolClass($expressions))->accept($this);
 
         return $relationshipSymbol;
-    }
-
-    public function flattenNestedExpressions(Collection $expressions, string $symbolClass): Symbol
-    {
-        $expressions = $expressions->filter(function ($leaf) {
-            return ! $leaf instanceof EmptySymbol;
-        });
-
-        if ($expressions->isEmpty()) {
-            return new EmptySymbol();
-        }
-
-        if ($expressions->count() === 1) {
-            return $expressions->first();
-        }
-
-        return new $symbolClass($expressions);
     }
 }

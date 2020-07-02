@@ -67,6 +67,12 @@ class VisitorOptimizeAstTest extends VisitorTest
             ['comments.author.name = John and comments.title = "My Comment"', 'EXISTS(comments, AND(EXISTS(author, name = John), title = My Comment))'],
             ['comments.author.name = John and comments.author.name = Jane', 'EXISTS(comments, EXISTS(author, AND(name = John, name = Jane)))'],
             ['comments.author.name = John or comments.author.name = Jane', 'EXISTS(comments, EXISTS(author, OR(name = John, name = Jane)))'],
+
+
+            ['(comments.title = A and comments.title = B) and (comments.title = C and comments.title = D)', 'EXISTS(comments, AND(title = A, title = B, title = C, title = D))'],
+            ['(comments.title = A or comments.title = B) or (comments.title = C or comments.title = D)', 'EXISTS(comments, OR(title = A, title = B, title = C, title = D))'],
+
+
             // ['comments.title = A comments.title = B foobar comments > 10', 'AND(EXISTS(comments, AND(title = A, title = B)), foobar, comments > 10)'],
 
             //
