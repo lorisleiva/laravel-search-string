@@ -13,18 +13,18 @@ class BaseCommand extends Command
 {
     public function getModel(): ?Model
     {
-        $model = $this->argument('model');
-        $model = str_replace('/', '\\', $model);
-        $model = Str::startsWith($model, '\\') ? $model : sprintf('App\\%s', $model);
+        $modelClass = $this->argument('model');
+        $modelClass = str_replace('/', '\\', $modelClass);
+        $modelClass = Str::startsWith($modelClass, '\\') ? $modelClass : sprintf('App\\%s', $modelClass);
 
-        if (! class_exists($model) || ! is_subclass_of($model, Model::class)) {
-            throw new InvalidArgumentException(sprintf('Class [%s] must be a Eloquent Model.', $model));
+        if (! class_exists($modelClass) || ! is_subclass_of($modelClass, Model::class)) {
+            throw new InvalidArgumentException(sprintf('Class [%s] must be a Eloquent Model.', $modelClass));
         }
 
-        $model = new $model();
+        $model = new $modelClass();
 
         if (! method_exists($model, 'getSearchStringManager')) {
-            throw new InvalidArgumentException(sprintf('Class [%s] must use the SearchString trait.', $model));
+            throw new InvalidArgumentException(sprintf('Class [%s] must use the SearchString trait.', $modelClass));
         }
 
         return $model;
