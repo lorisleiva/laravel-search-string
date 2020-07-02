@@ -120,7 +120,7 @@ class ParserTest extends VisitorTest
             ['foo in ', 'T_IN'],
             ['(', 'EOF'],
 
-            // String as key.
+            // Strings as key.
             ['"string as key":foo', 'T_ASSIGNMENT'],
             ['foo and bar and "string as key" > 3', 'T_COMPARATOR'],
             ['not "string as key" in (1,2,3)', 'T_IN'],

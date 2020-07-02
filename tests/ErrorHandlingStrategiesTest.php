@@ -10,7 +10,7 @@ class ErrorHandlingStrategiesTest extends TestCase
     use DumpsSql;
 
     /** @test */
-    public function exceptions_startegy_throws_on_lexer_error()
+    public function exceptions_strategy_throws_on_lexer_error()
     {
         $this->setStrategy('exceptions');
         $this->expectException(InvalidSearchStringException::class);
@@ -18,7 +18,7 @@ class ErrorHandlingStrategiesTest extends TestCase
     }
 
     /** @test */
-    public function exceptions_startegy_throws_on_parser_error()
+    public function exceptions_strategy_throws_on_parser_error()
     {
         $this->setStrategy('exceptions');
         $this->expectException(InvalidSearchStringException::class);
@@ -26,7 +26,7 @@ class ErrorHandlingStrategiesTest extends TestCase
     }
 
     /** @test */
-    public function exceptions_startegy_throws_on_unmatched_key()
+    public function exceptions_strategy_throws_on_unmatched_key()
     {
         $this->setStrategy('exceptions');
         $this->expectException(InvalidSearchStringException::class);
