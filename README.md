@@ -196,9 +196,11 @@ The term `NULL` is case sensitive.
 
 ### Searchable
 
+At least one column must be [defined as searchable](#searchable-1).
+
+The queried term must not match a boolean column, otherwise it will be handled as a boolean query.
+
 ```php
-// - Term must not be defined as a boolean
-// - At least one column must be defined as searchable
 'Apple'             // %Apple% like at least one of the searchable columns
 '"John Doe"'        // %John Doe% like at least one of the searchable columns
 'not "John Doe"'    // %John Doe% not like any of the searchable columns
@@ -342,6 +344,10 @@ $query->where(function($query) {
 ```
 
 If no searchable columns are provided, such terms or strings will be ignored.
+
+#### Relationship [WIP]
+
+TODO
 
 ## Configuring special keywords
 
