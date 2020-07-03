@@ -221,9 +221,57 @@ The queried term must not match a boolean column, otherwise it will be handled a
 
 ### Relationships [WIP]
 
+The column must be explicitly [defined as a relationship](#relationship) and the model associated with this relationship must also use the `SearchString` trait.
+
+When making a nested query within a relationship, Laravel Search String will use the column definition of the related model.
+
+In the following examples, `comments` is a `HasMany` relationship and `author` is a nested `BelongsTo` relationship within the `Comment` model.
+
 ```php
-TODO
+// Simple "has" check
+'comments'                              // Has comments
+'not comments'                          // Doesn't have comments
+'comments = 3'                          // Has 3 comments
+'not comments = 3'                      // Doesn't have 3 comments
+'comments > 10'                         // Has more than 10 comments
+'not comments <= 10'                    // Same as before
+'comments <= 5'                         // Has 5 or less comments
+'not comments > 5'                      // Same as before
+
+// "WhereHas" check
+'comments: (title: Superbe)'            // Has comments with the title "Superbe"
+'comments: (not title: Superbe)'        // Has comments whose titles are different than "Superbe"
+'not comments: (title: Superbe)'        // Doesn't have comments with the title "Superbe"
+'comments: (quality)'                   // Has comments whose searchable columns match "%quality%"
+'not comments: (spam)'                  // Doesn't have comments marked as spam
+'comments: (spam) >= 3'                 // Has at least 3 spam comments
+'not comments: (spam) >= 3'             // Has at most 2 spam comments
+'comments: (not spam) >= 3'             // Has at least 3 comments that are not spam
+'comments: (likes < 5)'                 // Has comments with less than 5 likes
+'comments: (likes < 5) <= 10'           // Has at most 10 comments with less than 5 likes
+'not comments: (likes < 5)'             // Doesn't have comments with less than 5 likes
+'comments: (likes > 10 and not spam)'   // Has non-spam comments with more than 10 likes
+
+// "WhereHas" shortcuts
+'comments.title: Superbe'               // Same as 'comments: (title: Superbe)'
+'not comments.title: Superbe'           // Same as 'not comments: (title: Superbe)'
+'comments.spam'                         // Same as 'comments: (spam)'
+'not comments.spam'                     // Same as 'not comments: (spam)'
+'comments.likes < 5'                    // Same as 'comments: (likes < 5)'
+'not comments.likes < 5'                // Same as 'not comments: (likes < 5)'
+
+// Nested relationships
+'comments: (author: (name: John))'      // Has comments from the author named John
+'comments.author.name: John'            // Same as before
+
+// Nested relationships are optimised
+'comments.author.name: John and comments.author.age > 21'   // Same as: 'comments: (author: (name: John and age > 21))
+'comments.likes > 10 or comments.author.age > 21'           // Same as: 'comments: (likes > 10 or author: (age > 21))
 ```
+
+Note that all these expressions delegate to the `has` query method. Therefore, it works out-of-the-box with the following relationship types: `HasOne`, `HasMany`, `HasOneThrough`, `HasManyThrough`, `BelongsTo`, `BelongsToMany`, `MorphOne`, `MorphMany` and `MorphToMany`.
+
+The only relationship type currently not supported is `MorphTo` since Laravel Search String needs an explicit related model to use withing nested queries.
 
 ### Special keywords
 
@@ -321,7 +369,7 @@ $query->whereNull('published');
 By default any column that is cast as a boolean or as a date (using Laravel properties), will be marked as a boolean. You can force a column to not be marked as a boolean by assigning `boolean` to `false`.
 
 #### Searchable
-If a column is marked as a `searchable`, it will be used to match search queries, i.e. terms that are alone but are not booleans like `Apple Banana` or `"John Doe"`.
+If a column is marked as `searchable`, it will be used to match search queries, i.e. terms that are alone but are not booleans like `Apple Banana` or `"John Doe"`.
 
 For example if both columns `title` and `description` are marked as `searchable`:
 
@@ -347,7 +395,59 @@ If no searchable columns are provided, such terms or strings will be ignored.
 
 #### Relationship [WIP]
 
-TODO
+If a column is marked as a `relationship`, it will be used to query relationships.
+
+The column name must match a valid relationship method on the model but, as usual, aliases can be created using the [`key` option](#key).
+
+The model associated with that relationship method must also use the `SearchString` trait in order to nest relationship queries.
+
+For example, say you have an Article Model and you want to query its related comments. Then, there must be a valid `comments` relationship method and the `Comment` model must itself use the `SearchString` trait.
+
+```php
+use Lorisleiva\LaravelSearchString\Concerns\SearchString;
+
+class Article extends Model
+{
+    use SearchString;
+
+    protected $searchStringColumns = [
+        'comments' => [
+            'key' => '/^comments?$/',   // aliases the column to `comments` or `comment`.
+            'relationship' => true,     // There must be a `comments` method that defines a relationship.
+        ],
+    ];
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+}
+
+class Comment extends Model
+{
+    use SearchString;
+
+    protected $searchStringColumns = [
+        // ...
+    ];
+}
+```
+
+Note that, since Laravel Search String is simply delegating to the `$builder->has(...)` method, you can provide any fancy relationship method you want and the constraints will be kept. For example:
+
+```php
+protected $searchStringColumns = [
+    'myComments' => [
+        'key' => 'my_comments',
+        'relationship' => true,
+    ],
+];
+
+public function myComments()
+{
+    return $this->hasMany(Comment::class)->where('author_id', Auth::user()->id);
+}
+```
 
 ## Configuring special keywords
 
