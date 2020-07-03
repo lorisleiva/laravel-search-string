@@ -37,8 +37,6 @@ Invoice::where(function ($query) {
 
 You can also query for the existence of related records, for example, articles published in 2020, which have more than 100 comments that are either not spam or written by John.
 
-> [WIP] This will be available starting from version 1.x which will be released very soon.
-
 ```php
 Article::usingSearchString('published = 2020 and comments: (not spam or author.name = John) > 100');
 
@@ -219,7 +217,7 @@ The queried term must not match a boolean column, otherwise it will be handled a
 'not (A or B)'                  // Equivalent to 'not A and not B'
 ```
 
-### Relationships [WIP]
+### Relationships
 
 The column must be explicitly [defined as a relationship](#relationship) and the model associated with this relationship must also use the `SearchString` trait.
 
@@ -262,6 +260,7 @@ In the following examples, `comments` is a `HasMany` relationship and `author` i
 
 // Nested relationships
 'comments: (author: (name: John))'      // Has comments from the author named John
+'comments.author: (name: John)'         // Same as before
 'comments.author.name: John'            // Same as before
 
 // Nested relationships are optimised
@@ -393,7 +392,7 @@ $query->where(function($query) {
 
 If no searchable columns are provided, such terms or strings will be ignored.
 
-#### Relationship [WIP]
+#### Relationship
 
 If a column is marked as a `relationship`, it will be used to query relationships.
 
