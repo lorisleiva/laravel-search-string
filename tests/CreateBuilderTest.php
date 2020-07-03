@@ -56,6 +56,15 @@ class CreateBuilderTest extends TestCase
                 . "or (name like '%Banana%' or description like '%Banana%')) "
                 . "limit 3 offset 1"
             ],
+            [
+                'created_at = 2020 and comments: (not spam or author.name = John) > 100',
+                "select * from products "
+                . "where ((created_at >= 2020-01-01 00:00:00 and created_at <= 2020-12-31 23:59:59) "
+                . "and (select count(*) from comments where products.id = comments.product_id and ("
+                . "spam = false "
+                . "or exists (select * from users where comments.user_id = users.id and name = 'John'))) "
+                . "> 100)"
+            ],
         ];
     }
 
@@ -87,11 +96,36 @@ class CreateBuilderTest extends TestCase
             ['name:NULL', "name is null"],
             ['not name:NULL', "name is not null"],
 
-            // Dates.
-            ['created_at = "2018-05-17 10:30:00"', "created_at = 2018-05-17 10:30:00"],
+            // Dates year precision.
+            ['created_at >= 2020', "created_at >= 2020-01-01 00:00:00"],
+            ['created_at > 2020', "created_at > 2020-12-31 23:59:59"],
+            ['created_at = 2020', "(created_at >= 2020-01-01 00:00:00 and created_at <= 2020-12-31 23:59:59)"],
+            ['not created_at = 2020', "(created_at < 2020-01-01 00:00:00 and created_at > 2020-12-31 23:59:59)"],
+
+            // Dates month precision.
+            ['created_at = 01/2020', "(created_at >= 2020-01-01 00:00:00 and created_at <= 2020-01-31 23:59:59)"],
+            ['created_at = 2020-01', "(created_at >= 2020-01-01 00:00:00 and created_at <= 2020-01-31 23:59:59)"],
+            ['created_at <= "Jan 2020"', "created_at <= 2020-01-31 23:59:59"],
+            ['created_at < 2020-1', "created_at < 2020-01-01 00:00:00"],
+
+            // Dates day precision.
+            ['created_at = 2020-12-31', "(created_at >= 2020-12-31 00:00:00 and created_at <= 2020-12-31 23:59:59)"],
+            ['created_at >= 12/31/2020', "created_at >= 2020-12-31 00:00:00"],
             ['created_at = 2018-05-17', "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"],
             ['not created_at = 2018-05-17', "(created_at < 2018-05-17 00:00:00 and created_at > 2018-05-17 23:59:59)"],
             ['created_at = "May 17 2018"', "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"],
+
+            // Dates hour precision.
+            ['created_at = "2020-12-31 16"', "(created_at >= 2020-12-31 16:00:00 and created_at <= 2020-12-31 16:59:59)"],
+            ['created_at = "Dec 31 2020 2am"', "(created_at >= 2020-12-31 02:00:00 and created_at <= 2020-12-31 02:59:59)"],
+
+            // Dates minute precision.
+            ['created_at = "2020-12-31 16:30"', "(created_at >= 2020-12-31 16:30:00 and created_at <= 2020-12-31 16:30:59)"],
+            ['created_at = "Dec 31 2020 5:15pm"', "(created_at >= 2020-12-31 17:15:00 and created_at <= 2020-12-31 17:15:59)"],
+
+            // Dates exact precision.
+            ['created_at = "2020-12-31 16:30:00"', "created_at = 2020-12-31 16:30:00"],
+            ['created_at = "Dec 31 2020 5:15:10pm"', "created_at = 2020-12-31 17:15:10"],
 
             // Relative dates.
             ['created_at = tomorrow', "(created_at >= $tomorrowStart and created_at <= $tomorrowEnd)"],

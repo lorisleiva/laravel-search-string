@@ -12,6 +12,7 @@ class Comment extends Model
     protected $searchStringColumns = [
         'title' => ['searchable' => true],
         'body' => ['searchable' => true],
+        'spam' => ['boolean' => true],
         'user' => [
             'key' => 'author',
             'relationship' => true,
