@@ -20,8 +20,8 @@ class DumpCommandsTest extends TestCase
 
         $this->assertEquals(
             <<<EOL
-            EXISTS(comments)
-            >   EXISTS(author)
+            EXISTS [comments]
+            >   EXISTS [author]
             >   >   name = John
             EOL,
             $this->ast('comments.author.name = John')
