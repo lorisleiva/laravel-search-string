@@ -7,7 +7,9 @@
 
 ## Introduction
 
-Laravel Search String provides a simple solution for scoping your database queries using a human readable and customizable syntax. It will transform a simple string into a powerful query builder. For example, the following search string will fetch the latest blog articles that are either not published or titled "My blog article".
+Laravel Search String provides a simple solution for scoping your database queries using a human readable and customizable syntax. It will transform a simple string into a powerful query builder.
+
+For example, the following search string will fetch the latest blog articles that are either not published or titled "My blog article".
 
 ```php
 Article::usingSearchString('title:"My blog article" or not published sort:-created_at');
@@ -18,7 +20,7 @@ Article::where('title', 'My blog article')
        ->orderBy('created_at', 'desc');
 ```
 
-This next example will search for the term "John" on the customer and description columns whilst making sure the invoices are either paid or archived.
+This next example will search for the term "John" on the `customer` and `description` columns whilst making sure the invoices are either paid or archived.
 
 ```php
 Invoice::usingSearchString('John and status in (Paid,Archived) limit:10 from:10');
@@ -33,7 +35,25 @@ Invoice::where(function ($query) {
        ->offset(10);
 ```
 
-As you can see, not only it provides a very convenient way to communicate with your Laravel API (instead of allowing dozens of query fields), it also can be presented to your users as a tool to explore their data.
+You can also query for the existence of related records, for example, articles published in 2020, which have more than 100 comments that are either not spam or written by John.
+
+> [WIP] This will be available starting from version 1.x which will be released very soon.
+
+```php
+Article::usingSearchString('published = 2020 and comments: (not spam or author.name = John) > 100');
+
+// Equivalent to:
+Article::where('published_at', '>=', '2020-01-01 00:00:00')
+        ->where('published_at', '<=', '2020-12-31 23:59:59')
+        ->whereHas('comments', function ($query) {
+            $query->where('spam', false)
+                ->orWhereHas('author' function ($query) {
+                    $query->where('name', 'John');
+                });
+        }, '>', 100);
+```
+
+As you can see, not only it provides a convenient way to communicate with your Laravel API (instead of allowing dozens of query fields), it also can be presented to your users as a tool to explore their data.
 
 ## Installation
 
@@ -62,50 +82,100 @@ class Article extends Model
 }
 ```
 
-Create a database query using the search string syntax.
+Note that you can define these in [other parts of your code](#other-places-to-configure) and [customise the behaviour of each column](#configuring-columns).
+
+That's it! Now you can create a database query using the search string syntax.
 
 ```php
-Invoice::usingSearchString('title:"Hello world" sort:-created_at,published')->get();
+Article::usingSearchString('title:"Hello world" sort:-created_at,published')->get();
 ```
 
 ## The search string syntax
 
 Note that the spaces between operators don't matter.
 
+### Exact matches
+
 ```php
-// Exact matches
-'title:Hello'
-'title=Hello'
-'title:"Hello World"'
-'rating : 0'
+'rating: 0'
+'rating = 0'
+'title: Hello'               // Strings without spaces do not need quotes
+'title: "Hello World"'       // Strings with spaces require quotes
+"title: 'Hello World'"       // Single quotes can be used too
 'rating = 99.99'
 'created_at: "2018-07-06 00:00:00"'
+```
 
-// Comparaisons
+### Comparisons
+
+```php
 'title < B'
 'rating > 3'
 'created_at >= "2018-07-06 00:00:00"'
+```
 
-// In array
+### Lists
+
+```php
 'title in (Hello, Hi, "My super article")'
 'status in(Finished,Archived)'
 'status:Finished,Archived'
+```
 
-// Date checks
-// - Term must be defined as a date
-'created_at = today'        // today between 00:00 and 23:59
-'not created_at = today'    // any time before today 00:00 and after today 23:59
-'created_at >= tomorrow'    // from tomorrow at 00:00
-'created_at <= tomorrow'    // until tomorrow at 23:59
-'created_at > tomorrow'     // from the day after tomorrow at 00:00
-'created_at < tomorrow'     // until today at 23:59
+### Dates
 
-// Boolean checks
-// - Term must be defined as a boolean
+The column must either be cast as a date or explicitly marked as a date in the [column options](#date).
+
+```php
+// Year precision
+'created_at >= 2020'                    // 2020-01-01 00:00:00 <= created_at
+'created_at > 2020'                     // 2020-12-31 23:59:59 < created_at
+'created_at = 2020'                     // 2020-01-01 00:00:00 <= created_at <= 2020-12-31 23:59:59
+'not created_at = 2020'                 // created_at < 2020-01-01 00:00:00 and created_at > 2020-12-31 23:59:59
+
+// Month precision
+'created_at = 01/2020'                  // 2020-01-01 00:00:00 <= created_at <= 2020-01-31 23:59:59
+'created_at <= "Jan 2020"'              // created_at <= 2020-01-31 23:59:59
+'created_at < 2020-1'                   // created_at < 2020-01-01 00:00:00
+
+// Day precision
+'created_at = 2020-12-31'               // 2020-12-31 00:00:00 <= created_at <= 2020-12-31 23:59:59
+'created_at >= 12/31/2020"'             // 2020-12-31 23:59:59 <= created_at
+'created_at > "Dec 31 2020"'            // 2020-12-31 23:59:59 < created_at
+
+// Hour and minute precisions
+'created_at = "2020-12-31 16"'          // 2020-12-31 16:00:00 <= created_at <= 2020-12-31 16:59:59
+'created_at = "2020-12-31 16:30"'       // 2020-12-31 16:30:00 <= created_at <= 2020-12-31 16:30:59
+'created_at = "Dec 31 2020 5pm"'        // 2020-12-31 17:00:00 <= created_at <= 2020-12-31 17:59:59
+'created_at = "Dec 31 2020 5:15pm"'     // 2020-12-31 17:15:00 <= created_at <= 2020-12-31 17:15:59
+
+// Exact precision
+'created_at = "2020-12-31 16:30:00"'    // created_at = 2020-12-31 16:30:00
+'created_at = "Dec 31 2020 5:15:10pm"'  // created_at = 2020-12-31 17:15:10
+
+// Relative dates
+'created_at = today'                    // today between 00:00 and 23:59
+'not created_at = today'                // any time before today 00:00 and after today 23:59
+'created_at >= tomorrow'                // from tomorrow at 00:00
+'created_at <= tomorrow'                // until tomorrow at 23:59
+'created_at > tomorrow'                 // from the day after tomorrow at 00:00
+'created_at < tomorrow'                 // until today at 23:59
+```
+
+### Booleans
+
+The column must either be cast as a boolean or explicitly marked as a boolean in the [column options](#boolean).
+
+Alternatively, if the column is marked as a date, it will automatically be marked as a boolean using `is null` and `is not null`.
+
+```php
 'published'         // published = true
 'created_at'        // created_at is not null
+```
 
-// Negations
+### Negations
+
+```php
 'not title:Hello'
 'not title="My super article"'
 'not rating:0'
@@ -113,19 +183,30 @@ Note that the spaces between operators don't matter.
 'not status in (Finished,Archived)'
 'not published'     // published = false
 'not created_at'    // created_at is null
+```
 
-// Null values (case sensitive)
+### Null values
+
+The term `NULL` is case sensitive.
+
+```php
 'body:NULL'         // body is null
 'not body:NULL'     // body is not null
+```
 
-// Search queries
+### Searchable
+
+```php
 // - Term must not be defined as a boolean
 // - At least one column must be defined as searchable
 'Apple'             // %Apple% like at least one of the searchable columns
 '"John Doe"'        // %John Doe% like at least one of the searchable columns
 'not "John Doe"'    // %John Doe% not like any of the searchable columns
+```
 
-// And/Or nested queries
+### And/Or
+
+```php
 'title:Hello body:World'        // Implicit and
 'title:Hello and body:World'    // Explicit and
 'title:Hello or body:World'     // Explicit or
@@ -134,8 +215,19 @@ Note that the spaces between operators don't matter.
 '(A or B) and (C or D)'         // Explicit nested priority
 'not (A and B)'                 // Equivalent to 'not A or not B'
 'not (A or B)'                  // Equivalent to 'not A and not B'
+```
 
-// Special keywords
+### Relationships [WIP]
+
+```php
+TODO
+```
+
+### Special keywords
+
+Note that these keywords [can be customised](#configuring-special-keywords).
+
+```php
 'fields:title,body,created_at'  // Select only title, body, created_at
 'not fields:rating'             // Select all columns but rating
 'sort:rating,-created_at'       // Order by rating asc, created_at desc
@@ -175,36 +267,36 @@ You can configure a column even further by assigning it an array of options.
 protected $searchStringColumns = [
     'created_at' => [
         'key' => 'created',         // Default to column name: /^created_at$/
-        'operator' => '/^:|=$/',    // Default to everything: /.*/
-        'value' => '/^[\d\s-:]+$/', // Default to everything: /.*/
         'date' => true,             // Default to true only if the column is cast as date.
         'boolean' => true,          // Default to true only if the column is cast as boolean or date.
         'searchable' => false       // Default to false.
+        'relationship' => false     // Default to false.
+        'map' => ['x' => 'y']       // Maps data from the user input to the database values. Default to [].
     ],
     // ...
 ];
 ```
 
-#### Query Patterns
-The `key` option is what we've been configuring so far, i.e. the alias of the column. The `operator` and `value` options allow you to restrict column queries respectively based on their operator and value. The `key`, `operator` and `value` options can each be either a regex pattern or a regular string for exact match.
+#### Key
+The `key` option is what we've been configuring so far, i.e. the alias of the column. It can be either a regex pattern (therefore allowing multiple matches) or a regular string for an exact match.
 
-#### Date columns
-If a column is marked as a `date`, the value of the query will be intelligently parsed using `Carbon`. For example, if the `created_at` column is marked as a `date`:
+#### Date
+If a column is marked as a `date`, the value of the query will be parsed using `Carbon` whilst keeping the level of precision given by the user. For example, if the `created_at` column is marked as a `date`:
 
 ```php
-'created_at > tomorrow' // Equivalent to:
-$query->where('created_at', '>', 'YYYY-MM-DD 00:00:00');
+'created_at >= tomorrow' // Equivalent to:
+$query->where('created_at', '>=', 'YYYY-MM-DD 00:00:00');
 // where `YYYY-MM-DD` matches the date of tomorrow.
 
-'created_at = "July, 6 2018"' // Equivalent to:
+'created_at = "July 6, 2018"' // Equivalent to:
 $query->where('created_at', '>=', '2018-07-06 00:00:00');
       ->where('created_at', '<=', '2018-07-06 23:59:59');
 ```
 
 By default any column that is cast as a date (using Laravel properties), will be marked as a date for LaravelSearchString. You can force a column to not be marked as a date by assigning `date` to `false`.
 
-#### Boolean columns
-If a column is marked as a `boolean`, it can be used without any operator nor value. For exemple, if the `paid` column is marked as boolean:
+#### Boolean
+If a column is marked as a `boolean`, it can be used with no operator or value. For example, if the `paid` column is marked as a `boolean`:
 
 ```php
 'paid' // Equivalent to:
@@ -226,7 +318,7 @@ $query->whereNull('published');
 
 By default any column that is cast as a boolean or as a date (using Laravel properties), will be marked as a boolean. You can force a column to not be marked as a boolean by assigning `boolean` to `false`.
 
-#### Searchable columns
+#### Searchable
 If a column is marked as a `searchable`, it will be used to match search queries, i.e. terms that are alone but are not booleans like `Apple Banana` or `"John Doe"`.
 
 For example if both columns `title` and `description` are marked as `searchable`:
@@ -253,6 +345,8 @@ If no searchable columns are provided, such terms or strings will be ignored.
 
 ## Configuring special keywords
 
+You can customise the name of a keyword by defining a key/value pair within the `$searchStringKeywords` property.
+
 ```php
 protected $searchStringKeywords = [
     'select' => 'fields',   // Updates the selected query columns
@@ -262,14 +356,12 @@ protected $searchStringKeywords = [
 ];
 ```
 
-Similarly to column values you can provide an array to define the key, the operator and the value pattern of the keyword. Note that the date, boolean and searchable options are not applicable for keywords.
+Similarly to column values you can provide an array to define a custom `key` of the keyword. Note that the `date`, `boolean`, `searchable` and `relationship` options are not applicable for keywords.
 
 ```php
 protected $searchStringKeywords = [
     'select' => [
         'key' => 'fields',
-        'operator' => '/^:|=$/',
-        'value' => '/.*/',
     ],
     // ...
 ];
@@ -277,9 +369,9 @@ protected $searchStringKeywords = [
 
 ## Other places to configure
 
-As we've seen so far, you can configure your columns and your special keywords using the `searchStringColumns` and `searchStringKeywords` properties on your model.
+As we've seen so far, you can configure your columns and special keywords using the `searchStringColumns` and `searchStringKeywords` properties on your model.
 
-You can also override the `getSearchStringOptions` method on your model which default to:
+You can also override the `getSearchStringOptions` method on your model which defaults to:
 
 ```php
 public function getSearchStringOptions()
@@ -291,7 +383,7 @@ public function getSearchStringOptions()
 }
 ```
 
-If you'd rather not define any of these configurations on the model itself, you can define directly them on the `config/search-string.php` file:
+If you'd rather not define any of these configurations on the model itself, you can define them directly on the `config/search-string.php` file like this:
 
 ```php
 // config/search-string.php
@@ -311,17 +403,19 @@ When resolving the options for a particular model, LaravelSearchString will merg
 1. First using the configurations defined on the model
 2. Then using the config file at the key matching the model class
 3. Then using the config file at the `default` key
-4. Finally using some fallback configurations.
+4. Finally using some fallback configurations
 
 ## Error handling
 
 The provided search string can be invalid for numerous reasons.
 - It does not comply to the search string syntax
 - It tries to query an inexisting column or column alias
-- It provides the wrong operator to a query
-- It provides the wrong value to a query
+- It provides invalid values to special keywords like `limit`
+- Etc.
 
-Any of those errors will throw an `InvalidSearchStringException`. However you can choose whether you want these exceptions to bubble up to the Laravel exception handler or whether you want them to fail silently. For that, you need to choose a fail strategy on your `config/search-string.php` configuration file:
+Any of those errors will throw an `InvalidSearchStringException`.
+
+However you can choose whether you want these exceptions to bubble up to the Laravel exception handler or whether you want them to fail silently. For that, you need to choose a fail strategy on your `config/search-string.php` configuration file:
 
 ```php
 // config/search-string.php
@@ -333,5 +427,3 @@ return [
     // ...
 ];
 ```
-
-> **Note:** Attempting to silently fail with `no-results` will fall back to `all-results` when paginating a query-builder result. This is because, internally, the `LengthAwarePaginator` will override the intended behaviour by setting `skip` and `take` on the builder before running the query.
