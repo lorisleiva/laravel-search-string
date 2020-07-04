@@ -23,13 +23,13 @@ class HoaCompiler implements CompilerInterface
         $this->manager = $manager;
     }
 
-    public function lex(string $input): Enumerable
+    public function lex(?string $input): Enumerable
     {
         Llk::parsePP($this->manager->getGrammar(), $tokens, $rules, $pragmas, 'streamName');
         $lexer = new Lexer($pragmas);
 
         try {
-            $generator = $lexer->lexMe($input, $tokens);
+            $generator = $lexer->lexMe($input ?? '', $tokens);
         } catch (UnrecognizedToken $exception) {
             throw InvalidSearchStringException::fromLexer($exception->getMessage(), $exception->getArguments()[1]);
         }
@@ -37,7 +37,7 @@ class HoaCompiler implements CompilerInterface
         return LazyCollection::make($generator);
     }
 
-    public function parse(string $input): Symbol
+    public function parse(?string $input): Symbol
     {
         if (! $input) {
             return new EmptySymbol();
