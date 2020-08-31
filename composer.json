@@ -14,9 +14,6 @@
         "hoa/compiler": "^3.17",
         "sanmai/hoa-protocol": "^1.17"
     },
-    "replace": {
-        "hoa/protocol": "*"
-    },
     "require-dev": {
         "orchestra/testbench": "^5.0"
     },
