@@ -59,7 +59,7 @@ class VisitorBuildColumnsTest extends VisitorTest
     {
         $model = $this->getModelWithColumns([
             'zipcode' => 'postcode',
-            'created_at' => ['key' => 'created', 'date' => true, 'boolean' => true],
+            'created_at' => ['key' => '/^(created|date)$/', 'date' => true, 'boolean' => true],
             'activated' => ['key' => 'active', 'boolean' => true],
         ]);
 
@@ -68,7 +68,9 @@ class VisitorBuildColumnsTest extends VisitorTest
         $this->assertWhereClauses('not postcode in (1000, 1002)', ['NotIn[and][0]' => 'zipcode [1000, 1002]'], $model);
         $this->assertWhereClauses('created>2019-01-01', ['Basic[and][0]' => 'created_at > 2019-01-01 23:59:59'], $model);
         $this->assertWhereClauses('created', ['NotNull[and][0]' => 'created_at'], $model);
+        $this->assertWhereClauses('date', ['NotNull[and][0]' => 'created_at'], $model);
         $this->assertWhereClauses('not created', ['Null[and][0]' => 'created_at'], $model);
+        $this->assertWhereClauses('not date', ['Null[and][0]' => 'created_at'], $model);
         $this->assertWhereClauses('active', ['Basic[and][0]' => 'activated = true'], $model);
         $this->assertWhereClauses('not active', ['Basic[and][0]' => 'activated = false'], $model);
     }
@@ -92,7 +94,7 @@ class VisitorBuildColumnsTest extends VisitorTest
     }
 
     /** @test */
-    public function it_does_not_add_where_clause_if_not_searchable_columns_were_given()
+    public function it_does_not_add_where_clause_if_no_searchable_columns_were_given()
     {
         $model = $this->getModelWithOptions([]);
 

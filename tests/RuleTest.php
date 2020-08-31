@@ -11,6 +11,7 @@ class RuleTest extends TestCase
     {
         $this->assertEquals("[/^foobar$/]", $this->parseRule('/^foobar$/'));
         $this->assertEquals("[~^foobar$~]", $this->parseRule('~^foobar$~'));
+        $this->assertEquals("[/^(published|live)$/]", $this->parseRule('/^(published|live)$/'));
     }
 
     /** @test */
