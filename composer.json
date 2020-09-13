@@ -10,12 +10,12 @@
         }
     ],
     "require": {
-        "illuminate/support": "^5.5|^6.0|^7.0",
+        "illuminate/support": "^5.5|^6.0|^7.0|^8.0",
         "hoa/compiler": "^3.17",
         "sanmai/hoa-protocol": "^1.17"
     },
     "require-dev": {
-        "orchestra/testbench": "^5.0"
+        "orchestra/testbench": "^4.0|^5.0|^6.0"
     },
     "autoload": {
        "psr-4": {
