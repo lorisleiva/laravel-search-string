@@ -1,6 +1,8 @@
-# Laravel Search String
+# 🔍 Laravel Search String
 
-🔍 Generates database queries based on one unique string using a simple and customizable syntax.
+[![Actions Status](https://github.com/lorisleiva/laravel-search-string/workflows/Tests/badge.svg)](https://github.com/lorisleiva/laravel-search-string/actions)
+
+Generates database queries based on one unique string using a simple and customizable syntax.
 
 ![Example of a search string syntax and its result](https://user-images.githubusercontent.com/3642397/40266921-6f7b4c70-5b54-11e8-8e40-000ae3b4e201.png)
 
