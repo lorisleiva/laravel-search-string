@@ -196,7 +196,7 @@ class CreateBuilderTest extends TestCase
             ['comments: (not author)', "exists (select * from comments where products.id = comments.product_id and not exists (select * from users where comments.user_id = users.id))"],
             ['comments: (author.name: John or favourites > 5)', "exists (select * from comments where products.id = comments.product_id and (exists (select * from users where comments.user_id = users.id and name = 'John') or (select count(*) from comment_user where comments.id = comment_user.comment_id) > 5))"],
             ['comments: (favourites > 10) > 3', "(select count(*) from comments where products.id = comments.product_id and (select count(*) from comment_user where comments.id = comment_user.comment_id) > 10) > 3"],
-            ['comments: ("This is great")', "exists (select * from comments where products.id = comments.product_id and (name like '%This is great%' or description like '%This is great%'))"],
+            ['comments: ("This is great")', "exists (select * from comments where products.id = comments.product_id and (title like '%This is great%' or body like '%This is great%'))"],
             ['comments: (author: (name: "John Doe" age > 18)) > 3', "(select count(*) from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and (name = 'John Doe' and age > 18))) > 3"],
 
             // Relationships & And/Or.

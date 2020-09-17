@@ -72,15 +72,17 @@ class BuildColumnsVisitor extends Visitor
         return $list;
     }
 
-    protected function getNestedCallback(Collection $expressions, string $newBoolean = 'and')
+    protected function getNestedCallback(Collection $expressions, string $newBoolean = 'and', $newManager = null)
     {
-        return function ($nestedBuilder) use ($expressions, $newBoolean) {
+        return function ($nestedBuilder) use ($expressions, $newBoolean, $newManager) {
 
             // Save and update the new builder and boolean.
             $originalBuilder = $this->builder;
             $originalBoolean = $this->boolean;
+            $originalManager = $this->manager;
             $this->builder = $nestedBuilder;
             $this->boolean = $newBoolean;
+            $this->manager = $newManager ?: $originalManager;
 
             // Recursively generate the nested builder.
             $expressions->each->accept($this);
@@ -88,6 +90,7 @@ class BuildColumnsVisitor extends Visitor
             // Restore the original builder and boolean.
             $this->builder = $originalBuilder;
             $this->boolean = $originalBoolean;
+            $this->manager = $originalManager;
 
         };
     }
@@ -99,7 +102,9 @@ class BuildColumnsVisitor extends Visitor
             return;
         }
 
-        $callback = $this->getNestedCallback(collect([$relationship->expression]));
+        $nestedExpressions = collect([$relationship->expression]);
+        $newManager = $rule->relationshipModel->getSearchStringManager();
+        $callback = $this->getNestedCallback($nestedExpressions, 'and', $newManager);
         $callback = $relationship->expression instanceof EmptySymbol ? null : $callback;
         list($operator, $count) = $relationship->getNormalizedExpectedOperation();
 
