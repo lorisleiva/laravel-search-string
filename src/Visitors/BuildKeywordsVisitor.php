@@ -83,7 +83,8 @@ class BuildKeywordsVisitor extends Visitor
         Collection::wrap($values)->each(function ($value) {
             $desc = Str::startsWith($value, '-') ? 'desc' : 'asc';
             $column = Str::startsWith($value, '-') ? Str::after($value, '-') : $value;
-            $this->builder->orderBy($column, $desc);
+            $qualifiedColumn = $this->builder->qualifyColumn($column);
+            $this->builder->orderBy($qualifiedColumn, $desc);
         });
     }
 
