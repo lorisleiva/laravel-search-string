@@ -116,12 +116,16 @@ class BuildColumnsVisitor extends Visitor
         /** @var ColumnRule $rule */
         $rule = $solo->rule;
 
-        if ($rule && $rule->boolean && $rule->date) {
-            return $this->builder->whereNull($rule->column, $this->boolean, ! $solo->negated);
-        }
+        if ($rule) {
+            $qualifiedColumn = $this->builder->qualifyColumn($rule->column);
 
-        if ($rule && $rule->boolean) {
-            return $this->builder->where($rule->column, '=', ! $solo->negated, $this->boolean);
+            if ($rule->boolean && $rule->date) {
+                return $this->builder->whereNull($qualifiedColumn, $this->boolean, ! $solo->negated);
+            }
+
+            if ($rule->boolean) {
+                return $this->builder->where($qualifiedColumn, '=', ! $solo->negated, $this->boolean);
+            }
         }
 
         return $this->buildSearch($solo);
@@ -132,7 +136,8 @@ class BuildColumnsVisitor extends Visitor
         $wheres = $this->manager->getSearchables()->map(function ($column) use ($solo) {
             $boolean = $solo->negated ? 'and' : 'or';
             $operator = $solo->negated ? 'not like' : 'like';
-            return [$column, $operator, "%$solo->content%", $boolean];
+            $qualifiedColumn = $this->builder->qualifyColumn($column);
+            return [$qualifiedColumn, $operator, "%$solo->content%", $boolean];
         });
 
         if ($wheres->isEmpty()) {
@@ -170,9 +175,11 @@ class BuildColumnsVisitor extends Visitor
             return;
         }
 
+        $qualifiedColumn = $this->builder->qualifyColumn($rule->column);
+
         $list->values = $this->mapValue($list->values, $rule);
 
-        return $this->builder->whereIn($rule->column, $list->values, $this->boolean, $list->negated);
+        return $this->builder->whereIn($qualifiedColumn, $list->values, $this->boolean, $list->negated);
     }
 
     protected function buildDate(QuerySymbol $query, ColumnRule $rule)
@@ -202,15 +209,19 @@ class BuildColumnsVisitor extends Visitor
     {
         $exclude = in_array($query->operator, ['!=', 'not in']);
 
+        $qualifiedColumn = $this->builder->qualifyColumn($rule->column);
+
         return $this->builder->where([
-            [$rule->column, ($exclude ? '<' : '>='), $start, $this->boolean],
-            [$rule->column, ($exclude ? '>' : '<='), $end, $this->boolean],
+            [$qualifiedColumn, ($exclude ? '<' : '>='), $start, $this->boolean],
+            [$qualifiedColumn, ($exclude ? '>' : '<='), $end, $this->boolean],
         ], null, null, $this->boolean);
     }
 
     protected function buildBasicQuery(QuerySymbol $query, ColumnRule $rule)
     {
-        return $this->builder->where($rule->column, $query->operator, $query->value, $this->boolean);
+        $qualifiedColumn = $this->builder->qualifyColumn($rule->column);
+
+        return $this->builder->where($qualifiedColumn, $query->operator, $query->value, $this->boolean);
     }
 
     protected function mapValue($value, ColumnRule $rule)
