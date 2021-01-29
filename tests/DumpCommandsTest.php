@@ -32,17 +32,17 @@ class DumpCommandsTest extends TestCase
     public function it_dumps_the_sql_query()
     {
         $this->assertEquals(
-            'select * from `products` where (`name` = A and `price` > 10)',
+            'select * from `products` where (`products`.`name` = A and `products`.`price` > 10)',
             $this->sql('name: A price > 10')
         );
 
         $this->assertEquals(
-            'select * from `products` where exists (select * from `comments` where `products`.`id` = `comments`.`product_id` and exists (select * from `users` where `comments`.`user_id` = `users`.`id` and `name` = John))',
+            'select * from `products` where exists (select * from `comments` where `products`.`id` = `comments`.`product_id` and exists (select * from `users` where `comments`.`user_id` = `users`.`id` and `users`.`name` = John))',
             $this->sql('comments.author.name = John')
         );
 
         $this->assertEquals(
-            'select * from `products` where ((`name` like %A% or `description` like %A%) or (`name` like %B% or `description` like %B%))',
+            'select * from `products` where ((`products`.`name` like %A% or `products`.`description` like %A%) or (`products`.`name` like %B% or `products`.`description` like %B%))',
             $this->sql('A or B')
         );
     }

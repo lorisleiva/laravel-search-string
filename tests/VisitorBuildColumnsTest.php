@@ -24,34 +24,34 @@ class VisitorBuildColumnsTest extends VisitorTest
     /** @test */
     public function it_generates_basic_where_clauses_that_match_the_query_operator()
     {
-        $this->assertWhereClauses('name:1', ['Basic[and][0]' => 'name = 1']);
-        $this->assertWhereClauses('name=1', ['Basic[and][0]' => 'name = 1']);
-        $this->assertWhereClauses('name=Hello', ['Basic[and][0]' => 'name = Hello']);
-        $this->assertWhereClauses('name="Hello World"', ['Basic[and][0]' => 'name = Hello World']);
-        $this->assertWhereClauses('not name:1', ['Basic[and][0]' => 'name != 1']);
-        $this->assertWhereClauses('not name=Hello', ['Basic[and][0]' => 'name != Hello']);
+        $this->assertWhereClauses('name:1', ['Basic[and][0]' => 'products.name = 1']);
+        $this->assertWhereClauses('name=1', ['Basic[and][0]' => 'products.name = 1']);
+        $this->assertWhereClauses('name=Hello', ['Basic[and][0]' => 'products.name = Hello']);
+        $this->assertWhereClauses('name="Hello World"', ['Basic[and][0]' => 'products.name = Hello World']);
+        $this->assertWhereClauses('not name:1', ['Basic[and][0]' => 'products.name != 1']);
+        $this->assertWhereClauses('not name=Hello', ['Basic[and][0]' => 'products.name != Hello']);
 
-        $this->assertWhereClauses('name<0', ['Basic[and][0]' => 'name < 0']);
-        $this->assertWhereClauses('name<=0', ['Basic[and][0]' => 'name <= 0']);
-        $this->assertWhereClauses('name>0', ['Basic[and][0]' => 'name > 0']);
-        $this->assertWhereClauses('name>=0', ['Basic[and][0]' => 'name >= 0']);
-        $this->assertWhereClauses('not name<0', ['Basic[and][0]' => 'name >= 0']);
-        $this->assertWhereClauses('not name<=0', ['Basic[and][0]' => 'name > 0']);
-        $this->assertWhereClauses('not name>0', ['Basic[and][0]' => 'name <= 0']);
-        $this->assertWhereClauses('not name>=0', ['Basic[and][0]' => 'name < 0']);
+        $this->assertWhereClauses('name<0', ['Basic[and][0]' => 'products.name < 0']);
+        $this->assertWhereClauses('name<=0', ['Basic[and][0]' => 'products.name <= 0']);
+        $this->assertWhereClauses('name>0', ['Basic[and][0]' => 'products.name > 0']);
+        $this->assertWhereClauses('name>=0', ['Basic[and][0]' => 'products.name >= 0']);
+        $this->assertWhereClauses('not name<0', ['Basic[and][0]' => 'products.name >= 0']);
+        $this->assertWhereClauses('not name<=0', ['Basic[and][0]' => 'products.name > 0']);
+        $this->assertWhereClauses('not name>0', ['Basic[and][0]' => 'products.name <= 0']);
+        $this->assertWhereClauses('not name>=0', ['Basic[and][0]' => 'products.name < 0']);
 
         // boolean_variable is defined in the `columns.boolean` option.
-        $this->assertWhereClauses('boolean_variable', ['Basic[and][0]' => 'boolean_variable = true']);
-        $this->assertWhereClauses('not boolean_variable', ['Basic[and][0]' => 'boolean_variable = false']);
+        $this->assertWhereClauses('boolean_variable', ['Basic[and][0]' => 'products.boolean_variable = true']);
+        $this->assertWhereClauses('not boolean_variable', ['Basic[and][0]' => 'products.boolean_variable = false']);
     }
 
     /** @test */
     public function it_can_generate_in_and_not_in_where_clauses()
     {
-        $this->assertWhereClauses('name in (1,2,3)', ['In[and][0]' => 'name [1, 2, 3]']);
-        $this->assertWhereClauses('not name in (1,2,3)', ['NotIn[and][0]' => 'name [1, 2, 3]']);
-        $this->assertWhereClauses('name:1,2,3', ['In[and][0]' => 'name [1, 2, 3]']);
-        $this->assertWhereClauses('not name:1,2,3', ['NotIn[and][0]' => 'name [1, 2, 3]']);
+        $this->assertWhereClauses('name in (1,2,3)', ['In[and][0]' => 'products.name [1, 2, 3]']);
+        $this->assertWhereClauses('not name in (1,2,3)', ['NotIn[and][0]' => 'products.name [1, 2, 3]']);
+        $this->assertWhereClauses('name:1,2,3', ['In[and][0]' => 'products.name [1, 2, 3]']);
+        $this->assertWhereClauses('not name:1,2,3', ['NotIn[and][0]' => 'products.name [1, 2, 3]']);
     }
 
     /** @test */
@@ -63,16 +63,16 @@ class VisitorBuildColumnsTest extends VisitorTest
             'activated' => ['key' => 'active', 'boolean' => true],
         ]);
 
-        $this->assertWhereClauses('postcode:1028', ['Basic[and][0]' => 'zipcode = 1028'], $model);
-        $this->assertWhereClauses('postcode>10', ['Basic[and][0]' => 'zipcode > 10'], $model);
-        $this->assertWhereClauses('not postcode in (1000, 1002)', ['NotIn[and][0]' => 'zipcode [1000, 1002]'], $model);
-        $this->assertWhereClauses('created>2019-01-01', ['Basic[and][0]' => 'created_at > 2019-01-01 23:59:59'], $model);
-        $this->assertWhereClauses('created', ['NotNull[and][0]' => 'created_at'], $model);
-        $this->assertWhereClauses('date', ['NotNull[and][0]' => 'created_at'], $model);
-        $this->assertWhereClauses('not created', ['Null[and][0]' => 'created_at'], $model);
-        $this->assertWhereClauses('not date', ['Null[and][0]' => 'created_at'], $model);
-        $this->assertWhereClauses('active', ['Basic[and][0]' => 'activated = true'], $model);
-        $this->assertWhereClauses('not active', ['Basic[and][0]' => 'activated = false'], $model);
+        $this->assertWhereClauses('postcode:1028', ['Basic[and][0]' => 'models.zipcode = 1028'], $model);
+        $this->assertWhereClauses('postcode>10', ['Basic[and][0]' => 'models.zipcode > 10'], $model);
+        $this->assertWhereClauses('not postcode in (1000, 1002)', ['NotIn[and][0]' => 'models.zipcode [1000, 1002]'], $model);
+        $this->assertWhereClauses('created>2019-01-01', ['Basic[and][0]' => 'models.created_at > 2019-01-01 23:59:59'], $model);
+        $this->assertWhereClauses('created', ['NotNull[and][0]' => 'models.created_at'], $model);
+        $this->assertWhereClauses('date', ['NotNull[and][0]' => 'models.created_at'], $model);
+        $this->assertWhereClauses('not created', ['Null[and][0]' => 'models.created_at'], $model);
+        $this->assertWhereClauses('not date', ['Null[and][0]' => 'models.created_at'], $model);
+        $this->assertWhereClauses('active', ['Basic[and][0]' => 'models.activated = true'], $model);
+        $this->assertWhereClauses('not active', ['Basic[and][0]' => 'models.activated = false'], $model);
     }
 
     /** @test */
@@ -80,15 +80,15 @@ class VisitorBuildColumnsTest extends VisitorTest
     {
         $this->assertWhereClauses('foobar', [
             'Nested[and][0]' => [
-                'Basic[or][0]' => 'name like %foobar%',
-                'Basic[or][1]' => 'description like %foobar%',
+                'Basic[or][0]' => 'products.name like %foobar%',
+                'Basic[or][1]' => 'products.description like %foobar%',
             ]
         ]);
 
         $this->assertWhereClauses('not foobar', [
             'Nested[and][0]' => [
-                'Basic[and][0]' => 'name not like %foobar%',
-                'Basic[and][1]' => 'description not like %foobar%',
+                'Basic[and][0]' => 'products.name not like %foobar%',
+                'Basic[and][1]' => 'products.description not like %foobar%',
             ]
         ]);
     }
@@ -110,11 +110,11 @@ class VisitorBuildColumnsTest extends VisitorTest
         ]);
 
         $this->assertWhereClauses('foobar', [
-            'Basic[and][0]' => 'name like %foobar%'
+            'Basic[and][0]' => 'models.name like %foobar%'
         ], $model);
 
         $this->assertWhereClauses('not foobar', [
-            'Basic[and][0]' => 'name not like %foobar%'
+            'Basic[and][0]' => 'models.name not like %foobar%'
         ], $model);
     }
 
@@ -123,15 +123,15 @@ class VisitorBuildColumnsTest extends VisitorTest
     {
         $this->assertWhereClauses('name:1 and price>1', [
             'Nested[and][0]' => [
-                'Basic[and][0]' => 'name = 1',
-                'Basic[and][1]' => 'price > 1',
+                'Basic[and][0]' => 'products.name = 1',
+                'Basic[and][1]' => 'products.price > 1',
             ]
         ]);
 
         $this->assertWhereClauses('name:1 or price>1', [
             'Nested[and][0]' => [
-                'Basic[or][0]' => 'name = 1',
-                'Basic[or][1]' => 'price > 1',
+                'Basic[or][0]' => 'products.name = 1',
+                'Basic[or][1]' => 'products.price > 1',
             ]
         ]);
     }
@@ -142,12 +142,12 @@ class VisitorBuildColumnsTest extends VisitorTest
         $this->assertWhereClauses('foo and bar', [
             'Nested[and][0]' => [
                 'Nested[and][0]' => [
-                    'Basic[or][0]' => 'name like %foo%',
-                    'Basic[or][1]' => 'description like %foo%',
+                    'Basic[or][0]' => 'products.name like %foo%',
+                    'Basic[or][1]' => 'products.description like %foo%',
                 ],
                 'Nested[and][1]' => [
-                    'Basic[or][0]' => 'name like %bar%',
-                    'Basic[or][1]' => 'description like %bar%',
+                    'Basic[or][0]' => 'products.name like %bar%',
+                    'Basic[or][1]' => 'products.description like %bar%',
                 ],
             ]
         ]);
@@ -155,12 +155,12 @@ class VisitorBuildColumnsTest extends VisitorTest
         $this->assertWhereClauses('foo or bar', [
             'Nested[and][0]' => [
                 'Nested[or][0]' => [
-                    'Basic[or][0]' => 'name like %foo%',
-                    'Basic[or][1]' => 'description like %foo%',
+                    'Basic[or][0]' => 'products.name like %foo%',
+                    'Basic[or][1]' => 'products.description like %foo%',
                 ],
                 'Nested[or][1]' => [
-                    'Basic[or][0]' => 'name like %bar%',
-                    'Basic[or][1]' => 'description like %bar%',
+                    'Basic[or][0]' => 'products.name like %bar%',
+                    'Basic[or][1]' => 'products.description like %bar%',
                 ],
             ]
         ]);
@@ -168,12 +168,12 @@ class VisitorBuildColumnsTest extends VisitorTest
         $this->assertWhereClauses('not foo or not bar', [
             'Nested[and][0]' => [
                 'Nested[or][0]' => [
-                    'Basic[and][0]' => 'name not like %foo%',
-                    'Basic[and][1]' => 'description not like %foo%',
+                    'Basic[and][0]' => 'products.name not like %foo%',
+                    'Basic[and][1]' => 'products.description not like %foo%',
                 ],
                 'Nested[or][1]' => [
-                    'Basic[and][0]' => 'name not like %bar%',
-                    'Basic[and][1]' => 'description not like %bar%',
+                    'Basic[and][0]' => 'products.name not like %bar%',
+                    'Basic[and][1]' => 'products.description not like %bar%',
                 ],
             ]
         ]);
@@ -184,15 +184,15 @@ class VisitorBuildColumnsTest extends VisitorTest
     {
         $this->assertWhereClauses('name:4 or (name:1 or name:2) and price>1 or name:3', [
             'Nested[and][0]' => [
-                'Basic[or][0]' => 'name = 4',
+                'Basic[or][0]' => 'products.name = 4',
                 'Nested[or][1]' => [
                     'Nested[and][0]' => [
-                        'Basic[or][0]' => 'name = 1',
-                        'Basic[or][1]' => 'name = 2',
+                        'Basic[or][0]' => 'products.name = 1',
+                        'Basic[or][1]' => 'products.name = 2',
                     ],
-                    'Basic[and][1]' => 'price > 1',
+                    'Basic[and][1]' => 'products.price > 1',
                 ],
-                'Basic[or][2]' => 'name = 3',
+                'Basic[or][2]' => 'products.name = 3',
             ]
         ]);
     }
@@ -211,9 +211,9 @@ class VisitorBuildColumnsTest extends VisitorTest
             ]
         ]);
 
-        $this->assertWhereClauses('support_level:testing', ['Basic[and][0]' => 'support_level_id = 1'], $model);
-        $this->assertWhereClauses('support_level:community', ['Basic[and][0]' => 'support_level_id = 2'], $model);
-        $this->assertWhereClauses('support_level:official', ['Basic[and][0]' => 'support_level_id = 3'], $model);
+        $this->assertWhereClauses('support_level:testing', ['Basic[and][0]' => 'models.support_level_id = 1'], $model);
+        $this->assertWhereClauses('support_level:community', ['Basic[and][0]' => 'models.support_level_id = 2'], $model);
+        $this->assertWhereClauses('support_level:official', ['Basic[and][0]' => 'models.support_level_id = 3'], $model);
     }
 
     /** @test */
@@ -226,6 +226,6 @@ class VisitorBuildColumnsTest extends VisitorTest
             ]
         ]);
 
-        $this->assertWhereClauses('support_level:missing_value', ['Basic[and][0]' => 'support_level_id = missing_value'], $model);
+        $this->assertWhereClauses('support_level:missing_value', ['Basic[and][0]' => 'models.support_level_id = missing_value'], $model);
     }
 }

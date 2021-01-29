@@ -21,21 +21,21 @@ class CreateBuilderTest extends TestCase
             ['((()))', 'select * from products'],
 
             // Select.
-            ['fields:name', 'select name from products'],
-            ['fields:name,price', 'select name, price from products'],
-            ['fields:price,name', 'select name, price from products'],
-            ['not fields:name', 'select price, description, paid, boolean_variable, created_at from products'],
-            ['not fields:name, price', 'select description, paid, boolean_variable, created_at from products'],
+            ['fields:name', 'select products.name from products'],
+            ['fields:name,price', 'select products.name, products.price from products'],
+            ['fields:price,name', 'select products.name, products.price from products'],
+            ['not fields:name', 'select products.price, products.description, products.paid, products.boolean_variable, products.created_at from products'],
+            ['not fields:name, price', 'select products.description, products.paid, products.boolean_variable, products.created_at from products'],
 
             // Order by.
-            ['sort:name', 'select * from products order by name asc'],
-            ['sort:name,price', 'select * from products order by name asc, price asc'],
-            ['sort:-price,name', 'select * from products order by price desc, name asc'],
-            ['sort:-price,-name', 'select * from products order by price desc, name desc'],
+            ['sort:name', 'select * from products order by products.name asc'],
+            ['sort:name,price', 'select * from products order by products.name asc, products.price asc'],
+            ['sort:-price,name', 'select * from products order by products.price desc, products.name asc'],
+            ['sort:-price,-name', 'select * from products order by products.price desc, products.name desc'],
 
             // Sort
-            ['not sort:name', 'select * from products order by name asc'],
-            ['not sort:-price,name', 'select * from products order by price desc, name asc'],
+            ['not sort:name', 'select * from products order by products.name asc'],
+            ['not sort:-price,name', 'select * from products order by products.price desc, products.name asc'],
 
             // Limit and offset.
             ['limit:10', 'select * from products limit 10'],
@@ -51,18 +51,18 @@ class CreateBuilderTest extends TestCase
             [
                 'name in (John,Jane) or description=Employee and created_at < 2018-05-18 limit:3 or Banana from:1',
                 "select * from products "
-                . "where (name in ('John', 'Jane') "
-                . "or (description = 'Employee' and created_at < 2018-05-18 00:00:00) "
-                . "or (name like '%Banana%' or description like '%Banana%')) "
+                . "where (products.name in ('John', 'Jane') "
+                . "or (products.description = 'Employee' and products.created_at < 2018-05-18 00:00:00) "
+                . "or (products.name like '%Banana%' or products.description like '%Banana%')) "
                 . "limit 3 offset 1"
             ],
             [
                 'created_at = 2020 and comments: (not spam or author.name = John) > 100',
                 "select * from products "
-                . "where ((created_at >= 2020-01-01 00:00:00 and created_at <= 2020-12-31 23:59:59) "
+                . "where ((products.created_at >= 2020-01-01 00:00:00 and products.created_at <= 2020-12-31 23:59:59) "
                 . "and (select count(*) from comments where products.id = comments.product_id and ("
-                . "spam = false "
-                . "or exists (select * from users where comments.user_id = users.id and name = 'John'))) "
+                . "comments.spam = false "
+                . "or exists (select * from users where comments.user_id = users.id and users.name = 'John'))) "
                 . "> 100)"
             ],
         ];
@@ -75,87 +75,87 @@ class CreateBuilderTest extends TestCase
 
         return [
             // Assignments.
-            ['name:John', "name = 'John'"],
-            ['name=John', "name = 'John'"],
-            ['name="John doe"', "name = 'John doe'"],
-            ['not name:John', "name != 'John'"],
+            ['name:John', "products.name = 'John'"],
+            ['name=John', "products.name = 'John'"],
+            ['name="John doe"', "products.name = 'John doe'"],
+            ['not name:John', "products.name != 'John'"],
 
             // Booleans.
-            ['boolean_variable', "boolean_variable = true"],
-            ['paid', "paid = true"],
-            ['not paid', "paid = false"],
+            ['boolean_variable', "products.boolean_variable = true"],
+            ['paid', "products.paid = true"],
+            ['not paid', "products.paid = false"],
 
             // Comparisons.
-            ['price>0', "price > 0"],
-            ['price>=0', "price >= 0"],
-            ['price<0', "price < 0"],
-            ['price<=0', "price <= 0"],
-            ['price>0.55', "price > 0.55"],
+            ['price>0', "products.price > 0"],
+            ['price>=0', "products.price >= 0"],
+            ['price<0', "products.price < 0"],
+            ['price<=0', "products.price <= 0"],
+            ['price>0.55', "products.price > 0.55"],
 
             // Null in capital treated as null value.
-            ['name:NULL', "name is null"],
-            ['not name:NULL', "name is not null"],
+            ['name:NULL', "products.name is null"],
+            ['not name:NULL', "products.name is not null"],
 
             // Dates year precision.
-            ['created_at >= 2020', "created_at >= 2020-01-01 00:00:00"],
-            ['created_at > 2020', "created_at > 2020-12-31 23:59:59"],
-            ['created_at = 2020', "(created_at >= 2020-01-01 00:00:00 and created_at <= 2020-12-31 23:59:59)"],
-            ['not created_at = 2020', "(created_at < 2020-01-01 00:00:00 and created_at > 2020-12-31 23:59:59)"],
+            ['created_at >= 2020', "products.created_at >= 2020-01-01 00:00:00"],
+            ['created_at > 2020', "products.created_at > 2020-12-31 23:59:59"],
+            ['created_at = 2020', "(products.created_at >= 2020-01-01 00:00:00 and products.created_at <= 2020-12-31 23:59:59)"],
+            ['not created_at = 2020', "(products.created_at < 2020-01-01 00:00:00 and products.created_at > 2020-12-31 23:59:59)"],
 
             // Dates month precision.
-            ['created_at = 01/2020', "(created_at >= 2020-01-01 00:00:00 and created_at <= 2020-01-31 23:59:59)"],
-            ['created_at = 2020-01', "(created_at >= 2020-01-01 00:00:00 and created_at <= 2020-01-31 23:59:59)"],
-            ['created_at <= "Jan 2020"', "created_at <= 2020-01-31 23:59:59"],
-            ['created_at < 2020-1', "created_at < 2020-01-01 00:00:00"],
+            ['created_at = 01/2020', "(products.created_at >= 2020-01-01 00:00:00 and products.created_at <= 2020-01-31 23:59:59)"],
+            ['created_at = 2020-01', "(products.created_at >= 2020-01-01 00:00:00 and products.created_at <= 2020-01-31 23:59:59)"],
+            ['created_at <= "Jan 2020"', "products.created_at <= 2020-01-31 23:59:59"],
+            ['created_at < 2020-1', "products.created_at < 2020-01-01 00:00:00"],
 
             // Dates day precision.
-            ['created_at = 2020-12-31', "(created_at >= 2020-12-31 00:00:00 and created_at <= 2020-12-31 23:59:59)"],
-            ['created_at >= 12/31/2020', "created_at >= 2020-12-31 00:00:00"],
-            ['created_at = 2018-05-17', "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"],
-            ['not created_at = 2018-05-17', "(created_at < 2018-05-17 00:00:00 and created_at > 2018-05-17 23:59:59)"],
-            ['created_at = "May 17 2018"', "(created_at >= 2018-05-17 00:00:00 and created_at <= 2018-05-17 23:59:59)"],
+            ['created_at = 2020-12-31', "(products.created_at >= 2020-12-31 00:00:00 and products.created_at <= 2020-12-31 23:59:59)"],
+            ['created_at >= 12/31/2020', "products.created_at >= 2020-12-31 00:00:00"],
+            ['created_at = 2018-05-17', "(products.created_at >= 2018-05-17 00:00:00 and products.created_at <= 2018-05-17 23:59:59)"],
+            ['not created_at = 2018-05-17', "(products.created_at < 2018-05-17 00:00:00 and products.created_at > 2018-05-17 23:59:59)"],
+            ['created_at = "May 17 2018"', "(products.created_at >= 2018-05-17 00:00:00 and products.created_at <= 2018-05-17 23:59:59)"],
 
             // Dates hour precision.
-            ['created_at = "2020-12-31 16"', "(created_at >= 2020-12-31 16:00:00 and created_at <= 2020-12-31 16:59:59)"],
-            ['created_at = "Dec 31 2020 2am"', "(created_at >= 2020-12-31 02:00:00 and created_at <= 2020-12-31 02:59:59)"],
+            ['created_at = "2020-12-31 16"', "(products.created_at >= 2020-12-31 16:00:00 and products.created_at <= 2020-12-31 16:59:59)"],
+            ['created_at = "Dec 31 2020 2am"', "(products.created_at >= 2020-12-31 02:00:00 and products.created_at <= 2020-12-31 02:59:59)"],
 
             // Dates minute precision.
-            ['created_at = "2020-12-31 16:30"', "(created_at >= 2020-12-31 16:30:00 and created_at <= 2020-12-31 16:30:59)"],
-            ['created_at = "Dec 31 2020 5:15pm"', "(created_at >= 2020-12-31 17:15:00 and created_at <= 2020-12-31 17:15:59)"],
+            ['created_at = "2020-12-31 16:30"', "(products.created_at >= 2020-12-31 16:30:00 and products.created_at <= 2020-12-31 16:30:59)"],
+            ['created_at = "Dec 31 2020 5:15pm"', "(products.created_at >= 2020-12-31 17:15:00 and products.created_at <= 2020-12-31 17:15:59)"],
 
             // Dates exact precision.
-            ['created_at = "2020-12-31 16:30:00"', "created_at = 2020-12-31 16:30:00"],
-            ['created_at = "Dec 31 2020 5:15:10pm"', "created_at = 2020-12-31 17:15:10"],
+            ['created_at = "2020-12-31 16:30:00"', "products.created_at = 2020-12-31 16:30:00"],
+            ['created_at = "Dec 31 2020 5:15:10pm"', "products.created_at = 2020-12-31 17:15:10"],
 
             // Relative dates.
-            ['created_at = tomorrow', "(created_at >= $tomorrowStart and created_at <= $tomorrowEnd)"],
-            ['created_at < tomorrow', "created_at < $tomorrowStart"],
-            ['created_at <= tomorrow', "created_at <= $tomorrowEnd"],
-            ['created_at > tomorrow', "created_at > $tomorrowEnd"],
-            ['created_at >= tomorrow', "created_at >= $tomorrowStart"],
+            ['created_at = tomorrow', "(products.created_at >= $tomorrowStart and products.created_at <= $tomorrowEnd)"],
+            ['created_at < tomorrow', "products.created_at < $tomorrowStart"],
+            ['created_at <= tomorrow', "products.created_at <= $tomorrowEnd"],
+            ['created_at > tomorrow', "products.created_at > $tomorrowEnd"],
+            ['created_at >= tomorrow', "products.created_at >= $tomorrowStart"],
 
             // Dates as booleans.
-            ['created_at', "created_at is not null"],
-            ['not created_at', "created_at is null"],
+            ['created_at', "products.created_at is not null"],
+            ['not created_at', "products.created_at is null"],
 
             // Lists.
-            ['name in (John, Jane)', "name in ('John', 'Jane')"],
-            ['not name in (John, Jane)', "name not in ('John', 'Jane')"],
-            ['name in (John)', "name in ('John')"],
-            ['not name in (John)', "name not in ('John')"],
-            ['name:John,Jane', "name in ('John', 'Jane')"],
-            ['not name:John,Jane', "name not in ('John', 'Jane')"],
+            ['name in (John, Jane)', "products.name in ('John', 'Jane')"],
+            ['not name in (John, Jane)', "products.name not in ('John', 'Jane')"],
+            ['name in (John)', "products.name in ('John')"],
+            ['not name in (John)', "products.name not in ('John')"],
+            ['name:John,Jane', "products.name in ('John', 'Jane')"],
+            ['not name:John,Jane', "products.name not in ('John', 'Jane')"],
 
             // Search.
-            ['John', "(name like '%John%' or description like '%John%')"],
-            ['"John Doe"', "(name like '%John Doe%' or description like '%John Doe%')"],
-            ['not John', "(name not like '%John%' and description not like '%John%')"],
+            ['John', "(products.name like '%John%' or products.description like '%John%')"],
+            ['"John Doe"', "(products.name like '%John Doe%' or products.description like '%John Doe%')"],
+            ['not John', "(products.name not like '%John%' and products.description not like '%John%')"],
 
             // Nested And/Or where clauses.
-            ['name:John and price>0', "(name = 'John' and price > 0)"],
-            ['name:John or name:Jane', "(name = 'John' or name = 'Jane')"],
-            ['name:1 and name:2 or name:3', "((name = 1 and name = 2) or name = 3)"],
-            ['name:1 and (name:2 or name:3)', "(name = 1 and (name = 2 or name = 3))"],
+            ['name:John and price>0', "(products.name = 'John' and products.price > 0)"],
+            ['name:John or name:Jane', "(products.name = 'John' or products.name = 'Jane')"],
+            ['name:1 and name:2 or name:3', "((products.name = 1 and products.name = 2) or products.name = 3)"],
+            ['name:1 and (name:2 or name:3)', "(products.name = 1 and (products.name = 2 or products.name = 3))"],
 
             // Relationships existance.
             ['comments', "exists (select * from comments where products.id = comments.product_id)"],
@@ -177,35 +177,35 @@ class CreateBuilderTest extends TestCase
 
             // Relationships nested terms.
             ['comments.author', "exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id))"],
-            ['comments.title = "My comment"', "exists (select * from comments where products.id = comments.product_id and title = 'My comment')"],
-            ['comments.author.name = John', "exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and name = 'John'))"],
+            ['comments.title = "My comment"', "exists (select * from comments where products.id = comments.product_id and comments.title = 'My comment')"],
+            ['comments.author.name = John', "exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and users.name = 'John'))"],
             ['comments.author.writtenComments', "exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and exists (select * from comments where users.id = comments.user_id)))"],
             ['comments.favouritors > 10', "exists (select * from comments where products.id = comments.product_id and (select count(*) from users inner join comment_user on users.id = comment_user.user_id where comments.id = comment_user.comment_id) > 10)"],
             ['comments.favourites > 10', "exists (select * from comments where products.id = comments.product_id and (select count(*) from comment_user where comments.id = comment_user.comment_id) > 10)"],
 
             // Relationships nested terms negated.
             ['not comments.author', "not exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id))"],
-            ['not comments.title = "My comment"', "not exists (select * from comments where products.id = comments.product_id and title = 'My comment')"],
-            ['not comments.author.name = John', "not exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and name = 'John'))"],
+            ['not comments.title = "My comment"', "not exists (select * from comments where products.id = comments.product_id and comments.title = 'My comment')"],
+            ['not comments.author.name = John', "not exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and users.name = 'John'))"],
             ['not comments.author.writtenComments', "not exists (select * from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and exists (select * from comments where users.id = comments.user_id)))"],
             ['not comments.favouritors > 10', "not exists (select * from comments where products.id = comments.product_id and (select count(*) from users inner join comment_user on users.id = comment_user.user_id where comments.id = comment_user.comment_id) > 10)"],
             ['not comments.favourites > 10', "not exists (select * from comments where products.id = comments.product_id and (select count(*) from comment_user where comments.id = comment_user.comment_id) > 10)"],
 
             // Nested relationships.
-            ['comments: (title: Hi)', "exists (select * from comments where products.id = comments.product_id and title = 'Hi')"],
+            ['comments: (title: Hi)', "exists (select * from comments where products.id = comments.product_id and comments.title = 'Hi')"],
             ['comments: (not author)', "exists (select * from comments where products.id = comments.product_id and not exists (select * from users where comments.user_id = users.id))"],
-            ['comments: (author.name: John or favourites > 5)', "exists (select * from comments where products.id = comments.product_id and (exists (select * from users where comments.user_id = users.id and name = 'John') or (select count(*) from comment_user where comments.id = comment_user.comment_id) > 5))"],
+            ['comments: (author.name: John or favourites > 5)', "exists (select * from comments where products.id = comments.product_id and (exists (select * from users where comments.user_id = users.id and users.name = 'John') or (select count(*) from comment_user where comments.id = comment_user.comment_id) > 5))"],
             ['comments: (favourites > 10) > 3', "(select count(*) from comments where products.id = comments.product_id and (select count(*) from comment_user where comments.id = comment_user.comment_id) > 10) > 3"],
-            ['comments: ("This is great")', "exists (select * from comments where products.id = comments.product_id and (title like '%This is great%' or body like '%This is great%'))"],
-            ['comments: (author: (name: "John Doe" age > 18)) > 3', "(select count(*) from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and (name = 'John Doe' and age > 18))) > 3"],
+            ['comments: ("This is great")', "exists (select * from comments where products.id = comments.product_id and (comments.title like '%This is great%' or comments.body like '%This is great%'))"],
+            ['comments: (author: (name: "John Doe" age > 18)) > 3', "(select count(*) from comments where products.id = comments.product_id and exists (select * from users where comments.user_id = users.id and (users.name = 'John Doe' and users.age > 18))) > 3"],
 
             // Relationships & And/Or.
-            ['name:A or comments: (title:B and title:C)', "(name = 'A' or exists (select * from comments where products.id = comments.product_id and (title = 'B' and title = 'C')))"],
-            ['name:A or comments: (title:B or title:C)', "(name = 'A' or exists (select * from comments where products.id = comments.product_id and (title = 'B' or title = 'C')))"],
-            ['name:A and not comments: (title:B or title:C)', "(name = 'A' and not exists (select * from comments where products.id = comments.product_id and (title = 'B' or title = 'C')))"],
-            ['name:A (name:B or comments) or name:C and name:D', "((name = 'A' and (name = 'B' or exists (select * from comments where products.id = comments.product_id))) or (name = 'C' and name = 'D'))"],
-            ['name:A not (name:B or comments) or name:C and name:D', "((name = 'A' and name != 'B' and not exists (select * from comments where products.id = comments.product_id)) or (name = 'C' and name = 'D'))"],
-            ['name:A (name:B or not comments: (title:X and title:Y or not (author and not title:Z)))', "(name = 'A' and (name = 'B' or not exists (select * from comments where products.id = comments.product_id and ((title = 'X' and title = 'Y') or not exists (select * from users where comments.user_id = users.id) or title = 'Z'))))"],
+            ['name:A or comments: (title:B and title:C)', "(products.name = 'A' or exists (select * from comments where products.id = comments.product_id and (comments.title = 'B' and comments.title = 'C')))"],
+            ['name:A or comments: (title:B or title:C)', "(products.name = 'A' or exists (select * from comments where products.id = comments.product_id and (comments.title = 'B' or comments.title = 'C')))"],
+            ['name:A and not comments: (title:B or title:C)', "(products.name = 'A' and not exists (select * from comments where products.id = comments.product_id and (comments.title = 'B' or comments.title = 'C')))"],
+            ['name:A (name:B or comments) or name:C and name:D', "((products.name = 'A' and (products.name = 'B' or exists (select * from comments where products.id = comments.product_id))) or (products.name = 'C' and products.name = 'D'))"],
+            ['name:A not (name:B or comments) or name:C and name:D', "((products.name = 'A' and products.name != 'B' and not exists (select * from comments where products.id = comments.product_id)) or (products.name = 'C' and products.name = 'D'))"],
+            ['name:A (name:B or not comments: (title:X and title:Y or not (author and not title:Z)))', "(products.name = 'A' and (products.name = 'B' or not exists (select * from comments where products.id = comments.product_id and ((comments.title = 'X' and comments.title = 'Y') or not exists (select * from users where comments.user_id = users.id) or comments.title = 'Z'))))"],
         ];
     }
 

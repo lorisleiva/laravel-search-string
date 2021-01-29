@@ -29,7 +29,7 @@ class VisitorBuildKeywordsTest extends VisitorTest
     public function it_sets_the_columns_of_the_builder()
     {
         $builder = $this->getBuilder('fields:name');
-        $this->assertEquals(['name'], $builder->getQuery()->columns);
+        $this->assertEquals(['products.name'], $builder->getQuery()->columns);
     }
 
     /** @test */
@@ -38,7 +38,7 @@ class VisitorBuildKeywordsTest extends VisitorTest
         $builder = $this->getBuilder('not fields:name');
 
         $this->assertEquals(
-            ['price', 'description', 'paid', 'boolean_variable', 'created_at'],
+            ['products.price', 'products.description', 'products.paid', 'products.boolean_variable', 'products.created_at'],
             $builder->getQuery()->columns
         );
     }
@@ -47,17 +47,17 @@ class VisitorBuildKeywordsTest extends VisitorTest
     public function it_can_set_and_exclude_multiple_columns()
     {
         $builder = $this->getBuilder('fields:name,price,description');
-        $this->assertEquals(['name', 'price', 'description'], $builder->getQuery()->columns);
+        $this->assertEquals(['products.name', 'products.price', 'products.description'], $builder->getQuery()->columns);
 
         $builder = $this->getBuilder('not fields:name,price,description');
-        $this->assertEquals(['paid', 'boolean_variable', 'created_at'], $builder->getQuery()->columns);
+        $this->assertEquals(['products.paid', 'products.boolean_variable', 'products.created_at'], $builder->getQuery()->columns);
     }
 
     /** @test */
     public function it_uses_only_the_last_select_that_matches()
     {
         $builder = $this->getBuilder('fields:name fields:price fields:description');
-        $this->assertEquals(['description'], $builder->getQuery()->columns);
+        $this->assertEquals(['products.description'], $builder->getQuery()->columns);
     }
 
     /*
@@ -70,7 +70,7 @@ class VisitorBuildKeywordsTest extends VisitorTest
         $builder = $this->getBuilder('sort:name');
 
         $this->assertEquals([
-            [ 'column' => 'name', 'direction' => 'asc' ],
+            [ 'column' => 'products.name', 'direction' => 'asc' ],
         ], $builder->getQuery()->orders);
     }
 
@@ -80,7 +80,7 @@ class VisitorBuildKeywordsTest extends VisitorTest
         $builder = $this->getBuilder('sort:-name');
 
         $this->assertEquals([
-            [ 'column' => 'name', 'direction' => 'desc' ],
+            [ 'column' => 'products.name', 'direction' => 'desc' ],
         ], $builder->getQuery()->orders);
     }
 
@@ -90,9 +90,9 @@ class VisitorBuildKeywordsTest extends VisitorTest
         $builder = $this->getBuilder('sort:name,-price,created_at');
 
         $this->assertEquals([
-            [ 'column' => 'name', 'direction' => 'asc' ],
-            [ 'column' => 'price', 'direction' => 'desc' ],
-            [ 'column' => 'created_at', 'direction' => 'asc' ],
+            [ 'column' => 'products.name', 'direction' => 'asc' ],
+            [ 'column' => 'products.price', 'direction' => 'desc' ],
+            [ 'column' => 'products.created_at', 'direction' => 'asc' ],
         ], $builder->getQuery()->orders);
     }
 
@@ -102,7 +102,7 @@ class VisitorBuildKeywordsTest extends VisitorTest
         $builder = $this->getBuilder('sort:name sort:-price sort:created_at');
 
         $this->assertEquals([
-            [ 'column' => 'created_at', 'direction' => 'asc' ],
+            [ 'column' => 'products.created_at', 'direction' => 'asc' ],
         ], $builder->getQuery()->orders);
     }
 
