@@ -2,8 +2,9 @@
 
 namespace Lorisleiva\LaravelSearchString;
 
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Lorisleiva\LaravelSearchString\Compiler\CompilerInterface;
 use Lorisleiva\LaravelSearchString\Compiler\HoaCompiler;
 use Lorisleiva\LaravelSearchString\Exceptions\InvalidSearchStringException;
@@ -58,7 +59,7 @@ class SearchStringManager
         return $ast;
     }
 
-    public function build(Builder $builder, $input)
+    public function build(EloquentBuilder $builder, $input)
     {
         $ast = $this->parse($input);
         $visitors = $this->model->getSearchStringVisitors($this, $builder);
@@ -70,7 +71,7 @@ class SearchStringManager
         return $ast;
     }
 
-    public function updateBuilder(Builder $builder, $input)
+    public function updateBuilder(EloquentBuilder $builder, $input)
     {
         try {
             $this->build($builder, $input);
@@ -93,5 +94,25 @@ class SearchStringManager
         $builder = $this->model->newQuery();
         $this->updateBuilder($builder, $input);
         return $builder;
+    }
+
+    public static function qualifyColumn($builder, $column)
+    {
+        if (! $table = static::getTableFromBuilder($builder)) {
+            return $column;
+        }
+
+        return $table . '.' . $column;
+    }
+
+    protected static function getTableFromBuilder($builder)
+    {
+        if ($builder instanceof EloquentBuilder) {
+            return $builder->getQuery()->from;
+        }
+
+        if ($builder instanceof QueryBuilder) {
+            return $builder->from;
+        }
     }
 }

@@ -116,16 +116,12 @@ class BuildColumnsVisitor extends Visitor
         /** @var ColumnRule $rule */
         $rule = $solo->rule;
 
-        if ($rule) {
-            $qualifiedColumn = $this->builder->qualifyColumn($rule->column);
+        if ($rule && $rule->boolean && $rule->date) {
+            return $this->builder->whereNull($rule->qualifyColumn($this->builder), $this->boolean, ! $solo->negated);
+        }
 
-            if ($rule->boolean && $rule->date) {
-                return $this->builder->whereNull($qualifiedColumn, $this->boolean, ! $solo->negated);
-            }
-
-            if ($rule->boolean) {
-                return $this->builder->where($qualifiedColumn, '=', ! $solo->negated, $this->boolean);
-            }
+        if ($rule && $rule->boolean) {
+            return $this->builder->where($rule->qualifyColumn($this->builder), '=', ! $solo->negated, $this->boolean);
         }
 
         return $this->buildSearch($solo);
@@ -136,7 +132,7 @@ class BuildColumnsVisitor extends Visitor
         $wheres = $this->manager->getSearchables()->map(function ($column) use ($solo) {
             $boolean = $solo->negated ? 'and' : 'or';
             $operator = $solo->negated ? 'not like' : 'like';
-            $qualifiedColumn = $this->builder->qualifyColumn($column);
+            $qualifiedColumn = SearchStringManager::qualifyColumn($this->builder, $column);
             return [$qualifiedColumn, $operator, "%$solo->content%", $boolean];
         });
 
@@ -175,11 +171,10 @@ class BuildColumnsVisitor extends Visitor
             return;
         }
 
-        $qualifiedColumn = $this->builder->qualifyColumn($rule->column);
-
+        $column = $rule->qualifyColumn($this->builder);
         $list->values = $this->mapValue($list->values, $rule);
 
-        return $this->builder->whereIn($qualifiedColumn, $list->values, $this->boolean, $list->negated);
+        return $this->builder->whereIn($column, $list->values, $this->boolean, $list->negated);
     }
 
     protected function buildDate(QuerySymbol $query, ColumnRule $rule)
@@ -207,21 +202,20 @@ class BuildColumnsVisitor extends Visitor
 
     protected function buildDateRange(QuerySymbol $query, $start, $end, ColumnRule $rule)
     {
+        $column = $rule->qualifyColumn($this->builder);
         $exclude = in_array($query->operator, ['!=', 'not in']);
 
-        $qualifiedColumn = $this->builder->qualifyColumn($rule->column);
-
         return $this->builder->where([
-            [$qualifiedColumn, ($exclude ? '<' : '>='), $start, $this->boolean],
-            [$qualifiedColumn, ($exclude ? '>' : '<='), $end, $this->boolean],
+            [$column, ($exclude ? '<' : '>='), $start, $this->boolean],
+            [$column, ($exclude ? '>' : '<='), $end, $this->boolean],
         ], null, null, $this->boolean);
     }
 
     protected function buildBasicQuery(QuerySymbol $query, ColumnRule $rule)
     {
-        $qualifiedColumn = $this->builder->qualifyColumn($rule->column);
+        $column = $rule->qualifyColumn($this->builder);
 
-        return $this->builder->where($qualifiedColumn, $query->operator, $query->value, $this->boolean);
+        return $this->builder->where($column, $query->operator, $query->value, $this->boolean);
     }
 
     protected function mapValue($value, ColumnRule $rule)

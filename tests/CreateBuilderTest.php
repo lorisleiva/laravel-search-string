@@ -229,14 +229,14 @@ class CreateBuilderTest extends TestCase
             'activated' => ['key' => 'active', 'boolean' => true],
         ]);
 
-        $this->assertWhereSqlEquals('postcode:1028', "zipcode = 1028", $model);
-        $this->assertWhereSqlEquals('postcode>10', "zipcode > 10", $model);
-        $this->assertWhereSqlEquals('not postcode in (1000, 1002)', "zipcode not in ('1000', '1002')", $model);
-        $this->assertWhereSqlEquals('created>2019-01-01', "created_at > 2019-01-01 23:59:59", $model);
-        $this->assertWhereSqlEquals('created', "created_at is not null", $model);
-        $this->assertWhereSqlEquals('not created', "created_at is null", $model);
-        $this->assertWhereSqlEquals('active', "activated = true", $model);
-        $this->assertWhereSqlEquals('not active', "activated = false", $model);
+        $this->assertWhereSqlEquals('postcode:1028', "models.zipcode = 1028", $model);
+        $this->assertWhereSqlEquals('postcode>10', "models.zipcode > 10", $model);
+        $this->assertWhereSqlEquals('not postcode in (1000, 1002)', "models.zipcode not in ('1000', '1002')", $model);
+        $this->assertWhereSqlEquals('created>2019-01-01', "models.created_at > 2019-01-01 23:59:59", $model);
+        $this->assertWhereSqlEquals('created', "models.created_at is not null", $model);
+        $this->assertWhereSqlEquals('not created', "models.created_at is null", $model);
+        $this->assertWhereSqlEquals('active', "models.activated = true", $model);
+        $this->assertWhereSqlEquals('not active', "models.activated = false", $model);
     }
 
     /**

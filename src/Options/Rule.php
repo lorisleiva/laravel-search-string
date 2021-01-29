@@ -3,6 +3,7 @@
 namespace Lorisleiva\LaravelSearchString\Options;
 
 use Illuminate\Support\Arr;
+use Lorisleiva\LaravelSearchString\SearchStringManager;
 
 abstract class Rule
 {
@@ -29,6 +30,11 @@ abstract class Rule
     public function match($key)
     {
         return preg_match($this->key, $key);
+    }
+
+    public function qualifyColumn($builder)
+    {
+        return SearchStringManager::qualifyColumn($builder, $this->column);
     }
 
     protected function getPattern($rawRule, $key, $default = null)

@@ -83,7 +83,7 @@ class BuildKeywordsVisitor extends Visitor
         Collection::wrap($values)->each(function ($value) {
             $desc = Str::startsWith($value, '-') ? 'desc' : 'asc';
             $column = Str::startsWith($value, '-') ? Str::after($value, '-') : $value;
-            $qualifiedColumn = $this->builder->qualifyColumn($column);
+            $qualifiedColumn = SearchStringManager::qualifyColumn($this->builder, $column);
             $this->builder->orderBy($qualifiedColumn, $desc);
         });
     }
@@ -95,6 +95,10 @@ class BuildKeywordsVisitor extends Visitor
         $columns = $negated
             ? $this->manager->getColumns()->diff($columns)
             : $this->manager->getColumns()->intersect($columns);
+
+        $columns = $columns->map(function ($column) {
+            return SearchStringManager::qualifyColumn($this->builder, $column);
+        });
 
         $this->builder->select($columns->values()->toArray());
     }

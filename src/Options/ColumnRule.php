@@ -8,7 +8,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use LogicException;
 use Lorisleiva\LaravelSearchString\Concerns\SearchString;
-use Lorisleiva\LaravelSearchString\SearchStringManager;
 
 class ColumnRule extends Rule
 {
