@@ -48,11 +48,19 @@ abstract class Rule
 
     protected function regexify($pattern)
     {
+        return $this->isRegularExpression($pattern)
+            ? $pattern
+            : '/^' . preg_quote($pattern, '/') . '$/';
+    }
+
+    protected function isRegularExpression($pattern)
+    {
         try {
             preg_match($pattern, null);
-            return $pattern;
+
+            return preg_last_error() === PREG_NO_ERROR;
         } catch (\Throwable $exception) {
-            return '/^' . preg_quote($pattern, '/') . '$/';
+            return false;
         }
     }
 
