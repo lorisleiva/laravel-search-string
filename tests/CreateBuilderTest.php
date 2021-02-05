@@ -239,6 +239,16 @@ class CreateBuilderTest extends TestCase
         $this->assertWhereSqlEquals('not active', "models.activated = false", $model);
     }
 
+    /** @test */
+    public function is_does_not_prefix_the_column_table_when_it_already_is_prefixed()
+    {
+        $model = $this->getModelWithColumns([
+            'my_model_table.zipcode' => 'postcode',
+        ]);
+
+        $this->assertWhereSqlEquals('postcode:1028', "my_model_table.zipcode = 1028", $model);
+    }
+
     /**
      * @test
      * @dataProvider success

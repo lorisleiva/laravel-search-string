@@ -98,6 +98,10 @@ class SearchStringManager
 
     public static function qualifyColumn($builder, $column)
     {
+        if (strpos($column, '.') !== false) {
+            return $column;
+        }
+
         if (! $table = static::getTableFromBuilder($builder)) {
             return $column;
         }
