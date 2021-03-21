@@ -13,6 +13,7 @@ trait SearchStringOptions
 
     /** @var array */
     protected static $fallbackOptions = [
+        'case_insensitive' => false,
         'columns' => [],
         'keywords' => [
             'order_by' => 'sort',
@@ -36,7 +37,7 @@ trait SearchStringOptions
 
     protected function parseOptions(array $options, Model $model): Collection
     {
-        return collect([
+        return collect($options)->merge([
             'columns' => $this->parseColumns($options, $model),
             'keywords' => $this->parseKeywords($options),
         ]);

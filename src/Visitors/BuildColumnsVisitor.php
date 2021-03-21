@@ -3,6 +3,7 @@
 namespace Lorisleiva\LaravelSearchString\Visitors;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Lorisleiva\LaravelSearchString\AST\EmptySymbol;
 use Lorisleiva\LaravelSearchString\AST\ListSymbol;
 use Lorisleiva\LaravelSearchString\AST\RelationshipSymbol;
@@ -130,10 +131,7 @@ class BuildColumnsVisitor extends Visitor
     protected function buildSearch(SoloSymbol $solo)
     {
         $wheres = $this->manager->getSearchables()->map(function ($column) use ($solo) {
-            $boolean = $solo->negated ? 'and' : 'or';
-            $operator = $solo->negated ? 'not like' : 'like';
-            $qualifiedColumn = SearchStringManager::qualifyColumn($this->builder, $column);
-            return [$qualifiedColumn, $operator, "%$solo->content%", $boolean];
+            return $this->buildSearchWhereClause($solo, $column);
         });
 
         if ($wheres->isEmpty()) {
@@ -146,6 +144,22 @@ class BuildColumnsVisitor extends Visitor
         }
 
         return $this->builder->where($wheres->toArray(), null, null, $this->boolean);
+    }
+
+    protected function buildSearchWhereClause(SoloSymbol $solo, $column): array
+    {
+        $boolean = $solo->negated ? 'and' : 'or';
+        $operator = $solo->negated ? 'not like' : 'like';
+        $content = $solo->content;
+        $qualifiedColumn = SearchStringManager::qualifyColumn($this->builder, $column);
+        $isCaseInsensitive = $this->manager->getOptions()->get('case_insensitive', false);
+
+        if ($isCaseInsensitive) {
+            $content = mb_strtolower($content, 'UTF8');
+            $qualifiedColumn = DB::raw("LOWER($qualifiedColumn)");
+        }
+
+        return [$qualifiedColumn, $operator, "%$content%", $boolean];
     }
 
     protected function buildQuery(QuerySymbol $query)

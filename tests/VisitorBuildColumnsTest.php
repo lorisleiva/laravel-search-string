@@ -94,6 +94,32 @@ class VisitorBuildColumnsTest extends VisitorTest
     }
 
     /** @test */
+    public function it_can_searches_using_case_insensitive_like_where_clauses()
+    {
+        $model = $this->getModelWithOptions([
+            'case_insensitive' => true,
+            'columns' => [
+                'name' => ['searchable' => true],
+                'description' => ['searchable' => true],
+            ]
+        ]);
+
+        $this->assertWhereClauses('FooBar', [
+            'Nested[and][0]' => [
+                'Basic[or][0]' => 'LOWER(models.name) like %foobar%',
+                'Basic[or][1]' => 'LOWER(models.description) like %foobar%',
+            ]
+        ], $model);
+
+        $this->assertWhereClauses('not FooBar', [
+            'Nested[and][0]' => [
+                'Basic[and][0]' => 'LOWER(models.name) not like %foobar%',
+                'Basic[and][1]' => 'LOWER(models.description) not like %foobar%',
+            ]
+        ], $model);
+    }
+
+    /** @test */
     public function it_does_not_add_where_clause_if_no_searchable_columns_were_given()
     {
         $model = $this->getModelWithOptions([]);
