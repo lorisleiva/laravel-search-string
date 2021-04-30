@@ -60,6 +60,15 @@ class VisitorBuildKeywordsTest extends VisitorTest
         $this->assertEquals(['products.description'], $builder->getQuery()->columns);
     }
 
+    /** @test */
+    public function it_uses_the_alias_of_select_columns()
+    {
+        $model = $this->getModelWithColumns(['created_at' => 'date']);
+        $builder = $this->getBuilder('fields:date', $model);
+
+        $this->assertEquals(['models.created_at'], $builder->getQuery()->columns);
+    }
+
     /*
      * OrderBy
      */
@@ -103,6 +112,17 @@ class VisitorBuildKeywordsTest extends VisitorTest
 
         $this->assertEquals([
             [ 'column' => 'products.created_at', 'direction' => 'asc' ],
+        ], $builder->getQuery()->orders);
+    }
+
+    /** @test */
+    public function it_uses_the_alias_of_order_by_columns()
+    {
+        $model = $this->getModelWithColumns(['created_at' => 'date']);
+        $builder = $this->getBuilder('sort:date', $model);
+
+        $this->assertEquals([
+            [ 'column' => 'models.created_at', 'direction' => 'asc' ],
         ], $builder->getQuery()->orders);
     }
 

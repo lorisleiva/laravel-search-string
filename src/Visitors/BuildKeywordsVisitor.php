@@ -83,6 +83,7 @@ class BuildKeywordsVisitor extends Visitor
         Collection::wrap($values)->each(function ($value) {
             $desc = Str::startsWith($value, '-') ? 'desc' : 'asc';
             $column = Str::startsWith($value, '-') ? Str::after($value, '-') : $value;
+            $column = $this->manager->getColumnNameFromAlias($column);
             $qualifiedColumn = SearchStringManager::qualifyColumn($this->builder, $column);
             $this->builder->orderBy($qualifiedColumn, $desc);
         });
@@ -90,7 +91,9 @@ class BuildKeywordsVisitor extends Visitor
 
     protected function buildSelect($values, bool $negated)
     {
-        $columns = Arr::wrap($values);
+        $columns = Collection::wrap($values)->map(function ($value) {
+            return $this->manager->getColumnNameFromAlias($value);
+        });
 
         $columns = $negated
             ? $this->manager->getColumns()->diff($columns)

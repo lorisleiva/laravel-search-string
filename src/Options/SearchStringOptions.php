@@ -99,6 +99,13 @@ trait SearchStringOptions
         });
     }
 
+    public function getColumnNameFromAlias($alias): string
+    {
+        $columnRule = $this->getColumnRule($alias);
+
+        return $columnRule ? $columnRule->column : $alias;
+    }
+
     public function getRule($key): ?Rule
     {
         if ($rule = $this->getKeywordRule($key)) {
