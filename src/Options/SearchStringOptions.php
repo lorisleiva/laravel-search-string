@@ -20,6 +20,7 @@ trait SearchStringOptions
             'select' => 'fields',
             'limit' => 'limit',
             'offset' => 'from',
+            'group_by' => 'unique',
         ],
     ];
 

@@ -49,6 +49,9 @@ class BuildKeywordsVisitor extends Visitor
             case 'offset':
                 $this->buildOffset($query->value);
                 break;
+            case 'group_by':
+                $this->buildGroupBy($query->value);
+                break;
         }
 
         return $query;
@@ -71,6 +74,9 @@ class BuildKeywordsVisitor extends Visitor
                 throw InvalidSearchStringException::fromVisitor('The limit must be an integer');
             case 'offset':
                 throw InvalidSearchStringException::fromVisitor('The offset must be an integer');
+            case 'group_by':
+                $this->buildGroupBy($list->values);
+                break;
         }
 
         return $list;
@@ -86,6 +92,18 @@ class BuildKeywordsVisitor extends Visitor
             $column = $this->manager->getColumnNameFromAlias($column);
             $qualifiedColumn = SearchStringManager::qualifyColumn($this->builder, $column);
             $this->builder->orderBy($qualifiedColumn, $desc);
+        });
+    }
+
+    protected function buildGroupBy($values)
+    {   
+        $this->builder->getQuery()->groups = null;
+        
+        Collection::wrap($values)->each(function ($value) {
+            $column = $value;
+            $column = $this->manager->getColumnNameFromAlias($column);
+            $qualifiedColumn = SearchStringManager::qualifyColumn($this->builder, $column);
+            $this->builder->groupBy($qualifiedColumn);
         });
     }
 
