@@ -8,9 +8,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        laravel: [8.*, 7.*, 6.*]
-        php: [7.4, 7.3]
         os: [ubuntu-latest]
+        php: [8.0, 7.4]
+        laravel: [9.*, 8.*]
+        include:
+          - laravel: "^8.0"
+            testbench: "^6.0"
+          - laravel: "^9.0"
+            testbench: "^7.0"
     name: Laravel ${{ matrix.laravel }} PHP${{ matrix.php }} on ${{ matrix.os }}
     container:
       image: lorisleiva/laravel-docker:${{ matrix.php }}
