@@ -34,7 +34,9 @@ class HoaCompiler implements CompilerInterface
             throw InvalidSearchStringException::fromLexer($exception->getMessage(), $exception->getArguments()[1]);
         }
 
-        return LazyCollection::make($generator);
+        return LazyCollection::make(function() use ($generator) {
+            yield from $generator;
+        });
     }
 
     public function parse(?string $input): Symbol
