@@ -2,7 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/lorisleiva/laravel-search-string.svg)](https://packagist.org/packages/lorisleiva/laravel-search-string)
 [![GitHub Tests Action Status](https://img.shields.io/github/workflow/status/lorisleiva/laravel-search-string/Tests?label=tests)](https://github.com/lorisleiva/laravel-search-string/actions?query=workflow%3ATests+branch%3Anext)
-[![Total Downloads](https://img.shields.io/packagist/dt/lorisleiva/laravel-search-strings.svg)](https://packagist.org/packages/lorisleiva/laravel-search-string)
+[![Total Downloads](https://img.shields.io/packagist/dt/lorisleiva/laravel-search-string.svg)](https://packagist.org/packages/lorisleiva/laravel-search-string)
 
 Generates database queries based on one unique string using a simple and customizable syntax.
 
