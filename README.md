@@ -514,6 +514,32 @@ When resolving the options for a particular model, LaravelSearchString will merg
 3. Then using the config file at the `default` key
 4. Finally using some fallback configurations
 
+## Configuring case insensitive searches
+
+When using databases like PostgreSql, you can override the default behavior of case sensitive searches by setting case_insensitive to true in your options amongst columns and keywords. For example, in the config/search-string.php
+
+```php
+return [
+    'default' => [
+        'case_insensitive' => true, // <- Globally.
+        // ...
+    ],
+
+    Article::class => [
+        'case_insensitive' => true, // <- Only for the Article class.
+        // ...
+    ],
+];
+```
+
+When set to true, it will lowercase both the column and the value before comparing them using the like operator.
+
+```
+$value = mb_strtolower($value, 'UTF8');
+$query->whereRaw("LOWER($column) LIKE ?", ["%$value%"]);
+```
+
+
 ## Error handling
 
 The provided search string can be invalid for numerous reasons.
