@@ -4,6 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Tests\Concerns;
 
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Query\Grammars\MySqlGrammar;
 
 trait DumpsWhereClauses
@@ -27,7 +28,7 @@ trait DumpsWhereClauses
                 return [$key => $children];
             }
 
-            $column = $where->column instanceof \Illuminate\Database\Query\Expression
+            $column = $where->column instanceof Expression
                 ? $where->column->getValue(new MySqlGrammar())
                 : $where->column;
 
