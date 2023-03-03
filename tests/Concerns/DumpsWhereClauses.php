@@ -4,6 +4,7 @@ namespace Lorisleiva\LaravelSearchString\Tests\Concerns;
 
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Query\Grammars\MySqlGrammar;
 
 trait DumpsWhereClauses
 {
@@ -26,11 +27,16 @@ trait DumpsWhereClauses
                 return [$key => $children];
             }
 
+            $column = $where->column instanceof \Illuminate\Database\Query\Expression
+                ? $where->column->getValue(new MySqlGrammar())
+                : $where->column;
+
             $value = $where->value ?? $where->values ?? null;
             $value = is_array($value) ? ('[' . implode(', ', $value) . ']') : $value;
             $value = is_bool($value) ? ($value ? 'true' : 'false') : $value;
             $value = isset($where->operator) ? "$where->operator $value" : $value;
-            return [$key => is_null($value) ? $where->column : "$where->column $value"];
+
+            return [$key => is_null($value) ? $column : "$column $value"];
         })->toArray();
     }
 

@@ -115,16 +115,6 @@ class SearchStringOptionsTest extends TestCase
         $this->assertColumnsRulesFor($model, [
             'published_at' => '[/^published_at$/][boolean][date]',
         ]);
-
-        // Added to dates
-        $model = new class extends Model {
-            use SearchString;
-            protected $dates = ['published_at'];
-            protected $searchStringColumns = ['published_at'];
-        };
-        $this->assertColumnsRulesFor($model, [
-            'published_at' => '[/^published_at$/][boolean][date]',
-        ]);
     }
 
     /** @test */
