@@ -45,14 +45,13 @@ You can also query for the existence of related records, for example, articles p
 Article::usingSearchString('published = 2020 and comments: (not spam or author.name = John) > 100');
 
 // Equivalent to:
-Article::where('published_at', '>=', '2020-01-01 00:00:00')
-        ->where('published_at', '<=', '2020-12-31 23:59:59')
-        ->whereHas('comments', function ($query) {
-            $query->where('spam', false)
-                ->orWhereHas('author' function ($query) {
-                    $query->where('name', 'John');
-                });
-        }, '>', 100);
+Article::whereBetween('published_at', ['2020-01-01 00:00:00', '2020-12-31 23:59:59'])
+        ->whereHas('comments', fn($query) => $query
+            ->where('spam', 0)
+            ->orWhereHas('author', fn($query) => $query
+                ->where('name', 'John')
+            )
+        , '>', 100);
 ```
 
 As you can see, not only it provides a convenient way to communicate with your Laravel API (instead of allowing dozens of query fields), it also can be presented to your users as a tool to explore their data.
