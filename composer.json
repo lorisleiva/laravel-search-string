@@ -11,13 +11,13 @@
     ],
     "require": {
         "php": "^8.1",
-        "illuminate/support": "^9.0|^10.0|^11.0",
+        "illuminate/support": "^10.0|^11.0",
         "hoa/compiler": "^3.17",
         "sanmai/hoa-protocol": "^1.17"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.0|^10.5",
-        "orchestra/testbench": "^7.0|^8.0|^9.0"
+        "orchestra/testbench": "^9.0",
+        "phpunit/phpunit": "^9.0|^10.5"
     },
     "autoload": {
         "psr-4": {
